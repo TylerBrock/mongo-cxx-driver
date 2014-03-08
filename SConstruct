@@ -1696,7 +1696,6 @@ Export("use_clang")
 
 env.SConscript('src/SConscript', variant_dir='$BUILD_DIR', duplicate=False)
 env.SConscript('src/SConscript.client', variant_dir='$BUILD_DIR', duplicate=False)
-env.SConscript(['SConscript.buildinfo', 'SConscript.smoke'])
 
 def clean_old_dist_builds(env, target, source):
     prefix = "mongodb-%s-%s" % (platform, processor)
