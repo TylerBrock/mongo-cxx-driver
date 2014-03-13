@@ -1165,6 +1165,19 @@ env.AlwaysBuild( "lint" )
 
 env['INSTALL_DIR'] = installDir
 
+
+# --- coverage ---
+
+if has_option("gcov"):
+    env.Alias("coverage", ['test', 'smokeClient'], [
+        "lcov -c -d . -o ./coverage.info --no-external",
+        "lcov -r ./coverage.info src/third_party/\* -o ./coverage.info",
+        "lcov -r ./coverage.info build/\* -o ./coverage.info",
+        "genhtml -o ./coverage ./coverage.info",
+    ])
+
+env.AlwaysBuild("coverage")
+
 # --- an uninstall target ---
 if len(COMMAND_LINE_TARGETS) > 0 and 'uninstall' in COMMAND_LINE_TARGETS:
     SetOption("clean", 1)
@@ -1193,3 +1206,4 @@ env.SConscript('src/SConscript.client', variant_dir='$BUILD_DIR', duplicate=Fals
 env.SConscript(['SConscript.buildinfo'])
 
 env.Alias('all', ['unittests', 'clientTests'])
+
