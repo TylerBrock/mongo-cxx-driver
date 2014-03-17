@@ -1165,24 +1165,6 @@ env.AlwaysBuild( "lint" )
 
 env['INSTALL_DIR'] = installDir
 
-
-# --- coverage ---
-
-if has_option("gcov"):
-    env.Alias("coverage", ['test', 'smokeClient'], [
-        # Build
-        "lcov -c -i -d . -o ./mongoclient_base.info --no-external",
-        # Test
-        "lcov -c -d . -o ./mongoclient_test.info --no-external",
-        # Remove extra
-        "lcov -r ./coverage.info src/third_party/\* -o ./coverage.info",
-        "lcov -r ./coverage.info build/\* -o ./coverage.info",
-        # Generate HTML
-        "genhtml -o ./coverage ./coverage.info",
-    ])
-
-env.AlwaysBuild("coverage")
-
 # --- an uninstall target ---
 if len(COMMAND_LINE_TARGETS) > 0 and 'uninstall' in COMMAND_LINE_TARGETS:
     SetOption("clean", 1)
@@ -1209,6 +1191,47 @@ Export("use_clang")
 env.SConscript('src/SConscript', variant_dir='$BUILD_DIR', duplicate=False)
 env.SConscript('src/SConscript.client', variant_dir='$BUILD_DIR', duplicate=False)
 env.SConscript(['SConscript.buildinfo'])
+
+# --- Coverage ---
+if has_option("gcov"):
+    env.Command(
+        'mongoclient_base.info',
+        None,
+        'lcov -c -i -d . -o $TARGET'
+    )
+    env.AlwaysBuild('mongoclient_base.info')
+    env.Alias('baseline_coverage', ['./mongoclient_base.info'])
+    env.Depends('mongoclient_base.info', 'unittests')
+    env.Depends('mongoclient_base.info', 'clientTests')
+
+    env.Command(
+        'mongoclient_test.info',
+        ['mongoclient_base.info'],
+        'lcov -c -d . -o $TARGET'
+    )
+    env.AlwaysBuild('mongoclient_test.info')
+    env.Alias('test_coverage', ['./mongoclient_test.info'])
+    env.Depends('mongoclient_test.info', 'test')
+    env.Depends('mongoclient_test.info', 'smokeClient')
+
+    env.Command(
+        'coverage.info',
+        ['mongoclient_test.info', 'mongoclient_base.info'],
+        [
+            'lcov -a mongoclient_base.info -a mongoclient_test.info -o $TARGET',
+            'lcov -r $TARGET src/third_party/\* -o $TARGET',
+            'lcov -r $TARGET build/\* -o $TARGET',
+            'lcov -r $TARGET /usr/include/\* -o $TARGET',
+            'lcov -r $TARGET .scons/\* -o $TARGET'
+        ]
+    )
+
+    env.Command(
+        Dir('coverage'),
+        'coverage.info',
+        'genhtml --legend -o $TARGET coverage.info'
+    )
+    env.AlwaysBuild('coverage')
 
 env.Alias('all', ['unittests', 'clientTests'])
 
