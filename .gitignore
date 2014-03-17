@@ -56,8 +56,8 @@
 /src/third_party/*/*.lastbuildstate
 config.log
 coverage.info
-mongoclient_base.info
-mongoclient_test.info
+base_coverage.info
+test_coverage.info
 settings.py
 log_config.py
 /tags

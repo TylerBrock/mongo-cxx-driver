@@ -1194,35 +1194,34 @@ env.SConscript(['SConscript.buildinfo'])
 
 # --- Coverage ---
 if has_option("gcov"):
+    # Command to generate base coverage information
     env.Command(
-        'mongoclient_base.info',
-        None,
-        'lcov -c -i -d . -o $TARGET'
+        'base_coverage.info',
+        ['unittests', 'clientTests'],
+        'lcov -q -c -i -d . -o $TARGET'
     )
-    env.AlwaysBuild('mongoclient_base.info')
-    env.Alias('baseline_coverage', ['./mongoclient_base.info'])
-    env.Depends('mongoclient_base.info', 'unittests')
-    env.Depends('mongoclient_base.info', 'clientTests')
+    env.AlwaysBuild('base_coverage.info')
+    env.Alias('baseline_coverage', ['./base_coverage.info'])
 
+    # Command to generate test coverage information
     env.Command(
-        'mongoclient_test.info',
-        ['mongoclient_base.info'],
-        'lcov -c -d . -o $TARGET'
+        'test_coverage.info',
+        ['base_coverage.info', 'test', 'smokeClient'],
+        'lcov -q -c -d . -o $TARGET'
     )
-    env.AlwaysBuild('mongoclient_test.info')
-    env.Alias('test_coverage', ['./mongoclient_test.info'])
-    env.Depends('mongoclient_test.info', 'test')
-    env.Depends('mongoclient_test.info', 'smokeClient')
+    env.AlwaysBuild('test_coverage.info')
+    env.Alias('test_coverage', ['./test_coverage.info'])
 
+    # Command to generate coverage info
     env.Command(
         'coverage.info',
-        ['mongoclient_test.info', 'mongoclient_base.info'],
+        ['test_coverage.info', 'base_coverage.info'],
         [
-            'lcov -a mongoclient_base.info -a mongoclient_test.info -o $TARGET',
-            'lcov -r $TARGET src/third_party/\* -o $TARGET',
-            'lcov -r $TARGET build/\* -o $TARGET',
-            'lcov -r $TARGET /usr/include/\* -o $TARGET',
-            'lcov -r $TARGET .scons/\* -o $TARGET'
+            'lcov -q -a base_coverage.info -a test_coverage.info -o $TARGET',
+            'lcov -q -r $TARGET src/third_party/\* -o $TARGET',
+            'lcov -q -r $TARGET build/\* -o $TARGET',
+            'lcov -q -r $TARGET /usr/include/\* -o $TARGET',
+            'lcov -q -r $TARGET \*/.scons/\* -o $TARGET'
         ]
     )
 
