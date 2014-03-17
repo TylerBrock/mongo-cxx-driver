@@ -7,7 +7,7 @@ compiler:
 env:
   global:
     - PREFIX=$(mktemp -d /tmp/mongo-cxx-driver-install.XXXXXX || exit 1)
-    - COVERALLS_OPTS="--no-gcov --exclude=src/third_party"
+    - COVERALLS_OPTS="--exclude=src/third_party"
 
 # Setup required repositories before installation
 before_install:
@@ -27,19 +27,21 @@ install:
 script:
     - scons
        -j2
-       --mute
-       --quiet
        --prefix=$PREFIX
-       --use-system-boost
-       --full
        --ssl
        --use-sasl-client
        --dbg=on
        --gcov
-       test
-       clientTests
-       check-install-mongoclient
+       unittests
+    - scons
+      --prefix=$PREFIX
+      --ssl
+      --use-sasl-client
+      --dbg=on
+      --gcov
+      test
 
 after_success:
-    # Not sure if coveralls-cpp supports clang yet
-    - if [ "$CXX" = "g++" ]; then coveralls ${COVERALLS_OPTS}; fi;
+    # Send coverage data to coveralls
+    - coveralls ${COVERALLS_OPTS}
+
