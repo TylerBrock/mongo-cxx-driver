@@ -1194,7 +1194,7 @@ env.SConscript(['SConscript.buildinfo'])
 
 # --- Coverage ---
 if has_option("gcov"):
-    # Command to generate base coverage information
+    # Generates base coverage information
     env.Command(
         'base_coverage.info',
         ['unittests', 'clientTests'],
@@ -1203,7 +1203,7 @@ if has_option("gcov"):
     env.AlwaysBuild('base_coverage.info')
     env.Alias('baseline_coverage', ['./base_coverage.info'])
 
-    # Command to generate test coverage information
+    # Generates test coverage information
     env.Command(
         'test_coverage.info',
         ['base_coverage.info', 'test', 'smokeClient'],
@@ -1212,7 +1212,7 @@ if has_option("gcov"):
     env.AlwaysBuild('test_coverage.info')
     env.Alias('test_coverage', ['./test_coverage.info'])
 
-    # Command to generate coverage info
+    # Aggregates coverage info
     env.Command(
         'coverage.info',
         ['test_coverage.info', 'base_coverage.info'],
@@ -1225,6 +1225,7 @@ if has_option("gcov"):
         ]
     )
 
+    # Generates the HTML output in "coverage" directory
     env.Command(
         Dir('coverage'),
         'coverage.info',
