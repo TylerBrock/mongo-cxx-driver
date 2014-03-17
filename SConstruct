@@ -1170,9 +1170,14 @@ env['INSTALL_DIR'] = installDir
 
 if has_option("gcov"):
     env.Alias("coverage", ['test', 'smokeClient'], [
-        "lcov -c -d . -o ./coverage.info --no-external",
+        # Build
+        "lcov -c -i -d . -o ./mongoclient_base.info --no-external",
+        # Test
+        "lcov -c -d . -o ./mongoclient_test.info --no-external",
+        # Remove extra
         "lcov -r ./coverage.info src/third_party/\* -o ./coverage.info",
         "lcov -r ./coverage.info build/\* -o ./coverage.info",
+        # Generate HTML
         "genhtml -o ./coverage ./coverage.info",
     ])
 
