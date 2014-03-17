@@ -7,19 +7,22 @@ compiler:
 env:
   global:
     - PREFIX=$(mktemp -d /tmp/mongo-cxx-driver-install.XXXXXX || exit 1)
+    - COVERALLS_OPTS="--no-gcov --exclude=src/third_party"
 
 # Setup required repositories before installation
 before_install:
     - sudo add-apt-repository -y ppa:jkeiren/ppa
     - sudo apt-get update -qq
 
-# Install Boost 1.49 dependencies via PPA
 install:
+    # Install Boost 1.49 dependencies via PPA
     - sudo apt-get install -qq
       libboost1.49-dev
       libboost-program-options1.49-dev
       libboost-filesystem1.49-dev
       libboost-thread1.49-dev
+    # Install coveralls for code coverage
+    - sudo pip install cpp-coveralls --use-mirrors
 
 script:
     - scons
@@ -27,10 +30,16 @@ script:
        --mute
        --quiet
        --prefix=$PREFIX
-       --sharedclient
+       --use-system-boost
+       --full
        --ssl
        --use-sasl-client
        --dbg=on
+       --gcov
        test
        clientTests
        check-install-mongoclient
+
+after_success:
+    # Not sure if coveralls-cpp supports clang yet
+    - if [ "$CXX" = "g++" ]; then coveralls ${COVERALLS_OPTS}; fi;
