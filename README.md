@@ -1,4 +1,7 @@
-# MongoDB C++ Driver [![Build Status](http://img.shields.io/travis/mongodb/mongo-cxx-driver/legacy.svg)](https://travis-ci.org/mongodb/mongo-cxx-driver)
+# MongoDB C++ Driver
+[![Build Status](http://img.shields.io/travis/mongodb/mongo-cxx-driver/legacy.svg)](https://travis-ci.org/mongodb/mongo-cxx-driver)
+[![Build Status](http://img.shields.io/coveralls/mongodb/mongo-ruby-driver/legacy.svg)](https://coveralls.io/r/mongodb/mongo-cxx-driver?branch=legacy)
+
 Welcome to the MongoDB C++ Driver!
 
 Use this branch if:

@@ -5,13 +5,16 @@ compiler:
     - clang
 
 env:
-  global:
-    - PREFIX=$(mktemp -d /tmp/mongo-cxx-driver-install.XXXXXX || exit 1)
-    - MONGO_REPO="http://repo.mongodb.com/apt/ubuntu"
-    - REPO_TYPE="precise/mongodb-enterprise/2.6 multiverse"
-    - SOURCES_LOC="/etc/apt/sources.list.d/mongodb-enterprise.list"
-    - KEY_SERVER="hkp://keyserver.ubuntu.com:80"
-    - MONGOD_OPTS="--port 27999 --httpinterface --dbpath ./data --fork --logpath mongod.log"
+    global:
+        - PREFIX=$(mktemp -d /tmp/mongo-cxx-driver-install.XXXXXX || exit 1)
+        - MONGO_REPO="http://repo.mongodb.com/apt/ubuntu"
+        - REPO_TYPE="precise/mongodb-enterprise/2.6 multiverse"
+        - SOURCES_LOC="/etc/apt/sources.list.d/mongodb-enterprise.list"
+        - KEY_SERVER="hkp://keyserver.ubuntu.com:80"
+        - MONGOD_OPTS="--port 27999 --httpinterface --dbpath ./data --fork --logpath mongod.log"
+    matrix:
+        - COVERAGE=true
+        - COVERAGE=false
 
 # Setup required repositories before installation
 before_install:
@@ -34,9 +37,15 @@ install:
     - mkdir data
     - mongod ${MONGOD_OPTS}
 
+    # Install Coveralls
+    - sudo pip install cpp-coveralls pyyaml
+
+before_script:
+    # Pass correct compiler/linker flags and don't optimize for coverage build
+    - if $COVERAGE; then GCOV="--gcov --opt=off"; else GCOV=""; fi
+
 script:
     - scons
-       -j2
        --mute
        --quiet
        --prefix=$PREFIX
@@ -44,6 +53,10 @@ script:
        --ssl
        --use-sasl-client
        --dbg=on
+       $GCOV
        check-install-mongoclient
        test
        smokeClient
+
+after_success:
+    - if $COVERAGE; then coveralls -n -E ".*scons.*|.*thirdparty.*"; fi
