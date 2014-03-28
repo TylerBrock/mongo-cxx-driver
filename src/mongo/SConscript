@@ -54,9 +54,7 @@ unittests = [
 for unittest in unittests:
     env.CppUnitTest(
         target=unittest,
-        source=[
-            unittest + '.cpp'
-        ],
+        source=[unittest + '.cpp'],
         LIBDEPS=[
             'mocklib',
              static_mongoclient_libdep,
@@ -68,8 +66,8 @@ integration_tests = [
 ]
 
 for integration_test in integration_tests:
-    env.CppUnitTest(
-        target=integration,
+    env.IntegrationTest(
+        target=integration_test,
         source=[unittest + '.cpp'],
         LIBDEPS=['mocklib', static_mongoclient_libdep]
     )
