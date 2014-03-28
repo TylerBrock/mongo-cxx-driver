@@ -15,21 +15,30 @@ env.Library(
         "dbtests/mock/mock_remote_db_server.cpp",
         "dbtests/mock/mock_replica_set.cpp",
     ],
-    LIBDEPS=[static_mongoclient_libdep]
+    LIBDEPS=[
+        static_mongoclient_libdep,
+    ]
 )
 
 env.Library(
     target='clienttest_main',
-    source=['clienttest_main.cpp'],
-    LIBDEPS=['$BUILD_DIR/third_party/gtest-1.7.0/gtest']
+    source=[
+        'clienttest_main.cpp'
+    ],
+    LIBDEPS=[
+        '$BUILD_DIR/third_party/gtest-1.7.0/gtest'
+    ],
 )
 
 env.Library(
     target='integration_main',
-    source=['integration_main.cpp'],
-    LIBDEPS=['$BUILD_DIR/third_party/gtest-1.7.0/gtest']
+    source=[
+        'integration_main.cpp'
+    ],
+    LIBDEPS=[
+        '$BUILD_DIR/third_party/gtest-1.7.0/gtest'
+    ],
 )
-
 
 unittests = [
     'base/parse_number_test',
@@ -39,7 +48,6 @@ unittests = [
     'bson/bsonobjbuilder_test',
     'bson/util/bson_extract_test',
     'client/dbclient_rs_test',
-    'client/gridfs_test',
     'client/replica_set_monitor_test',
     'client/scoped_db_conn_test',
     'dbtests/jsobjtests',
@@ -61,17 +69,29 @@ unittests = [
 for unittest in unittests:
     env.CppUnitTest(
         target=unittest,
-        source=[unittest + '.cpp'],
-        LIBDEPS=['mocklib', static_mongoclient_libdep]
+        source=[
+            unittest + '.cpp'
+        ],
+        LIBDEPS=[
+            'mocklib',
+             static_mongoclient_libdep,
+        ]
     )
 
 integration_tests = [
-    'client/tests/dbclient',
+    'client/integration/dbclient',
+    'client/integration/gridfs_test',
+    #'client/integration/sasl_client_auth'
 ]
 
 for integration_test in integration_tests:
     env.IntegrationTest(
         target=integration_test,
-        source=[unittest + '.cpp'],
-        LIBDEPS=['mocklib', static_mongoclient_libdep]
+        source=[
+            integration_test + '.cpp'
+        ],
+        LIBDEPS=[
+            'mocklib',
+            static_mongoclient_libdep
+        ]
     )
