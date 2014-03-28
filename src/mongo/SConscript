@@ -24,6 +24,13 @@ env.Library(
     LIBDEPS=['$BUILD_DIR/third_party/gtest-1.7.0/gtest']
 )
 
+env.Library(
+    target='integration_main',
+    source=['integration_main.cpp'],
+    LIBDEPS=['$BUILD_DIR/third_party/gtest-1.7.0/gtest']
+)
+
+
 unittests = [
     'base/parse_number_test',
     'bson/bson_field_test',
@@ -55,10 +62,7 @@ for unittest in unittests:
     env.CppUnitTest(
         target=unittest,
         source=[unittest + '.cpp'],
-        LIBDEPS=[
-            'mocklib',
-             static_mongoclient_libdep,
-        ]
+        LIBDEPS=['mocklib', static_mongoclient_libdep]
     )
 
 integration_tests = [
