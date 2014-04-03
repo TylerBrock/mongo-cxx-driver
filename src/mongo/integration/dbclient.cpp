@@ -1,5 +1,5 @@
 #include <iostream>
-#include "mongo/client/integration/integration.h"
+#include "mongo/integration/integration.h"
 
 extern ParameterStruct TestParams;
 

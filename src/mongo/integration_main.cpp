@@ -1,6 +1,7 @@
 #include <iostream>
 
-#include "mongo/client/integration/integration.h"
+#include "mongo/client/init.h"
+#include "mongo/integration/integration.h"
 
 ParameterStruct TestParams;
 

@@ -1,7 +1,6 @@
 #include <string>
-#include <gtest/gtest.h>
 
-#include "mongo/client/init.h"
+#include "mongo/unittest/unittest.h"
 
 #pragma once
 

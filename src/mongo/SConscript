@@ -79,9 +79,9 @@ for unittest in unittests:
     )
 
 integration_tests = [
-    'client/integration/dbclient',
-    'client/integration/gridfs_test',
-    #'client/integration/sasl_client_auth'
+    'integration/dbclient',
+    'integration/gridfs_test',
+    'integration/sasl_test'
 ]
 
 for integration_test in integration_tests:
