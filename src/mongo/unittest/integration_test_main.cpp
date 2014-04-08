@@ -16,6 +16,7 @@
 #include <iostream>
 
 #include "mongo/unittest/integration_test.h"
+#include "mongo/util/net/ssl_options.h"
 #include "mongo/client/init.h"
 
 namespace mongo {
@@ -35,7 +36,10 @@ int main(int argc, char **argv) {
         mongo::unittest::integrationTestParams.port = "27107";
     }
 
+    sslGlobalParams.sslMode.store(SSLGlobalParams::SSLMode_requireSSL);
+    mongo::sslGlobalParams.sslPEMKeyFile = "/home/tbrock/Code/mongo/jstests/libs/client.pem";
     mongo::Status status = mongo::client::initialize();
+
     if (!status.isOK())
         ::abort();
 

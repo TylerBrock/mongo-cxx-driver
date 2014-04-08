@@ -9,6 +9,7 @@
 using std::string;
 using std::list;
 using std::auto_ptr;
+using boost::function;
 using namespace mongo;
 using namespace mongo::unittest;
 using namespace bson;
@@ -170,7 +171,7 @@ TEST_F(DBClientTest, DISABLED_TTLIndex) {
     ASSERT_TRUE(c.findOne(TEST_NS, BSONObjBuilder().append("name", "foo").obj()).isEmpty());
 }
 
-TEST_F(DBClientTest, Hint) {
+TEST_F(DBClientTest, HintUsage) {
     c.insert(TEST_NS, BSON("name" << "Tyler" << "num" << 1));
     c.insert(TEST_NS, BSON("name" << "Jason" << "num" << 2));
     c.ensureIndex(TEST_NS, BSON("name" << 1));
@@ -251,6 +252,7 @@ TEST_F(DBClientTest, MapReduce) {
     BSONObj out;
     // TODO: Do something with the output
     out = c.mapreduce(TEST_NS, map, reduce, BSONObj()); // default to inline
+    out = c.mapreduce(TEST_NS, map, reduce, BSON("a" << 1));
     out = c.mapreduce(TEST_NS, map, reduce, BSONObj(), outcoll);
     out = c.mapreduce(TEST_NS, map, reduce, BSONObj(), outcoll.c_str());
     out = c.mapreduce(TEST_NS, map, reduce, BSONObj(), BSON("reduce" << outcoll));
@@ -268,7 +270,7 @@ TEST_F(DBClientTest, Timeout) {
 
     ASSERT_TRUE(c.eval("test", eval_str, res));
     ASSERT_THROWS(
-        conn.eval( "test" , "sleep(2000); " + eval_str, res)
+        conn.eval( "test" , "sleep(2000); " + eval_str)
     , DBException);
     ASSERT_TRUE(c.eval("test", eval_str, res));
 }
@@ -295,3 +297,271 @@ TEST_F(DBClientTest, Where) {
     ASSERT_EQUALS(num, 1);
 }
 
+/* Added examples */
+
+TEST_F(DBClientTest, ServerAlive) {
+    ASSERT_TRUE(serverAlive("localhost:" + integrationTestParams.port));
+    ASSERT_FALSE(serverAlive("fakehost"));
+}
+
+TEST_F(DBClientTest, ErrField) {
+    ASSERT_FALSE(hasErrField(BSONObj()));
+    ASSERT_TRUE(hasErrField(BSON("$err" << true)));
+}
+
+TEST_F(DBClientTest, Explain) {
+    Query q;
+    q.explain();
+    ASSERT_TRUE(q.isComplex());
+    ASSERT_TRUE(q.isExplain());
+}
+
+TEST_F(DBClientTest, Snapshot) {
+    Query q;
+    q.snapshot();
+    ASSERT_TRUE(q.isComplex());
+    // TODO: figure out how to test this worked
+}
+
+TEST_F(DBClientTest, Sort) {
+    Query q;
+    q.sort(BSON("a" << 1));
+    ASSERT_TRUE(q.isComplex());
+    BSONObj sort = q.getSort();
+    ASSERT_TRUE(sort.hasField("a"));
+    ASSERT_EQUALS(sort.getIntField("a"), 1);
+}
+
+TEST_F(DBClientTest, Hint) {
+    Query q;
+    q.hint(BSON("a" << 1));
+    BSONObj hint = q.getHint();
+    ASSERT_TRUE(hint.hasField("a"));
+    ASSERT_EQUALS(hint.getIntField("a"), 1);
+}
+
+TEST_F(DBClientTest, MinKey) {
+    Query q;
+    q.minKey(BSONObj());
+    // TODO: figure out how to test this
+}
+
+TEST_F(DBClientTest, MaxKey) {
+    Query q;
+    q.maxKey(BSONObj());
+    // TODO: figure out how to test this
+}
+
+TEST(ConnectionString, SameLogicalEndpoint) {
+    string err1;
+    string err2;
+    ConnectionString cs1;
+    ConnectionString cs2;
+
+    // INVALID -- default non parsed state
+    ASSERT_TRUE(cs1.sameLogicalEndpoint(cs2));
+    cs2 = ConnectionString::parse("host1,host2,host3", err1);
+    ASSERT_TRUE(cs1.sameLogicalEndpoint(cs2));
+
+    // MASTER
+    cs1 = ConnectionString::parse("localhost:1234", err1);
+    cs2 = ConnectionString::parse("localhost:1234", err2);
+    ASSERT_TRUE(cs1.sameLogicalEndpoint(cs2));
+
+    // PAIR -- compares the host + port even in swapped order
+    cs1 = cs1.parse("localhost:1234,localhost:5678", err1);
+    cs2 = cs2.parse("localhost:1234,localhost:5678", err2);
+    ASSERT_TRUE(cs1.sameLogicalEndpoint(cs2));
+    cs2 = cs2.parse("localhost:5678,localhost:1234", err2);
+    ASSERT_TRUE(cs1.sameLogicalEndpoint(cs2));
+
+    // SET -- compares the set name only
+    cs1 = cs1.parse("testset/localhost:1234,localhost:5678", err1);
+    cs2 = cs2.parse("testset/localhost:5678,localhost:1234", err2);
+    ASSERT_TRUE(cs1.sameLogicalEndpoint(cs2));
+
+    // Different types
+    cs1 = cs1.parse("testset/localhost:1234,localhost:5678", err1);
+    cs2 = cs2.parse("localhost:5678,localhost:1234", err2);
+    ASSERT_FALSE(cs1.sameLogicalEndpoint(cs2));
+}
+
+TEST(ConnectionString, TypeToString) {
+    ASSERT_EQUALS(
+        ConnectionString::typeToString(ConnectionString::INVALID),
+        "invalid"
+    );
+    ASSERT_EQUALS(
+        ConnectionString::typeToString(ConnectionString::MASTER),
+        "master"
+    );
+    ASSERT_EQUALS(
+        ConnectionString::typeToString(ConnectionString::PAIR),
+        "pair"
+    );
+    ASSERT_EQUALS(
+        ConnectionString::typeToString(ConnectionString::SET),
+        "set"
+    );
+    ASSERT_EQUALS(
+        ConnectionString::typeToString(ConnectionString::CUSTOM),
+        "custom"
+    );
+}
+
+// Ported from dbtests/querytests.cpp
+// d4fad81da14cf89587592f0188ca0cdfb5d4d38c
+TEST_F(DBClientTest, ManualGetMore) {
+    for(int i = 0; i < 3; ++i) {
+        c.insert(TEST_NS, BSON("num" << i));
+    }
+    auto_ptr<DBClientCursor> cursor = c.query(TEST_NS, Query("{}"), 2);
+    uint64_t cursor_id = cursor->getCursorId();
+    cursor->decouple();
+    cursor.reset();
+    cursor = c.getMore(TEST_NS, cursor_id);
+    ASSERT_TRUE(cursor->more());
+    ASSERT_EQUALS(cursor->next().getIntField("num"), 2);
+}
+
+TEST_F(DBClientTest, InsertVector) {
+    std::vector<BSONObj> v;
+    v.push_back(BSON("num" << 1));
+    v.push_back(BSON("num" << 2));
+    c.insert(TEST_NS, v);
+    ASSERT_EQUALS(c.count(TEST_NS), 2);
+}
+
+TEST_F(DBClientTest, InsertVectorContinueOnError) {
+    std::vector<BSONObj> v;
+    v.push_back(BSON("_id" << 1));
+    v.push_back(BSON("_id" << 1));
+    v.push_back(BSON("_id" << 2));
+    c.insert(TEST_NS, v, InsertOption_ContinueOnError);
+    ASSERT_EQUALS(c.count(TEST_NS), 2);
+}
+
+TEST_F(DBClientTest, GetIndexes) {
+    auto_ptr<DBClientCursor> cursor = c.getIndexes(TEST_NS);
+    ASSERT_FALSE(cursor->more());
+
+    c.insert(TEST_NS, BSON("test" << true));
+    cursor = c.getIndexes(TEST_NS);
+    ASSERT_EQUALS(cursor->itcount(), 1);
+
+    c.ensureIndex(TEST_NS, BSON("test" << 1));
+    cursor = c.getIndexes(TEST_NS);
+    std::vector<BSONObj> v;
+    while(cursor->more())
+        v.push_back(cursor->next());
+    ASSERT_EQUALS(v.size(), 2);
+    ASSERT_EQUALS(v[0]["name"].String(), "_id_");
+    ASSERT_EQUALS(v[1]["name"].String(), "test_1");
+}
+
+TEST_F(DBClientTest, DropIndexes) {
+    c.ensureIndex(TEST_NS, BSON("test" << 1));
+    unsigned index_count = c.getIndexes(TEST_NS)->itcount();
+    ASSERT_EQUALS(index_count, 2);
+    c.dropIndexes(TEST_NS);
+    index_count = c.getIndexes(TEST_NS)->itcount();
+    ASSERT_EQUALS(index_count, 1);
+}
+
+TEST_F(DBClientTest, DropIndex) {
+    c.ensureIndex(TEST_NS, BSON("test" << 1));
+    c.ensureIndex(TEST_NS, BSON("test2" << -1));
+    unsigned index_count = c.getIndexes(TEST_NS)->itcount();
+    ASSERT_EQUALS(index_count, 3);
+
+    // Interface that takes an index key obj
+    c.dropIndex(TEST_NS, BSON("test" << 1));
+    index_count = c.getIndexes(TEST_NS)->itcount();
+    ASSERT_EQUALS(index_count, 2);
+
+    // Interface that takes an index name
+    c.dropIndex(TEST_NS, "test2_-1");
+    index_count = c.getIndexes(TEST_NS)->itcount();
+    ASSERT_EQUALS(index_count, 1);
+
+    // Drop of unknown index should throw an error
+    ASSERT_THROWS(c.dropIndex(TEST_NS, "test3_1"), DBException);
+}
+
+TEST_F(DBClientTest, ReIndex) {
+    c.ensureIndex(TEST_NS, BSON("test" << 1));
+    c.ensureIndex(TEST_NS, BSON("test2" << -1));
+    unsigned index_count = c.getIndexes(TEST_NS)->itcount();
+    ASSERT_EQUALS(index_count, 3);
+    c.reIndex(TEST_NS);
+    index_count = c.getIndexes(TEST_NS)->itcount();
+    ASSERT_EQUALS(index_count, 3);
+}
+
+TEST_F(DBClientTest, CreateCollection) {
+    ASSERT_FALSE(c.exists(TEST_NS));
+    ASSERT_TRUE(c.createCollection(TEST_NS));
+    ASSERT_FALSE(c.createCollection(TEST_NS));
+    ASSERT_TRUE(c.exists(TEST_NS));
+}
+
+TEST_F(DBClientTest, CopyDatabase) {
+    c.dropDatabase("copy");
+    c.insert(TEST_NS, BSON("test" << true));
+    ASSERT_TRUE(c.copyDatabase("test", "copy"));
+    c.exists("copy.foo");
+    BSONObj doc = c.findOne("copy.foo", Query("{}"));
+    ASSERT_TRUE(doc["test"].boolean());
+}
+
+TEST_F(DBClientTest, DBProfilingLevel) {
+    DBClientWithCommands::ProfilingLevel level;
+    ASSERT_TRUE(c.setDbProfilingLevel("test", c.ProfileOff));
+    ASSERT_TRUE(c.getDbProfilingLevel("test", level, 0));
+    ASSERT_EQUALS(level, c.ProfileOff);
+
+    ASSERT_TRUE(c.setDbProfilingLevel("test", c.ProfileSlow));
+    ASSERT_TRUE(c.getDbProfilingLevel("test", level, 0));
+    ASSERT_EQUALS(level, c.ProfileSlow);
+
+    ASSERT_TRUE(c.setDbProfilingLevel("test", c.ProfileAll));
+    ASSERT_TRUE(c.getDbProfilingLevel("test", level, 0));
+    ASSERT_EQUALS(level, c.ProfileAll);
+}
+
+TEST_F(DBClientTest, QueryJSON) {
+    Query q(string("{name: 'Tyler'}"));
+    BSONObj filter = q.getFilter();
+    ASSERT_TRUE(filter.hasField("name"));
+    ASSERT_EQUALS(filter["name"].String(), "Tyler");
+}
+
+boost::function<void(const BSONObj &)> f;
+
+struct func {
+    void operator()(const BSONObj &) {
+        // NOP
+    }
+};
+
+// This also excercises availableOptions (which is protected)
+TEST_F(DBClientTest, Exhaust) {
+    for(int i=0; i<1000; ++i)
+        c.insert(TEST_NS, BSON("num" << i));
+    f = func();
+    c.query(f, TEST_NS, Query("{}"));
+}
+
+TEST_F(DBClientTest, GetLastError) {
+    c.insert(TEST_NS, BSON("_id" << 1));
+    c.insert(TEST_NS, BSON("_id" << 1));
+    // TODO: MOAR TESTS
+}
+
+TEST_F(DBClientTest, GetPrevError) {
+    c.insert(TEST_NS, BSON("_id" << 1));
+    c.insert(TEST_NS, BSON("_id" << 1));
+    c.insert(TEST_NS, BSON("_id" << 2));
+    ASSERT_TRUE(c.getLastError().empty());
+    ASSERT_FALSE(c.getPrevError().isEmpty());
+}
