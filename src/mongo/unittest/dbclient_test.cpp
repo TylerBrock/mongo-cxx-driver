@@ -516,17 +516,17 @@ TEST_F(DBClientTest, CopyDatabase) {
 
 TEST_F(DBClientTest, DBProfilingLevel) {
     DBClientWithCommands::ProfilingLevel level;
-    ASSERT_TRUE(c.setDbProfilingLevel("test", c.ProfileOff));
+    ASSERT_TRUE(c.setDbProfilingLevel("test", c.ProfileAll));
     ASSERT_TRUE(c.getDbProfilingLevel("test", level, 0));
-    ASSERT_EQUALS(level, c.ProfileOff);
+    ASSERT_EQUALS(level, c.ProfileAll);
 
     ASSERT_TRUE(c.setDbProfilingLevel("test", c.ProfileSlow));
     ASSERT_TRUE(c.getDbProfilingLevel("test", level, 0));
     ASSERT_EQUALS(level, c.ProfileSlow);
 
-    ASSERT_TRUE(c.setDbProfilingLevel("test", c.ProfileAll));
+    ASSERT_TRUE(c.setDbProfilingLevel("test", c.ProfileOff));
     ASSERT_TRUE(c.getDbProfilingLevel("test", level, 0));
-    ASSERT_EQUALS(level, c.ProfileAll);
+    ASSERT_EQUALS(level, c.ProfileOff);
 }
 
 TEST_F(DBClientTest, QueryJSON) {
@@ -564,4 +564,95 @@ TEST_F(DBClientTest, GetPrevError) {
     c.insert(TEST_NS, BSON("_id" << 2));
     ASSERT_TRUE(c.getLastError().empty());
     ASSERT_FALSE(c.getPrevError().isEmpty());
+}
+
+TEST_F(DBClientTest, MaxScan) {
+    for(int i = 0; i < 100; ++i) {
+        c.insert(TEST_NS, fromjson("{}"));
+    }
+    std::vector<BSONObj> results;
+    c.findN(results, TEST_NS, Query("{}"), 100);
+    ASSERT_EQUALS(results.size(), 100);
+    results.clear();
+    c.findN(results, TEST_NS, Query("{$query: {}, $maxScan: 50}"), 100);
+    ASSERT_EQUALS(results.size(), 50);
+}
+
+TEST_F(DBClientTest, ReturnKey) {
+    c.insert(TEST_NS, BSON("a" << true << "b" << true));
+
+    BSONObj result;
+
+    result = c.findOne(TEST_NS, Query("{$query: {a: true}}"));
+    ASSERT_TRUE(result.hasField("a"));
+    ASSERT_TRUE(result.hasField("b"));
+
+    result = c.findOne(TEST_NS, Query("{$query: {a: true}, $returnKey: true}"));
+    ASSERT_FALSE(result.hasField("a"));
+    ASSERT_FALSE(result.hasField("b"));
+
+    c.ensureIndex(TEST_NS, BSON("a" << 1));
+    result = c.findOne(TEST_NS, Query("{$query: {a: true}, $returnKey: true}"));
+    ASSERT_TRUE(result.hasField("a"));
+    ASSERT_FALSE(result.hasField("b"));
+}
+
+TEST_F(DBClientTest, ShowDiskLoc) {
+    c.insert(TEST_NS, BSON("a" << true));
+
+    BSONObj result;
+
+    result = c.findOne(TEST_NS, Query("{$query: {}}"));
+    ASSERT_FALSE(result.hasField("$diskLoc"));
+
+    result = c.findOne(TEST_NS, Query("{$query: {}, $showDiskLoc: true}"));
+    ASSERT_TRUE(result.hasField("$diskLoc"));
+}
+
+TEST_F(DBClientTest, DISABLED_MaxTimeMS) {
+    // Requires --setParameter=enableTestCommand=1
+    c.insert(TEST_NS, BSON("a" << true));
+    BSONObj result;
+
+    c.runCommand("admin", BSON("buildinfo" << true), result);
+    if (result["version"].toString() >= "2.5.3"){
+        c.runCommand("admin", BSON(
+            "configureFailPoint" << "maxTimeAlwaysTimeOut" <<
+            "mode" << BSON("times" << 2)
+        ), result);
+
+        // First test with a query
+        ASSERT_NO_THROW(
+            c.findOne(TEST_NS, Query("{$query: {}}"));
+        );
+        ASSERT_THROWS(
+            c.findOne(TEST_NS, Query("{$query: {}, $maxTimeMS: 1}"));
+        , DBException);
+
+        // Then test with a command
+        ASSERT_TRUE(
+            c.runCommand("test", BSON("count" << "test"), result)
+        );
+        ASSERT_FALSE(
+            c.runCommand("test",
+                BSON("count" << "test" << "maxTimeMS" << 1), result)
+        );
+    } else {
+        // we are not connected to MongoDB >= 2.5.3, skip
+        SUCCEED();
+    }
+}
+
+TEST_F(DBClientTest, Comment) {
+    c.insert(TEST_NS, BSON("a" << true));
+    c.dropCollection("test.system.profile");
+    c.setDbProfilingLevel("test", c.ProfileAll);
+    c.findOne(TEST_NS, Query("{$query: {a: 'z'}, $comment: 'wow'})"));
+    c.setDbProfilingLevel("test", c.ProfileOff);
+    BSONObj result = c.findOne("test.system.profile", BSON(
+        "ns" << "test.foo" <<
+        "op" << "query" <<
+        "query.$comment" << "wow"
+    ));
+    ASSERT_FALSE(result.isEmpty());
 }
