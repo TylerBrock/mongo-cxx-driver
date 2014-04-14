@@ -610,7 +610,7 @@ TEST_F(DBClientTest, ShowDiskLoc) {
 }
 
 TEST_F(DBClientTest, DISABLED_MaxTimeMS) {
-    // Requires --setParameter=enableTestCommand=1
+    // Requires --setParameter=enableTestCommands=1
     c.insert(TEST_NS, BSON("a" << true));
     BSONObj result;
 
