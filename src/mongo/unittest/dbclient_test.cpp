@@ -7,6 +7,7 @@
 #include "mongo/client/dbclient.h"
 
 using std::string;
+using std::vector;
 using std::list;
 using std::auto_ptr;
 using boost::function;
@@ -44,7 +45,7 @@ TEST_F(DBClientTest, Count) {
 
 }
 
-TEST_F(DBClientTest, CreateIndex) {
+TEST_F(DBClientTest, EnsureIndex) {
     // make an index with a unique key constraint
     c.ensureIndex(TEST_NS, BSON("hello"<<1), /*unique*/true);
 
@@ -425,7 +426,7 @@ TEST_F(DBClientTest, ManualGetMore) {
 }
 
 TEST_F(DBClientTest, InsertVector) {
-    std::vector<BSONObj> v;
+    vector<BSONObj> v;
     v.push_back(BSON("num" << 1));
     v.push_back(BSON("num" << 2));
     c.insert(TEST_NS, v);
@@ -433,7 +434,7 @@ TEST_F(DBClientTest, InsertVector) {
 }
 
 TEST_F(DBClientTest, InsertVectorContinueOnError) {
-    std::vector<BSONObj> v;
+    vector<BSONObj> v;
     v.push_back(BSON("_id" << 1));
     v.push_back(BSON("_id" << 1));
     v.push_back(BSON("_id" << 2));
@@ -451,7 +452,7 @@ TEST_F(DBClientTest, GetIndexes) {
 
     c.ensureIndex(TEST_NS, BSON("test" << 1));
     cursor = c.getIndexes(TEST_NS);
-    std::vector<BSONObj> v;
+    vector<BSONObj> v;
     while(cursor->more())
         v.push_back(cursor->next());
     ASSERT_EQUALS(v.size(), 2);
@@ -570,7 +571,7 @@ TEST_F(DBClientTest, MaxScan) {
     for(int i = 0; i < 100; ++i) {
         c.insert(TEST_NS, fromjson("{}"));
     }
-    std::vector<BSONObj> results;
+    vector<BSONObj> results;
     c.findN(results, TEST_NS, Query("{}"), 100);
     ASSERT_EQUALS(results.size(), 100);
     results.clear();
@@ -655,4 +656,80 @@ TEST_F(DBClientTest, Comment) {
         "query.$comment" << "wow"
     ));
     ASSERT_FALSE(result.isEmpty());
+}
+
+TEST(ReadPreference, Primary) {
+    Query q("{}");
+    q.readPref(mongo::ReadPreference_PrimaryOnly, BSONArray());
+    ASSERT_TRUE(q.obj.hasField(Query::ReadPrefField.name()));
+    BSONElement read_pref_elem = q.obj[Query::ReadPrefField.name()];
+    ASSERT_TRUE(read_pref_elem.isABSONObj());
+    BSONObj read_pref_obj = read_pref_elem.Obj();
+    ASSERT_EQUALS(read_pref_obj[Query::ReadPrefModeField.name()].String(), "primary");
+    ASSERT_FALSE(read_pref_obj.hasField(Query::ReadPrefTagsField.name()));
+}
+
+TEST(ReadPreference, PrimaryPreferred) {
+    Query q("{}");
+    q.readPref(mongo::ReadPreference_PrimaryPreferred, BSONArray());
+    ASSERT_TRUE(q.obj.hasField(Query::ReadPrefField.name()));
+    BSONElement read_pref_elem = q.obj[Query::ReadPrefField.name()];
+    ASSERT_TRUE(read_pref_elem.isABSONObj());
+    BSONObj read_pref_obj = read_pref_elem.Obj();
+    ASSERT_EQUALS(read_pref_obj[Query::ReadPrefModeField.name()].String(), "primaryPreferred");
+    ASSERT_FALSE(read_pref_obj.hasField(Query::ReadPrefTagsField.name()));
+}
+
+TEST(ReadPreference, Secondary) {
+    Query q("{}");
+    q.readPref(mongo::ReadPreference_SecondaryOnly, BSONArray());
+    ASSERT_TRUE(q.obj.hasField(Query::ReadPrefField.name()));
+    BSONElement read_pref_elem = q.obj[Query::ReadPrefField.name()];
+    ASSERT_TRUE(read_pref_elem.isABSONObj());
+    BSONObj read_pref_obj = read_pref_elem.Obj();
+    ASSERT_EQUALS(read_pref_obj[Query::ReadPrefModeField.name()].String(), "secondary");
+    ASSERT_FALSE(read_pref_obj.hasField(Query::ReadPrefTagsField.name()));
+}
+
+TEST(ReadPreference, SecondaryPreferred) {
+    Query q("{}");
+    q.readPref(mongo::ReadPreference_SecondaryPreferred, BSONArray());
+    ASSERT_TRUE(q.obj.hasField(Query::ReadPrefField.name()));
+    BSONElement read_pref_elem = q.obj[Query::ReadPrefField.name()];
+    ASSERT_TRUE(read_pref_elem.isABSONObj());
+    BSONObj read_pref_obj = read_pref_elem.Obj();
+    ASSERT_EQUALS(read_pref_obj[Query::ReadPrefModeField.name()].String(), "secondaryPreferred");
+    ASSERT_FALSE(read_pref_obj.hasField(Query::ReadPrefTagsField.name()));
+}
+
+TEST(ReadPreference, Nearest) {
+    Query q("{}");
+    q.readPref(mongo::ReadPreference_Nearest, BSONArray());
+    ASSERT_TRUE(q.obj.hasField(Query::ReadPrefField.name()));
+    BSONElement read_pref_elem = q.obj[Query::ReadPrefField.name()];
+    ASSERT_TRUE(read_pref_elem.isABSONObj());
+    BSONObj read_pref_obj = read_pref_elem.Obj();
+    ASSERT_EQUALS(read_pref_obj[Query::ReadPrefModeField.name()].String(), "nearest");
+    ASSERT_FALSE(read_pref_obj.hasField(Query::ReadPrefTagsField.name()));
+}
+
+TEST(ReadPreference, TagSets) {
+    Query q("{}");
+    BSONObj tag_set1 = BSON("datacenter" << "nyc");
+    BSONObj tag_set2 = BSON("awesome" << "yeah");
+    BSONObjBuilder bob;
+    BSONArrayBuilder bab;
+    bab.append(tag_set1);
+    bab.append(tag_set2);
+    q.readPref(mongo::ReadPreference_SecondaryOnly, bab.arr());
+    ASSERT_TRUE(q.obj.hasField(Query::ReadPrefField.name()));
+
+    BSONElement read_pref_elem = q.obj[Query::ReadPrefField.name()];
+    ASSERT_TRUE(read_pref_elem.isABSONObj());
+    BSONObj read_pref_obj = read_pref_elem.Obj();
+    ASSERT_EQUALS(read_pref_obj[Query::ReadPrefModeField.name()].String(), "secondary");
+    ASSERT_TRUE(read_pref_obj.hasField(Query::ReadPrefTagsField.name()));
+    vector<BSONElement> tag_sets = read_pref_obj[Query::ReadPrefTagsField.name()].Array();
+    ASSERT_EQUALS(tag_sets[0].Obj(), tag_set1);
+    ASSERT_EQUALS(tag_sets[1].Obj(), tag_set2);
 }
