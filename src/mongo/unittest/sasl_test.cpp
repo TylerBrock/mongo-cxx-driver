@@ -26,7 +26,7 @@ namespace {
     }
 } // namespace
 
-TEST(SASLAuthentication, LDAP) {
+TEST(SASLAuthentication, DISABLED_LDAP) {
     DBClientConnection conn;
     conn.connect("ldaptest.10gen.cc"); // only available internally or on jenkins
 
