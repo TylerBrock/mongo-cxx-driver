@@ -1200,7 +1200,9 @@ if has_option("gcov"):
         'lcov --no-external -c -b $GCOV_BASE_DIR -d $GCOV_BUILD_DIR -o $TARGET'
     )
     env.SideEffect('coverage_side_effect', [
-        'zero_counters'
+        'zero_counters',
+        'unittests',
+        'integration_tests',
         'test',
         'integration'
     ])

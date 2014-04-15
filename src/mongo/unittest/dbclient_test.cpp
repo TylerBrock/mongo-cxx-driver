@@ -45,7 +45,7 @@ TEST_F(DBClientTest, Count) {
 
 }
 
-TEST_F(DBClientTest, EnsureIndex) {
+TEST_F(DBClientTest, DuplicateKey) {
     // make an index with a unique key constraint
     c.ensureIndex(TEST_NS, BSON("hello"<<1), /*unique*/true);
 
