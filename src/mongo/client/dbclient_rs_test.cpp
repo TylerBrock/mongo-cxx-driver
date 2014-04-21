@@ -27,6 +27,7 @@
 #include "mongo/dbtests/mock/mock_replica_set.h"
 #include "mongo/unittest/unittest.h"
 #include "mongo/util/assert_util.h"
+#include "mongo/util/fail_point_service.h"
 
 #include <map>
 #include <memory>
@@ -87,6 +88,138 @@ namespace {
     private:
         boost::scoped_ptr<MockReplicaSet> _replSet;
     };
+
+    TEST_F(BasicRS, BasicMethods) {
+        MockReplicaSet* replSet = getReplSet();
+        DBClientReplicaSet replConn(replSet->getSetName(), replSet->getHosts(), 123);
+
+        ASSERT_TRUE(replConn.connect());
+        ASSERT_EQUALS(replConn.type(), ConnectionString::SET);
+        ASSERT_EQUALS(replConn.getSoTimeout(), 123);
+        ASSERT_EQUALS(replConn.toString(), "test/$test0:27017,$test1:27017");
+        ASSERT_TRUE(replConn.lazySupported());
+
+        ASSERT_TRUE(replConn.isFailed()); // haven't tried to connect yet
+
+        replConn.query(IdentityNS, Query());
+
+        ASSERT_FALSE(replConn.isFailed()); // works now that we've connected
+    }
+
+    TEST_F(BasicRS, Insert) {
+        MockReplicaSet* replSet = getReplSet();
+        DBClientReplicaSet replConn(replSet->getSetName(), replSet->getHosts());
+
+        replConn.insert("test.test", BSON("a" << true));
+
+        BSONObj doc = replConn.findOne("test.test", Query());
+        ASSERT_TRUE(doc.getBoolField("a"));
+    }
+
+    TEST_F(BasicRS, InsertVector) {
+        MockReplicaSet* replSet = getReplSet();
+        DBClientReplicaSet replConn(replSet->getSetName(), replSet->getHosts());
+
+        vector<BSONObj> docs;
+        docs.push_back(BSON("a" << true));
+        docs.push_back(BSON("b" << true));
+
+        replConn.insert("test.test", docs);
+
+        auto_ptr<DBClientCursor> cursor = replConn.query("test.test", Query());
+        ASSERT_TRUE(cursor->next().getBoolField("a"));
+        ASSERT_TRUE(cursor->next().getBoolField("b"));
+    }
+
+    TEST_F(BasicRS, Remove) {
+        MockReplicaSet* replSet = getReplSet();
+        DBClientReplicaSet replConn(replSet->getSetName(), replSet->getHosts());
+        replConn.dropCollection("test.test");
+
+        replConn.insert("test.test", BSON("a" << true));
+
+        BSONObj doc = replConn.findOne("test.test", Query());
+        ASSERT_TRUE(doc.getBoolField("a"));
+
+        replConn.remove("test.test", Query());
+    }
+
+    // TODO: implement mock update
+    /*TEST_F(BasicRS, Update) {
+        MockReplicaSet* replSet = getReplSet();
+        DBClientReplicaSet replConn(replSet->getSetName(), replSet->getHosts());
+        replConn.dropCollection("test.test");
+
+        replConn.insert("test.test", BSON("a" << true));
+
+        BSONObj doc = replConn.findOne("test.test", Query());
+        ASSERT_TRUE(doc.getBoolField("a"));
+
+        replConn.update("test.test", Query(), BSON("a" << false));
+
+        BSONObj doc2 = replConn.findOne("test.test", Query());
+        ASSERT_FALSE(doc2.getBoolField("a"));
+    }*/
+
+    TEST_F(BasicRS, RunCommand) {
+        
+    }
+
+    TEST_F(BasicRS, IsSecondaryQuery) {
+        MockReplicaSet* replSet = getReplSet();
+        DBClientReplicaSet replConn(replSet->getSetName(), replSet->getHosts());
+        Query q;
+        ReadPreference rpso = ReadPreference_SecondaryOnly;
+        q = Query("{aggregate: true}").readPref(rpso, BSONArray());
+        ASSERT_TRUE(replConn.isSecondaryQuery("test.$cmd", q.obj, 0));
+        q = Query("{collStats: true}").readPref(rpso, BSONArray());
+        ASSERT_TRUE(replConn.isSecondaryQuery("test.$cmd", q.obj, 0));
+        q = Query("{dropIndex: true}").readPref(rpso, BSONArray());
+        ASSERT_FALSE(replConn.isSecondaryQuery("test.$cmd", q.obj, 0));
+    }
+
+    TEST_F(BasicRS, MasterConn) {
+        MockReplicaSet* replSet = getReplSet();
+        DBClientReplicaSet replConn(replSet->getSetName(), replSet->getHosts());
+        replConn.masterConn();
+    }
+
+    void nop_hook(BSONObjBuilder*) { }
+
+    TEST_F(BasicRS, RunCommandHook) {
+        // TODO: Test with mock
+        MockReplicaSet* replSet = getReplSet();
+        DBClientReplicaSet replConn(replSet->getSetName(), replSet->getHosts());
+        replConn.query(IdentityNS, Query());
+
+        replConn.setRunCommandHook(nop_hook);
+    }
+
+    void nop_hook_post(BSONObj, string) { }
+
+    TEST_F(BasicRS, PostRunCommandHook) {
+        // TODO: Test with mock
+        MockReplicaSet* replSet = getReplSet();
+        DBClientReplicaSet replConn(replSet->getSetName(), replSet->getHosts());
+        replConn.query(IdentityNS, Query());
+
+        replConn.setPostRunCommandHook(nop_hook_post);
+    }
+
+    TEST_F(BasicRS, IsStillConnected) {
+        MockReplicaSet* replSet = getReplSet();
+        DBClientReplicaSet replConn(replSet->getSetName(), replSet->getHosts());
+
+        ASSERT_TRUE(replConn.isStillConnected());
+
+        getGlobalFailPointRegistry()->getFailPoint("notStillConnected")->
+            setMode(FailPoint::nTimes, 1);
+
+        replConn.query(IdentityNS, Query());
+
+        // See the note in dbclient_rs.cpp, Replica Sets are always connected
+        ASSERT_TRUE(replConn.isStillConnected());
+    }
 
     TEST_F(BasicRS, ReadFromPrimary) {
         MockReplicaSet* replSet = getReplSet();

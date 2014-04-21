@@ -66,6 +66,16 @@ TEST(ExtractBSON, ExtractStringFieldWithDefault) {
     ASSERT_EQUALS(std::string("default"), s);
 }
 
+TEST(ExtractBSON, ExtractBooleanField) {
+    BSONObj obj = BSON("a" << true << "b" << false);
+    bool b = false;
+    ASSERT_OK(bsonExtractBooleanField(obj, "a", &b));
+    ASSERT_TRUE(b);
+
+    ASSERT_OK(bsonExtractBooleanField(obj, "b", &b));
+    ASSERT_FALSE(b);
+}
+
 TEST(ExtractBSON, ExtractBooleanFieldWithDefault) {
     BSONObj obj1 = BSON("a" << 1 << "b" << "hello"  << "c" << true);
     BSONObj obj2 = BSON("a" << 0 << "b" << "hello"  << "c" << false);

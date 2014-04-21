@@ -28,21 +28,21 @@
 using namespace mongo;
 using namespace std;
 
-void workerThread( string collName , bool print , DBClientReplicaSet * conn ) {
+void workerThread( string collName , bool print , DBClientReplicaSet * conn, unsigned iterations ) {
 
-    while ( true ) {
+    while ( iterations ) {
         try {
             conn->update( collName , BSONObj() , BSON( "$inc" << BSON( "x" << 1 ) ) , true );
-            
+
             BSONObj x = conn->findOne( collName , BSONObj() );
 
             if ( print ) {
                 cout << x << endl;
             }
-            
+
             BSONObj a = conn->slaveConn().findOne( collName , BSONObj() , 0 , QueryOption_SlaveOk );
             BSONObj b = conn->findOne( collName , BSONObj() , 0 , QueryOption_SlaveOk );
-            
+
             if ( print ) {
                 cout << "\t A " << a << endl;
                 cout << "\t B " << b << endl;
@@ -52,12 +52,14 @@ void workerThread( string collName , bool print , DBClientReplicaSet * conn ) {
             cout << "ERROR: " << e.what() << endl;
         }
         sleepmillis( 10 );
+        --iterations;
     }
 }
 
 int main( int argc , const char ** argv ) {
-    
+    unsigned iterations = 100;
     unsigned nThreads = 1;
+    string port_string = "27017";
     bool print = false;
     bool testTimeout = false;
 
@@ -72,11 +74,17 @@ int main( int argc , const char ** argv ) {
         else if ( mongoutils::str::equals( "--testTimeout" , argv[i] ) ) {
             testTimeout = true;
         }
+        else if ( mongoutils::str::equals( "--iterations", argv[i] ) ) {
+            iterations = atoi( argv[++i] );
+        }
+        else if (mongoutils::str::equals( "--port", argv[i] ) ) {
+            port_string = argv[++i];
+        }
         else {
             cerr << "unknown option: " << argv[i] << endl;
             return EXIT_FAILURE;
         }
-            
+
     }
 
     Status status = client::initialize();
@@ -86,16 +94,18 @@ int main( int argc , const char ** argv ) {
     }
 
     string errmsg;
-    ConnectionString cs = ConnectionString::parse( "foo/127.0.0.1" , errmsg );
+    ConnectionString cs = ConnectionString::parse( "test/127.0.0.1:" + port_string, errmsg );
     if ( ! cs.isValid() ) {
         cout << "error parsing url: " << errmsg << endl;
         return EXIT_FAILURE;
     }
 
-    DBClientReplicaSet * conn = static_cast<DBClientReplicaSet*>( cs.connect( errmsg, testTimeout ? 10 : 0 ) );
+    DBClientBase* base = cs.connect( errmsg, testTimeout ? 10 : 0 );
+    DBClientReplicaSet * conn = static_cast<DBClientReplicaSet*>( base );
     if ( ! conn ) {
         cout << "error connecting: " << errmsg << endl;
-        return EXIT_FAILURE;
+        cout << "skipping test as we are not connected to a replica set" << endl;
+        return EXIT_SUCCESS;
     }
 
     string collName = "test.rs1";
@@ -112,18 +122,23 @@ int main( int argc , const char ** argv ) {
         cout << "expected socket exception" << endl;
         return EXIT_FAILURE;
     }
-    
+
     vector<boost::shared_ptr<boost::thread> > threads;
     for ( unsigned i=0; i<nThreads; i++ ) {
         string errmsg;
-        threads.push_back( boost::shared_ptr<boost::thread>( 
-                               new boost::thread( 
-                                   boost::bind( workerThread , 
-                                                collName , 
-                                                print , 
-                                                static_cast<DBClientReplicaSet*>( cs.connect(errmsg) ) ) ) ) );
+        threads.push_back( boost::shared_ptr<boost::thread>(
+            new boost::thread(
+                boost::bind(
+                    workerThread,
+                    collName,
+                    print,
+                    static_cast<DBClientReplicaSet*>( cs.connect(errmsg) ),
+                    iterations)
+                )
+            )
+        );
     }
-    
+
     for ( unsigned i=0; i<threads.size(); i++ ) {
         threads[i]->join();
     }
