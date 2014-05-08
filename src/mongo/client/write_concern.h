@@ -126,7 +126,7 @@ namespace mongo {
         bool hasMode() const;
 
         /** Turn write concern into getLastError BSONObj suitable for command */
-        BSONObj toBson() const;
+        BSONObj obj() const;
 
     private:
         // Enabled option book keeping

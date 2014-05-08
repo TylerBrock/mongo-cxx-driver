@@ -22,6 +22,12 @@
 #include "mongo/client/constants.h"
 #include "mongo/client/dbclient_rs.h"
 #include "mongo/client/dbclientcursor.h"
+#include "mongo/client/dbclient_writer.h"
+#include "mongo/client/insert_write_operation.h"
+#include "mongo/client/update_write_operation.h"
+#include "mongo/client/delete_write_operation.h"
+#include "mongo/client/command_writer.h"
+#include "mongo/client/wire_protocol_writer.h"
 #include "mongo/client/sasl_client_authenticate.h"
 #include "mongo/db/jsobj.h"
 #include "mongo/db/json.h"
@@ -912,7 +918,22 @@ namespace mongo {
         }
 #endif
 
-        return true;
+        BSONObj info;
+        bool worked = simpleCommand("admin", &info, "ismaster");
+        if (worked) {
+            if (info.hasField("maxBsonObjectSize"))
+                _maxBsonObjectSize = info.getIntField("maxBsonObjectSize");
+            if (info.hasField("maxMessageSizeBytes"))
+                _maxMessageSizeBytes = info.getIntField("maxMessageSizeBytes");
+            if (info.hasField("maxWriteBatchSize"))
+                _maxWriteBatchSize = info.getIntField("maxWriteBatchSize");
+            if (info.hasField("minWireVersion"))
+                _minWireVersion = info.getIntField("minWireVersion");
+            if (info.hasField("maxWireVersion"))
+                _maxWireVersion = info.getIntField("maxWireVersion");
+        }
+
+        return worked;
     }
 
     void DBClientConnection::logout(const string& dbname, BSONObj& info){
@@ -987,6 +1008,20 @@ namespace mongo {
 
     const uint64_t DBClientBase::INVALID_SOCK_CREATION_TIME =
             static_cast<uint64_t>(0xFFFFFFFFFFFFFFFFULL);
+
+    DBClientBase::DBClientBase() {
+        _writeConcern = WriteConcern::acknowledged;
+        _wp_writer.reset(new WireProtocolWriter(this));
+        _cmd_writer.reset(new CommandWriter(this));
+        _connectionId = ConnectionIdSequence.fetchAndAdd(1);
+        _minWireVersion = _maxWireVersion = 0;
+        _maxBsonObjectSize = 16 * 1024 * 1024;
+        _maxMessageSizeBytes = _maxBsonObjectSize * 2;
+        _maxWriteBatchSize = 1000;
+    }
+
+    DBClientBase::~DBClientBase() {
+    }
 
     auto_ptr<DBClientCursor> DBClientBase::query(const string &ns, Query query, int nToReturn,
             int nToSkip, const BSONObj *fieldsToReturn, int queryOptions , int batchSize ) {
@@ -1094,76 +1129,49 @@ namespace mongo {
         return n;
     }
 
-    void DBClientBase::_prepareInsert( BufBuilder& b, const std::string& ns, int flags ) {
-        int reservedFlags = 0;
+    void DBClientBase::insert( const string & ns , BSONObj obj , int flags, const WriteConcern* wc ) {
+        vector<WriteOperation*> inserts;
 
-        if( flags & InsertOption_ContinueOnError )
-            reservedFlags |= Reserved_InsertOption_ContinueOnError;
+        inserts.push_back( new InsertWriteOperation(obj) );
+        _cmd_writer->write( ns, inserts, flags, wc );
 
-        b.appendNum( reservedFlags );
-        b.appendStr( ns );
-    }
-
-    void DBClientBase::_write( Operations op, const std::string& ns, const BufBuilder& b, const WriteConcern* wc ) {
-        Message toSend;
-
-        toSend.setData( op, b.buf(), b.len() );
-        say( toSend );
-
-        const WriteConcern* operation_wc = wc == NULL ? &getWriteConcern() : wc;
-
-        if ( operation_wc->requiresConfirmation() ) {
-            BSONObj info;
-
-            runCommand(nsGetDB(ns), operation_wc->toBson(), info);
-
-            if (!info["err"].isNull()) {
-                throw OperationException(info);
-            }
+        vector<WriteOperation*>::iterator it;
+        for (it = inserts.begin(); it != inserts.end(); ++it) {
+            delete *it;
         }
     }
 
-    void DBClientBase::insert( const string & ns , BSONObj obj , int flags, const WriteConcern* wc ) {
-        BufBuilder b;
-        _prepareInsert( b, ns, flags );
+    void DBClientBase::insert( const string & ns, const vector< BSONObj >& v, int flags , const WriteConcern* wc ) {
+        vector<WriteOperation*> inserts;
 
-        obj.appendSelfToBufBuilder( b );
+        vector<BSONObj>::const_iterator bsonObjIter;
+        for (bsonObjIter = v.begin(); bsonObjIter != v.end(); ++bsonObjIter) {
+            inserts.push_back( new InsertWriteOperation(*bsonObjIter) );
+        }
 
-        _write( dbInsert, ns, b, wc );
-    }
+        _cmd_writer->write( ns, inserts, flags, wc );
 
-    void DBClientBase::insert( const string & ns , const vector< BSONObj > &v , int flags, const WriteConcern* wc ) {
-        BufBuilder b;
-        _prepareInsert( b, ns, flags );
+        vector<WriteOperation*>::iterator it;
 
-        for( vector< BSONObj >::const_iterator i = v.begin(); i != v.end(); ++i )
-            i->appendSelfToBufBuilder( b );
-
-        _write( dbInsert, ns, b, wc );
+        for (it = inserts.begin(); it != inserts.end(); ++it) {
+            delete *it;
+        }
     }
 
     void DBClientBase::remove( const string & ns , Query obj , bool justOne, const WriteConcern* wc ) {
-        int flags = 0;
-        if( justOne ) flags |= RemoveOption_JustOne;
-        remove( ns, obj, flags, wc );
+        remove( ns, obj, justOne & RemoveOption_JustOne, wc);
     }
 
     void DBClientBase::remove( const string & ns , Query obj , int flags, const WriteConcern* wc ) {
-        BufBuilder b;
+        vector<WriteOperation*> deletes;
 
-        int reservedFlags = 0;
-        if( flags & WriteOption_FromWriteback ){
-            reservedFlags |= WriteOption_FromWriteback;
-            flags ^= WriteOption_FromWriteback;
+        deletes.push_back( new DeleteWriteOperation(obj.obj, flags) );
+        _cmd_writer->write( ns, deletes, flags, wc );
+
+        vector<WriteOperation*>::iterator it;
+        for (it = deletes.begin(); it != deletes.end(); ++it) {
+            delete *it;
         }
-
-        b.appendNum( reservedFlags );
-        b.appendStr( ns );
-        b.appendNum( flags );
-
-        obj.obj.appendSelfToBufBuilder( b );
-
-        _write( dbDelete, ns, b, wc );
     }
 
     void DBClientBase::update( const string & ns , Query query , BSONObj obj , bool upsert, bool multi, const WriteConcern* wc ) {
@@ -1174,22 +1182,15 @@ namespace mongo {
     }
 
     void DBClientBase::update( const string & ns , Query query , BSONObj obj , int flags, const WriteConcern* wc ) {
-        BufBuilder b;
+        vector<WriteOperation*> updates;
 
-        int reservedFlags = 0;
-        if( flags & WriteOption_FromWriteback ){
-            reservedFlags |= Reserved_FromWriteback;
-            flags ^= WriteOption_FromWriteback;
+        updates.push_back( new UpdateWriteOperation(query.obj, obj, flags) );
+        _cmd_writer->write( ns, updates, flags, wc );
+
+        vector<WriteOperation*>::iterator it;
+        for (it = updates.begin(); it != updates.end(); ++it) {
+            delete *it;
         }
-
-        b.appendNum( reservedFlags ); // reserved
-        b.appendStr( ns );
-        b.appendNum( flags );
-
-        query.obj.appendSelfToBufBuilder( b );
-        obj.appendSelfToBufBuilder( b );
-
-        _write( dbUpdate, ns, b, wc );
     }
 
     auto_ptr<DBClientCursor> DBClientWithCommands::getIndexes( const string &ns ) {

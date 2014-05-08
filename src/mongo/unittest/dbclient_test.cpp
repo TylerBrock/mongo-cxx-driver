@@ -246,7 +246,7 @@ namespace {
     }
 
     /* DBClient Tests */
-    TEST_F(DBClientTest, ManualGetMore) {
+    TEST_F(DBClientTest, DISABLED_ManualGetMore) {
         // Ported from dbtests/querytests.cpp
         for(int i = 0; i < 3; ++i) {
             c.insert(TEST_NS, BSON("num" << i));
