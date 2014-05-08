@@ -728,7 +728,7 @@ namespace {
 
     TEST_F(DBClientTest, DefaultWriteConcernRemove) {
         ASSERT_THROWS(
-            c.remove("BAD_NS", BSON("a" << true)),
+            c.remove("BAD.$NS", BSON("a" << true)),
             OperationException
         );
     }
@@ -762,7 +762,7 @@ namespace {
     TEST_F(DBClientTest, UnacknowledgedRemove) {
         ASSERT_NO_THROW(
             c.remove(
-                "BAD_NS",
+                "BAD.$NS",
                 BSON("a" << true),
                 false,
                 &WriteConcern::unacknowledged

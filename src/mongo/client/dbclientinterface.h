@@ -28,6 +28,7 @@
 #include "mongo/client/exceptions.h"
 #include "mongo/client/export_macros.h"
 #include "mongo/client/write_concern.h"
+#include "mongo/client/write_operation.h"
 #include "mongo/db/jsobj.h"
 #include "mongo/logger/log_severity.h"
 #include "mongo/platform/atomic_word.h"
@@ -1040,6 +1041,8 @@ namespace mongo {
         bool _haveCachedAvailableOptions;
     };
 
+    class DBClientWriter;
+
     /**
      abstract class that implements the core db operations
      */
@@ -1047,19 +1050,23 @@ namespace mongo {
     protected:
         static AtomicInt64 ConnectionIdSequence;
         long long _connectionId; // unique connection id for this connection
+        boost::scoped_ptr<DBClientWriter> _wp_writer;
+        boost::scoped_ptr<DBClientWriter> _cmd_writer;
         WriteConcern _writeConcern;
         int _minWireVersion;
+        int _maxBsonObjectSize;
         int _maxWireVersion;
-        void _prepareInsert( BufBuilder& b, const std::string& ns, int flags );
-        void _write( Operations o, const std::string& ns, const BufBuilder& b, const WriteConcern* wc );
+        int _maxMessageSizeBytes;
+        int _maxWriteBatchSize;
+        void _write( const std::string& ns, const std::vector<WriteOperation*> writes, const WriteConcern* wc );
     public:
         static const uint64_t INVALID_SOCK_CREATION_TIME;
 
-        DBClientBase() {
-            _writeConcern = WriteConcern::acknowledged;
-            _connectionId = ConnectionIdSequence.fetchAndAdd(1);
-            _minWireVersion = _maxWireVersion = 0;
-        }
+        DBClientBase();
+
+        // Required because compiler can't generate a destructor for the _writer
+        // as it is an incomplete type.
+        virtual ~DBClientBase();
 
         long long getConnectionId() const { return _connectionId; }
 
@@ -1073,6 +1080,9 @@ namespace mongo {
 
         int getMinWireVersion() { return _minWireVersion; }
         int getMaxWireVersion() { return _maxWireVersion; }
+        int getMaxBsonObjectSize() { return _maxBsonObjectSize; }
+        int getMaxMessageSizeBytes() { return _maxMessageSizeBytes; }
+        int getMaxWriteBatchSize() { return _maxWriteBatchSize; }
 
         /** send a query to the database.
          @param ns namespace to query, format is <dbname>.<collectname>[.<collectname>]*
