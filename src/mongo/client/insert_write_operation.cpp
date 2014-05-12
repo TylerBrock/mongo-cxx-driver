@@ -20,11 +20,15 @@
 namespace {
     const char kCommandKey[] = "insert";
     const char kBatchKey[] = "documents";
+    const char kOrderedKey[] = "ordered";
 } // namespace
 
 namespace mongo {
 
-    InsertWriteOperation::InsertWriteOperation(const BSONObj doc) : _doc(doc) {}
+    InsertWriteOperation::InsertWriteOperation(const BSONObj doc, int flags)
+        : _doc(doc)
+        , _flags(flags)
+        {}
 
     InsertWriteOperation::~InsertWriteOperation() {
     }
@@ -33,8 +37,8 @@ namespace mongo {
         return dbInsert;
     }
 
-    void InsertWriteOperation::startRequest(std::string ns, int flags, BufBuilder* builder) const {
-        builder->appendNum(flags);
+    void InsertWriteOperation::startRequest(std::string ns, BufBuilder* builder) const {
+        builder->appendNum(_flags);
         builder->appendStr(ns);
     }
 
@@ -46,7 +50,7 @@ namespace mongo {
         return true;
     }
 
-    void InsertWriteOperation::startCommand(std::string ns, int, BSONObjBuilder* builder) const {
+    void InsertWriteOperation::startCommand(std::string ns, BSONObjBuilder* builder) const {
         builder->append(kCommandKey, nsToCollectionSubstring(ns));
     }
 
@@ -57,6 +61,7 @@ namespace mongo {
 
     void InsertWriteOperation::endCommand(BSONArrayBuilder* batch, BSONObjBuilder* builder) const {
         builder->append(kBatchKey, batch->arr());
+        builder->append(kOrderedKey, bool(!(_flags & InsertOption_ContinueOnError)));
     }
 
 } // namespace mongo

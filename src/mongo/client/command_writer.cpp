@@ -27,7 +27,6 @@ namespace mongo {
     std::vector<BSONObj> CommandWriter::write(
         const StringData& ns,
         const std::vector<WriteOperation*>& write_operations,
-        int flags,
         const WriteConcern* wc
     ) {
         bool inRequest = false;
@@ -44,7 +43,7 @@ namespace mongo {
         while (iter != write_operations.end()) {
             // We don't have a pending command yet
             if (!inRequest) {
-                (*iter)->startCommand(ns.toString(), flags, &command);
+                (*iter)->startCommand(ns.toString(), &command);
                 inRequest = true;
                 requestType = (*iter)->operationType();
             }
@@ -52,10 +51,10 @@ namespace mongo {
             // Now we have a pending request, can we add to it?
             if (requestType == (*iter)->operationType() && opsInRequest < 1000) {
 
-                // We can add to the request, so try and the write op
+                // We can add to the request, lets see if it will fit and we can batch
                 bool addedToRequest = (*iter)->appendSelfToCommand(&batch);
 
-                // We were able to add this write op into the request so don't send it off yet
+                // We added the write op into the request and can batch, so don't send yet
                 if (addedToRequest) {
                     ++opsInRequest;
                     ++iter;
@@ -81,10 +80,15 @@ namespace mongo {
 
     BSONObj CommandWriter::_send(BSONObjBuilder* builder, const WriteConcern* wc, const StringData& ns) {
         BSONObj result;
-        const WriteConcern* operation_wc = wc ? wc : &_client->getWriteConcern();
-        builder->append("writeConcern", operation_wc->obj());
-        builder->append("ordered", true);
-        _client->runCommand(nsToDatabase(ns), builder->obj(), result);
+
+        builder->append("writeConcern", wc->obj());
+
+        bool commandWorked = _client->runCommand(nsToDatabase(ns), builder->obj(), result);
+
+        if (!commandWorked || result.hasField("writeErrors") || result.hasField("writeConcernError")) {
+            throw OperationException(result);
+        }
+
         return result;
     }
 

@@ -28,6 +28,7 @@
 #include "mongo/client/exceptions.h"
 #include "mongo/client/export_macros.h"
 #include "mongo/client/write_concern.h"
+#include "mongo/client/write_operation.h"
 #include "mongo/db/jsobj.h"
 #include "mongo/logger/log_severity.h"
 #include "mongo/platform/atomic_word.h"
@@ -1051,6 +1052,7 @@ namespace mongo {
         int _maxWireVersion;
         int _maxMessageSizeBytes;
         int _maxWriteBatchSize;
+        void _write( const std::string& ns, const std::vector<WriteOperation*> writes, const WriteConcern* wc );
     public:
         static const uint64_t INVALID_SOCK_CREATION_TIME;
 

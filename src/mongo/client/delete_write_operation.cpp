@@ -22,13 +22,14 @@ namespace {
     const char kBatchKey[] = "deletes";
     const char kSelectorKey[] = "q";
     const char kLimitKey[] = "limit";
+    const char kOrderedKey[] = "ordered";
 } // namespace
 
 namespace mongo {
 
-    DeleteWriteOperation::DeleteWriteOperation(const BSONObj selector, int limit)
+    DeleteWriteOperation::DeleteWriteOperation(const BSONObj selector, int flags)
         : _selector(selector)
-        , _limit(limit)
+        , _flags(flags)
         {}
 
     DeleteWriteOperation::~DeleteWriteOperation() {
@@ -38,10 +39,10 @@ namespace mongo {
         return dbDelete;
     }
 
-    void DeleteWriteOperation::startRequest(std::string ns, int flags, BufBuilder* builder) const {
+    void DeleteWriteOperation::startRequest(std::string ns, BufBuilder* builder) const {
         builder->appendNum(0);
         builder->appendStr(ns);
-        builder->appendNum(flags);
+        builder->appendNum(_flags);
     }
 
     bool DeleteWriteOperation::appendSelfToRequest(int maxSize, BufBuilder* builder) const {
@@ -52,20 +53,21 @@ namespace mongo {
         return true;
     }
 
-    void DeleteWriteOperation::startCommand(std::string ns, int, BSONObjBuilder* builder) const {
+    void DeleteWriteOperation::startCommand(std::string ns, BSONObjBuilder* builder) const {
         builder->append(kCommandKey, nsToCollectionSubstring(ns));
     }
 
     bool DeleteWriteOperation::appendSelfToCommand(BSONArrayBuilder* batch) const {
         BSONObjBuilder updateBuilder;
         updateBuilder.append(kSelectorKey, _selector);
-        updateBuilder.append(kLimitKey, _limit);
+        updateBuilder.append(kLimitKey, _flags & RemoveOption_JustOne);
         batch->append(updateBuilder.obj());
         return true;
     }
 
     void DeleteWriteOperation::endCommand(BSONArrayBuilder* batch, BSONObjBuilder* builder) const {
         builder->append(kBatchKey, batch->arr());
+        builder->append(kOrderedKey, true);
     }
 
 } // namespace mongo

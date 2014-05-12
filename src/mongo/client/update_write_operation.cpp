@@ -24,6 +24,7 @@ namespace {
     const char kUpsertKey[] = "upsert";
     const char kSelectorKey[] = "q";
     const char kUpdateKey[] = "u";
+    const char kOrderedKey[] = "ordered";
 } // namespace
 
 namespace mongo {
@@ -41,10 +42,10 @@ namespace mongo {
         return dbUpdate;
     }
 
-    void UpdateWriteOperation::startRequest(std::string ns, int flags, BufBuilder* builder) const {
+    void UpdateWriteOperation::startRequest(std::string ns, BufBuilder* builder) const {
         builder->appendNum(0);
         builder->appendStr(ns);
-        builder->appendNum(flags);
+        builder->appendNum(_flags);
     }
 
     bool UpdateWriteOperation::appendSelfToRequest(int maxSize, BufBuilder* builder) const {
@@ -56,7 +57,7 @@ namespace mongo {
         return true;
     }
 
-    void UpdateWriteOperation::startCommand(std::string ns, int, BSONObjBuilder* builder) const {
+    void UpdateWriteOperation::startCommand(std::string ns, BSONObjBuilder* builder) const {
         builder->append(kCommandKey, nsToCollectionSubstring(ns));
     }
 
@@ -64,14 +65,15 @@ namespace mongo {
         BSONObjBuilder updateBuilder;
         updateBuilder.append(kSelectorKey, _selector);
         updateBuilder.append(kUpdateKey, _update);
-        updateBuilder.append(kMultiKey, _flags & UpdateOption_Multi);
-        updateBuilder.append(kUpsertKey, _flags & UpdateOption_Upsert);
+        updateBuilder.append(kMultiKey, bool(_flags & UpdateOption_Multi));
+        updateBuilder.append(kUpsertKey, bool(_flags & UpdateOption_Upsert));
         batch->append(updateBuilder.obj());
         return true;
     }
 
     void UpdateWriteOperation::endCommand(BSONArrayBuilder* batch, BSONObjBuilder* builder) const {
         builder->append(kBatchKey, batch->arr());
+        builder->append(kOrderedKey, true);
     }
 
 } // namespace mongo

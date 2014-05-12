@@ -917,7 +917,6 @@ namespace mongo {
             return p->secure( sslManager(), _server.host() );
         }
 #endif
-
         BSONObj info;
         bool worked = simpleCommand("admin", &info, "ismaster");
         if (worked) {
@@ -1129,16 +1128,24 @@ namespace mongo {
         return n;
     }
 
-    void DBClientBase::insert( const string & ns , BSONObj obj , int flags, const WriteConcern* wc ) {
-        vector<WriteOperation*> inserts;
+    void DBClientBase::_write( const string& ns, const vector<WriteOperation*> writes, const WriteConcern* wc) {
 
-        inserts.push_back( new InsertWriteOperation(obj) );
-        _cmd_writer->write( ns, inserts, flags, wc );
+        const WriteConcern* operation_wc = wc ? wc : &getWriteConcern();
 
-        vector<WriteOperation*>::iterator it;
-        for (it = inserts.begin(); it != inserts.end(); ++it) {
+        if (getMaxWireVersion() >= 2 && operation_wc->requiresConfirmation())
+            _cmd_writer->write( ns, writes, operation_wc );
+        else
+            _wp_writer->write( ns, writes, operation_wc );
+
+        vector<WriteOperation*>::const_iterator it;
+        for ( it = writes.begin(); it != writes.end(); ++it )
             delete *it;
-        }
+    }
+
+    void DBClientBase::insert( const string & ns , BSONObj obj , int flags, const WriteConcern* wc ) {
+        vector<BSONObj> toInsert;
+        toInsert.push_back( obj );
+        insert( ns, toInsert, flags, wc );
     }
 
     void DBClientBase::insert( const string & ns, const vector< BSONObj >& v, int flags , const WriteConcern* wc ) {
@@ -1146,16 +1153,10 @@ namespace mongo {
 
         vector<BSONObj>::const_iterator bsonObjIter;
         for (bsonObjIter = v.begin(); bsonObjIter != v.end(); ++bsonObjIter) {
-            inserts.push_back( new InsertWriteOperation(*bsonObjIter) );
+            inserts.push_back( new InsertWriteOperation(*bsonObjIter, flags) );
         }
 
-        _cmd_writer->write( ns, inserts, flags, wc );
-
-        vector<WriteOperation*>::iterator it;
-
-        for (it = inserts.begin(); it != inserts.end(); ++it) {
-            delete *it;
-        }
+        _write( ns, inserts, wc );
     }
 
     void DBClientBase::remove( const string & ns , Query obj , bool justOne, const WriteConcern* wc ) {
@@ -1164,14 +1165,9 @@ namespace mongo {
 
     void DBClientBase::remove( const string & ns , Query obj , int flags, const WriteConcern* wc ) {
         vector<WriteOperation*> deletes;
-
         deletes.push_back( new DeleteWriteOperation(obj.obj, flags) );
-        _cmd_writer->write( ns, deletes, flags, wc );
 
-        vector<WriteOperation*>::iterator it;
-        for (it = deletes.begin(); it != deletes.end(); ++it) {
-            delete *it;
-        }
+        _write( ns, deletes, wc );
     }
 
     void DBClientBase::update( const string & ns , Query query , BSONObj obj , bool upsert, bool multi, const WriteConcern* wc ) {
@@ -1183,14 +1179,9 @@ namespace mongo {
 
     void DBClientBase::update( const string & ns , Query query , BSONObj obj , int flags, const WriteConcern* wc ) {
         vector<WriteOperation*> updates;
-
         updates.push_back( new UpdateWriteOperation(query.obj, obj, flags) );
-        _cmd_writer->write( ns, updates, flags, wc );
 
-        vector<WriteOperation*>::iterator it;
-        for (it = updates.begin(); it != updates.end(); ++it) {
-            delete *it;
-        }
+        _write( ns, updates, wc );
     }
 
     auto_ptr<DBClientCursor> DBClientWithCommands::getIndexes( const string &ns ) {

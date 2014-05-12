@@ -23,21 +23,21 @@ namespace mongo {
 
     class DeleteWriteOperation : public WriteOperation {
     public:
-        DeleteWriteOperation(const BSONObj selector, int limit);
+        DeleteWriteOperation(const BSONObj selector, int flags);
         virtual ~DeleteWriteOperation();
 
         virtual Operations operationType() const;
 
-        virtual void startRequest(std::string ns, int flags, BufBuilder* b) const;
+        virtual void startRequest(std::string ns, BufBuilder* b) const;
         virtual bool appendSelfToRequest(int maxSize, BufBuilder* b) const;
 
-        virtual void startCommand(std::string ns, int flags, BSONObjBuilder* b) const;
+        virtual void startCommand(std::string ns, BSONObjBuilder* b) const;
         virtual bool appendSelfToCommand(BSONArrayBuilder* batch) const;
         virtual void endCommand(BSONArrayBuilder* batch, BSONObjBuilder* command) const;
 
     private:
         const BSONObj _selector;
-        const int _limit;
+        int _flags;
     };
 
 } // namespace mongo

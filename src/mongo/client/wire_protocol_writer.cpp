@@ -28,7 +28,6 @@ namespace mongo {
     std::vector<BSONObj> WireProtocolWriter::write(
         const StringData& ns,
         const std::vector<WriteOperation*>& write_operations,
-        int flags,
         const WriteConcern* wc
     ) {
         bool inRequest = false;
@@ -44,7 +43,7 @@ namespace mongo {
         while (iter != write_operations.end()) {
             // We don't have a pending request yet
             if (!inRequest) {
-                (*iter)->startRequest(ns.toString(), flags, &builder);
+                (*iter)->startRequest(ns.toString(), &builder);
                 inRequest = true;
                 requestType = (*iter)->operationType();
             }
@@ -52,10 +51,10 @@ namespace mongo {
             // now we have a pending request, can we add to it?
             if (requestType == (*iter)->operationType() && opsInRequest < 1000) {
 
-                // we can add to the request, so try and the write op
+                // We can add to the request, lets see if it will fit and we can batch
                 bool addedToRequest = (*iter)->appendSelfToRequest(_client->getMaxMessageSizeBytes(), &builder);
 
-                // we were able to add this write op into the request so don't send it off yet
+                // We added the write op into the request and can batch, so don't send yet
                 if (addedToRequest) {
                     ++opsInRequest;
                     ++iter;
@@ -84,12 +83,10 @@ namespace mongo {
 
         BSONObj result;
 
-        const WriteConcern* operation_wc = wc ? wc : &_client->getWriteConcern();
-
-        if (operation_wc->requiresConfirmation()) {
+        if (wc->requiresConfirmation()) {
             BSONObjBuilder bob;
             bob.append("getlasterror", true);
-            bob.appendElements(operation_wc->obj());
+            bob.appendElements(wc->obj());
             _client->runCommand(nsToDatabase(ns), bob.obj(), result);
 
             if (!result["err"].isNull()) {

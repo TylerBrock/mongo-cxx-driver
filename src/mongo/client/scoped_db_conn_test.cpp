@@ -16,6 +16,7 @@
 #include "mongo/platform/basic.h"
 #include "mongo/base/init.h"
 #include "mongo/client/connpool.h"
+#include "mongo/db/dbmessage.h"
 #include "mongo/platform/cstdint.h"
 #include "mongo/util/fail_point_service.h"
 #include "mongo/util/time_support.h"
@@ -100,8 +101,7 @@ namespace mongo {
 
     class TCPSocket {
         public:
-
-            TCPSocket(SocketAddress sa, int fd) : _sa(sa), _fd(fd) { init(); }
+            TCPSocket(SocketAddress sa, int fd) : _sa(sa), _fd(fd) { }
             TCPSocket(int port) : _sa(port) { init(); }
             ~TCPSocket() { close(); }
 
@@ -143,6 +143,44 @@ namespace mongo {
                 }
             }
 
+            void send(const Message& m) {
+                MsgData* toSend = m.singleData();
+                int left = m.size();
+                while (left > 0) {
+                    int sent = ::send(_fd, toSend + (toSend->len - left), left, 0);
+                    left -= sent;
+                }
+            }
+
+            void recv() {
+                while (true) {
+                    int msglen;
+                    ::recv(_fd, &msglen, 4, 0);
+                    char buffer[msglen];
+                    memcpy(&buffer, &msglen, 4);
+                    int remaining = msglen - 4;
+                    int position = 4;
+
+                    while (remaining > 0) {
+                        int got = ::recv(_fd, &buffer + position, remaining, 0);
+                        if (got == -1) {
+                            perror("recv");
+                            close();
+                            std::abort();
+                        }
+                        remaining -= got;
+                    }
+
+                    // Automatically write an ismaster response
+                    BSONObjBuilder isMaster;
+                    isMaster.append("ismaster", true);
+                    isMaster.append("ok", true);
+                    Message reply;
+                    replyToQuery(0, reply, isMaster.obj());
+                    send(reply);
+                }
+            }
+
             void close() {
                 if (!_closed) {
 #if defined(_WIN32)
@@ -164,12 +202,16 @@ namespace mongo {
             TCPSocket* accept() {
                 SocketAddress client_sa;
                 int client_fd;
-                if ((client_fd= ::accept(_fd, client_sa.get_address(), &client_sa.size)) == -1) {
+                if ((client_fd = ::accept(_fd, client_sa.get_address(), &client_sa.size)) == -1) {
                     perror("accept");
                     std::abort();
                 } else {
                     return new TCPSocket(client_sa, client_fd);
                 }
+            }
+
+            void operator()() {
+                recv();
             }
 
         private:
@@ -216,6 +258,7 @@ namespace mongo {
                     else if (selected > 0 && FD_ISSET(server_fd, &readable_fd_set)) {
                         TCPSocket* p_new_sock = _server_sock.accept();
                         _client_socks.push_back(p_new_sock);
+                        boost::thread(boost::ref(*p_new_sock));
                     }
 
                     // reset readable_fd_set and t
