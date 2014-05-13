@@ -13,23 +13,22 @@
  *    limitations under the License.
  */
 
-#include "mongo/client/dbclientinterface.h"
-#include "mongo/client/dbclient_writer.h"
-
 #pragma once
+
+#include "mongo/client/dbclient_writer.h"
+#include "mongo/client/dbclientinterface.h"
 
 namespace mongo {
 
     class WireProtocolWriter : public DBClientWriter {
     public:
-        WireProtocolWriter(DBClientBase* client);
+        explicit WireProtocolWriter(DBClientBase* client);
 
-        virtual ~WireProtocolWriter();
-
-        virtual std::vector<BSONObj> write(
+        virtual void write(
             const StringData& ns,
             const std::vector<WriteOperation*>& write_operations,
-            const WriteConcern* wc
+            const WriteConcern* wc,
+            std::vector<BSONObj>* results
         );
 
     private:

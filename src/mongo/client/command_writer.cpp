@@ -14,6 +14,7 @@
  */
 
 #include "mongo/client/command_writer.h"
+
 #include "mongo/db/namespace_string.h"
 
 namespace mongo {
@@ -21,19 +22,16 @@ namespace mongo {
     CommandWriter::CommandWriter(DBClientBase* client) : _client(client) {
     }
 
-    CommandWriter::~CommandWriter() {
-    }
-
-    std::vector<BSONObj> CommandWriter::write(
+    void CommandWriter::write(
         const StringData& ns,
         const std::vector<WriteOperation*>& write_operations,
-        const WriteConcern* wc
+        const WriteConcern* wc,
+        std::vector<BSONObj>* results
     ) {
         bool inRequest = false;
         int opsInRequest = 0;
         Operations requestType;
 
-        std::vector<BSONObj> responses;
         BSONObjBuilder command;
         BSONArrayBuilder batch;
 
@@ -64,7 +62,7 @@ namespace mongo {
 
             // Send the current request to the server, record the response, start a new request
             (*iter)->endCommand(&batch, &command);
-            responses.push_back(_send(&command, wc, ns));
+            results->push_back(_send(&command, wc, ns));
             inRequest = false;
             opsInRequest = 0;
         }
@@ -74,9 +72,7 @@ namespace mongo {
             // All of the flags are the same so just use the ones from the final op in batch
             --iter;
             (*iter)->endCommand(&batch, &command);
-            responses.push_back(_send(&command, wc, ns));
-
-        return responses;
+            results->push_back(_send(&command, wc, ns));
     }
 
     BSONObj CommandWriter::_send(BSONObjBuilder* builder, const WriteConcern* wc, const StringData& ns) {

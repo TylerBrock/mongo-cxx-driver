@@ -13,18 +13,17 @@
  *    limitations under the License.
  */
 
+#pragma once
+
 #include "mongo/bson/bsonobj.h"
 #include "mongo/client/write_operation.h"
 #include "mongo/util/net/message.h"
-
-#pragma once
 
 namespace mongo {
 
     class UpdateWriteOperation : public WriteOperation {
     public:
         UpdateWriteOperation(const BSONObj& selector, const BSONObj& update, int flags);
-        virtual ~UpdateWriteOperation();
 
         virtual Operations operationType() const;
 

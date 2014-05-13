@@ -13,22 +13,21 @@
  *    limitations under the License.
  */
 
-#include "mongo/client/dbclient_writer.h"
-
 #pragma once
+
+#include "mongo/client/dbclient_writer.h"
 
 namespace mongo {
 
     class CommandWriter : public DBClientWriter {
     public:
-        CommandWriter(DBClientBase* client);
+        explicit CommandWriter(DBClientBase* client);
 
-        virtual ~CommandWriter();
-
-        virtual std::vector<BSONObj> write(
+        virtual void write(
             const StringData& ns,
             const std::vector<WriteOperation*>& write_operations,
-            const WriteConcern* wc
+            const WriteConcern* wc,
+            std::vector<BSONObj>* results
         );
 
     private:

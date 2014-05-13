@@ -28,7 +28,6 @@
 #include "mongo/client/exceptions.h"
 #include "mongo/client/export_macros.h"
 #include "mongo/client/write_concern.h"
-#include "mongo/client/write_operation.h"
 #include "mongo/db/jsobj.h"
 #include "mongo/logger/log_severity.h"
 #include "mongo/platform/atomic_word.h"
@@ -1042,6 +1041,7 @@ namespace mongo {
     };
 
     class DBClientWriter;
+    class WriteOperation;
 
     /**
      abstract class that implements the core db operations
@@ -1050,8 +1050,8 @@ namespace mongo {
     protected:
         static AtomicInt64 ConnectionIdSequence;
         long long _connectionId; // unique connection id for this connection
-        boost::scoped_ptr<DBClientWriter> _wp_writer;
-        boost::scoped_ptr<DBClientWriter> _cmd_writer;
+        const boost::scoped_ptr<DBClientWriter> _wireProtocolWriter;
+        const boost::scoped_ptr<DBClientWriter> _commandWriter;
         WriteConcern _writeConcern;
         int _minWireVersion;
         int _maxBsonObjectSize;

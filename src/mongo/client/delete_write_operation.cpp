@@ -13,27 +13,25 @@
  *    limitations under the License.
  */
 
-#include "mongo/client/dbclientinterface.h"
 #include "mongo/client/delete_write_operation.h"
+
+#include "mongo/client/dbclientinterface.h"
 #include "mongo/db/namespace_string.h"
 
-namespace {
-    const char kCommandKey[] = "delete";
-    const char kBatchKey[] = "deletes";
-    const char kSelectorKey[] = "q";
-    const char kLimitKey[] = "limit";
-    const char kOrderedKey[] = "ordered";
-} // namespace
-
 namespace mongo {
+
+    namespace {
+        const char kCommandKey[] = "delete";
+        const char kBatchKey[] = "deletes";
+        const char kSelectorKey[] = "q";
+        const char kLimitKey[] = "limit";
+        const char kOrderedKey[] = "ordered";
+    } // namespace
 
     DeleteWriteOperation::DeleteWriteOperation(const BSONObj& selector, int flags)
         : _selector(selector)
         , _flags(flags)
         {}
-
-    DeleteWriteOperation::~DeleteWriteOperation() {
-    }
 
     Operations DeleteWriteOperation::operationType() const {
         return dbDelete;

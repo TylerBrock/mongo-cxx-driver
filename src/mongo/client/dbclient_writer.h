@@ -13,12 +13,12 @@
  *    limitations under the License.
  */
 
+#pragma once
+
 #include <vector>
 
 #include "mongo/client/dbclientinterface.h"
 #include "mongo/client/write_operation.h"
-
-#pragma once
 
 namespace mongo {
 
@@ -26,12 +26,12 @@ namespace mongo {
     public:
         virtual ~DBClientWriter() {};
 
-        virtual std::vector<BSONObj> write(
+        virtual void write(
             const StringData& ns,
             const std::vector<WriteOperation*>& write_operations,
-            const WriteConcern* wc
+            const WriteConcern* wc,
+            std::vector<BSONObj>* results
         ) = 0;
-
     };
 
 } // namespace mongo

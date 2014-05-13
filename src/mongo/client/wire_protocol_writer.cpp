@@ -13,8 +13,9 @@
  *    limitations under the License.
  */
 
-#include "mongo/bson/bsonobj.h"
 #include "mongo/client/wire_protocol_writer.h"
+
+#include "mongo/bson/bsonobj.h"
 #include "mongo/db/namespace_string.h"
 
 namespace mongo {
@@ -22,19 +23,16 @@ namespace mongo {
     WireProtocolWriter::WireProtocolWriter(DBClientBase* client) : _client(client) {
     }
 
-    WireProtocolWriter::~WireProtocolWriter() {
-    }
-
-    std::vector<BSONObj> WireProtocolWriter::write(
+    void WireProtocolWriter::write(
         const StringData& ns,
         const std::vector<WriteOperation*>& write_operations,
-        const WriteConcern* wc
+        const WriteConcern* wc,
+        std::vector<BSONObj>* results
     ) {
         bool inRequest = false;
         int opsInRequest = 0;
         Operations requestType;
 
-        std::vector<BSONObj> responses;
         BufBuilder builder;
 
         std::vector<WriteOperation*>::const_iterator iter;
@@ -63,7 +61,7 @@ namespace mongo {
             }
 
             // Send the current request to the server, record the response, start a new request
-            responses.push_back(_send(requestType, builder, wc, ns));
+            results->push_back(_send(requestType, builder, wc, ns));
             inRequest = false;
             opsInRequest = 0;
             builder.reset();
@@ -71,9 +69,7 @@ namespace mongo {
 
         // Last batch
         if (opsInRequest != 0)
-            responses.push_back(_send(requestType, builder, wc, ns));
-
-        return responses;
+            results->push_back(_send(requestType, builder, wc, ns));
     }
 
     BSONObj WireProtocolWriter::_send(Operations opCode, const BufBuilder& builder, const WriteConcern* wc, const StringData& ns) {

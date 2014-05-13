@@ -13,30 +13,28 @@
  *    limitations under the License.
  */
 
-#include "mongo/client/dbclientinterface.h"
 #include "mongo/client/update_write_operation.h"
+
+#include "mongo/client/dbclientinterface.h"
 #include "mongo/db/namespace_string.h"
 
-namespace {
-    const char kCommandKey[] = "update";
-    const char kBatchKey[] = "updates";
-    const char kMultiKey[] = "multi";
-    const char kUpsertKey[] = "upsert";
-    const char kSelectorKey[] = "q";
-    const char kUpdateKey[] = "u";
-    const char kOrderedKey[] = "ordered";
-} // namespace
-
 namespace mongo {
+
+    namespace {
+        const char kCommandKey[] = "update";
+        const char kBatchKey[] = "updates";
+        const char kMultiKey[] = "multi";
+        const char kUpsertKey[] = "upsert";
+        const char kSelectorKey[] = "q";
+        const char kUpdateKey[] = "u";
+        const char kOrderedKey[] = "ordered";
+    } // namespace
 
     UpdateWriteOperation::UpdateWriteOperation(const BSONObj& selector, const BSONObj& update, int flags)
         : _selector(selector)
         , _update(update)
         , _flags(flags)
         {}
-
-    UpdateWriteOperation::~UpdateWriteOperation() {
-    }
 
     Operations UpdateWriteOperation::operationType() const {
         return dbUpdate;

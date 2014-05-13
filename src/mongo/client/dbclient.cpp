@@ -1011,10 +1011,11 @@ namespace mongo {
     const uint64_t DBClientBase::INVALID_SOCK_CREATION_TIME =
             static_cast<uint64_t>(0xFFFFFFFFFFFFFFFFULL);
 
-    DBClientBase::DBClientBase() {
+    DBClientBase::DBClientBase()
+        : _wireProtocolWriter(new WireProtocolWriter(this))
+        , _commandWriter(new CommandWriter(this))
+    {
         _writeConcern = WriteConcern::acknowledged;
-        _wp_writer.reset(new WireProtocolWriter(this));
-        _cmd_writer.reset(new CommandWriter(this));
         _connectionId = ConnectionIdSequence.fetchAndAdd(1);
         _minWireVersion = _maxWireVersion = 0;
         _maxBsonObjectSize = 16 * 1024 * 1024;
@@ -1208,10 +1209,12 @@ namespace mongo {
     void DBClientBase::_write( const string& ns, const vector<WriteOperation*> writes, const WriteConcern* wc) {
         const WriteConcern* operation_wc = wc ? wc : &getWriteConcern();
 
+        vector<BSONObj> results;
+
         if (getMaxWireVersion() >= 2 && operation_wc->requiresConfirmation())
-            _cmd_writer->write( ns, writes, operation_wc );
+            _commandWriter->write( ns, writes, operation_wc, &results );
         else
-            _wp_writer->write( ns, writes, operation_wc );
+            _wireProtocolWriter->write( ns, writes, operation_wc, &results );
 
         vector<WriteOperation*>::const_iterator it;
         for ( it = writes.begin(); it != writes.end(); ++it )

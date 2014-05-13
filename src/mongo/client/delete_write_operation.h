@@ -13,18 +13,17 @@
  *    limitations under the License.
  */
 
+#pragma once
+
 #include "mongo/bson/bsonobj.h"
 #include "mongo/client/write_operation.h"
 #include "mongo/util/net/message.h"
-
-#pragma once
 
 namespace mongo {
 
     class DeleteWriteOperation : public WriteOperation {
     public:
         DeleteWriteOperation(const BSONObj& selector, int flags);
-        virtual ~DeleteWriteOperation();
 
         virtual Operations operationType() const;
 

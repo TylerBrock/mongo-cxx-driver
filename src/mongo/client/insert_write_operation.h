@@ -13,18 +13,17 @@
  *    limitations under the License.
  */
 
+#pragma once
+
 #include "mongo/bson/bsonobj.h"
 #include "mongo/client/write_operation.h"
 #include "mongo/util/net/message.h"
-
-#pragma once
 
 namespace mongo {
 
     class InsertWriteOperation : public WriteOperation {
     public:
         InsertWriteOperation(const BSONObj doc, int flags);
-        virtual ~InsertWriteOperation();
 
         virtual Operations operationType() const;
 

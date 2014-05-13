@@ -13,25 +13,24 @@
  *    limitations under the License.
  */
 
-#include "mongo/client/dbclientinterface.h"
 #include "mongo/client/insert_write_operation.h"
+
+#include "mongo/client/dbclientinterface.h"
 #include "mongo/db/namespace_string.h"
 
-namespace {
-    const char kCommandKey[] = "insert";
-    const char kBatchKey[] = "documents";
-    const char kOrderedKey[] = "ordered";
-} // namespace
 
 namespace mongo {
+
+    namespace {
+        const char kCommandKey[] = "insert";
+        const char kBatchKey[] = "documents";
+        const char kOrderedKey[] = "ordered";
+    } // namespace
 
     InsertWriteOperation::InsertWriteOperation(const BSONObj doc, int flags)
         : _doc(doc)
         , _flags(flags)
         {}
-
-    InsertWriteOperation::~InsertWriteOperation() {
-    }
 
     Operations InsertWriteOperation::operationType() const {
         return dbInsert;
