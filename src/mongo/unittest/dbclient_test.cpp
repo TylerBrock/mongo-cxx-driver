@@ -483,7 +483,7 @@ namespace {
         BSONObj result;
 
         c.runCommand("admin", BSON("buildinfo" << true), result);
-        std::cout << result["version"].toString() << std::endl;
+
         if (versionCmp(result["version"].toString(), "2.5.3") >= 0) {
             c.runCommand("admin", BSON(
                 "configureFailPoint" << "maxTimeAlwaysTimeOut" <<
@@ -716,6 +716,7 @@ namespace {
             c.insert(TEST_NS, BSON("_id" << 1)),
             OperationException
         );
+        ASSERT_EQUALS(c.count(TEST_NS, BSON("_id" << 1)), 1U);
     }
 
     TEST_F(DBClientTest, DefaultWriteConcernUpdate) {
@@ -724,6 +725,7 @@ namespace {
             c.update(TEST_NS, BSON("a" << true), BSON("$badOp" << "blah")),
             OperationException
         );
+        ASSERT_EQUALS(c.count(TEST_NS, BSON("a" << true)), 1U);
     }
 
     TEST_F(DBClientTest, DefaultWriteConcernRemove) {
@@ -743,6 +745,7 @@ namespace {
                 &WriteConcern::unacknowledged
             )
         );
+        ASSERT_EQUALS(c.count(TEST_NS, BSON("_id" << 1)), 1U);
     }
 
     TEST_F(DBClientTest, UnacknowledgedUpdate) {
@@ -757,6 +760,7 @@ namespace {
                 &WriteConcern::unacknowledged
             )
         );
+        ASSERT_EQUALS(c.count(TEST_NS, BSON("a" << true)), 1U);
     }
 
     TEST_F(DBClientTest, UnacknowledgedRemove) {
@@ -767,6 +771,14 @@ namespace {
                 false,
                 &WriteConcern::unacknowledged
             )
+        );
+    }
+
+    TEST_F(DBClientTest, AcknowledgeMultipleNodesNonReplicated) {
+        WriteConcern wc = WriteConcern().nodes(2).timeout(3000);
+        ASSERT_THROWS(
+            c.insert(TEST_NS, BSON("_id" << 1), 0, &wc),
+            OperationException
         );
     }
 
