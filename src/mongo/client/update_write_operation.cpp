@@ -40,7 +40,7 @@ namespace mongo {
         return dbUpdate;
     }
 
-    void UpdateWriteOperation::startRequest(const std::string& ns, BufBuilder* builder) const {
+    void UpdateWriteOperation::startRequest(const std::string& ns, bool, BufBuilder* builder) const {
         builder->appendNum(0);
         builder->appendStr(ns);
         builder->appendNum(_flags);
@@ -69,9 +69,9 @@ namespace mongo {
         return true;
     }
 
-    void UpdateWriteOperation::endCommand(BSONArrayBuilder* batch, BSONObjBuilder* builder) const {
+    void UpdateWriteOperation::endCommand(BSONArrayBuilder* batch, bool ordered, BSONObjBuilder* builder) const {
         builder->append(kBatchKey, batch->arr());
-        builder->append(kOrderedKey, true);
+        builder->append(kOrderedKey, ordered);
     }
 
 } // namespace mongo

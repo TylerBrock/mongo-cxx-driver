@@ -27,12 +27,12 @@ namespace mongo {
 
         virtual Operations operationType() const;
 
-        virtual void startRequest(const std::string& ns, BufBuilder* b) const;
+        virtual void startRequest(const std::string& ns, bool ordered, BufBuilder* b) const;
         virtual bool appendSelfToRequest(int maxSize, BufBuilder* b) const;
 
         virtual void startCommand(const std::string& ns, BSONObjBuilder* command) const;
         virtual bool appendSelfToCommand(BSONArrayBuilder* batch) const;
-        virtual void endCommand(BSONArrayBuilder* batch, BSONObjBuilder* command) const;
+        virtual void endCommand(BSONArrayBuilder* batch, bool ordered, BSONObjBuilder* command) const;
 
     private:
         const BSONObj _selector;

@@ -1058,7 +1058,7 @@ namespace mongo {
         int _maxWireVersion;
         int _maxMessageSizeBytes;
         int _maxWriteBatchSize;
-        void _write( const std::string& ns, const std::vector<WriteOperation*> writes, const WriteConcern* wc );
+        void _write( const std::string& ns, const std::vector<WriteOperation*> writes, bool ordered, const WriteConcern* wc );
     public:
         static const uint64_t INVALID_SOCK_CREATION_TIME;
 

@@ -27,17 +27,16 @@ namespace mongo {
         const char kOrderedKey[] = "ordered";
     } // namespace
 
-    InsertWriteOperation::InsertWriteOperation(const BSONObj doc, int flags)
+    InsertWriteOperation::InsertWriteOperation(const BSONObj doc)
         : _doc(doc)
-        , _flags(flags)
         {}
 
     Operations InsertWriteOperation::operationType() const {
         return dbInsert;
     }
 
-    void InsertWriteOperation::startRequest(const std::string& ns, BufBuilder* builder) const {
-        builder->appendNum(_flags);
+    void InsertWriteOperation::startRequest(const std::string& ns, bool ordered, BufBuilder* builder) const {
+        builder->appendNum(ordered ? 0 : 1);
         builder->appendStr(ns);
     }
 
@@ -58,9 +57,9 @@ namespace mongo {
         return true;
     }
 
-    void InsertWriteOperation::endCommand(BSONArrayBuilder* batch, BSONObjBuilder* builder) const {
+    void InsertWriteOperation::endCommand(BSONArrayBuilder* batch, bool ordered, BSONObjBuilder* builder) const {
         builder->append(kBatchKey, batch->arr());
-        builder->append(kOrderedKey, bool(!(_flags & InsertOption_ContinueOnError)));
+        builder->append(kOrderedKey, ordered);
     }
 
 } // namespace mongo

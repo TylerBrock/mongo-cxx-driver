@@ -1206,15 +1206,15 @@ namespace mongo {
         return n;
     }
 
-    void DBClientBase::_write( const string& ns, const vector<WriteOperation*> writes, const WriteConcern* wc) {
+    void DBClientBase::_write( const string& ns, const vector<WriteOperation*> writes, bool ordered, const WriteConcern* wc) {
         const WriteConcern* operation_wc = wc ? wc : &getWriteConcern();
 
         vector<BSONObj> results;
 
         if (getMaxWireVersion() >= 2 && operation_wc->requiresConfirmation())
-            _commandWriter->write( ns, writes, operation_wc, &results );
+            _commandWriter->write( ns, writes, ordered, operation_wc, &results );
         else
-            _wireProtocolWriter->write( ns, writes, operation_wc, &results );
+            _wireProtocolWriter->write( ns, writes, ordered, operation_wc, &results );
 
         vector<WriteOperation*>::const_iterator it;
         for ( it = writes.begin(); it != writes.end(); ++it )
@@ -1232,11 +1232,13 @@ namespace mongo {
 
         vector<BSONObj>::const_iterator bsonObjIter;
         for (bsonObjIter = v.begin(); bsonObjIter != v.end(); ++bsonObjIter) {
-            inserts.push_back( new InsertWriteOperation(*bsonObjIter, flags) );
+            inserts.push_back( new InsertWriteOperation(*bsonObjIter) );
         }
 
+        bool ordered = !(flags & InsertOption_ContinueOnError);
+
         // _write will free the inserts
-        _write( ns, inserts, wc );
+        _write( ns, inserts, ordered, wc );
     }
 
     void DBClientBase::remove( const string & ns , Query obj , bool justOne, const WriteConcern* wc ) {
@@ -1248,7 +1250,7 @@ namespace mongo {
         deletes.push_back( new DeleteWriteOperation(obj.obj, flags) );
 
         // _write will free the deletes
-        _write( ns, deletes, wc );
+        _write( ns, deletes, true, wc );
     }
 
     void DBClientBase::update( const string & ns , Query query , BSONObj obj , bool upsert, bool multi, const WriteConcern* wc ) {
@@ -1263,7 +1265,7 @@ namespace mongo {
         updates.push_back( new UpdateWriteOperation(query.obj, obj, flags) );
 
         // _write will free the updates
-        _write( ns, updates, wc );
+        _write( ns, updates, true, wc );
     }
 
     auto_ptr<DBClientCursor> DBClientWithCommands::getIndexes( const string &ns ) {

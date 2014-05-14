@@ -26,6 +26,7 @@ namespace mongo {
     void WireProtocolWriter::write(
         const StringData& ns,
         const std::vector<WriteOperation*>& write_operations,
+        bool ordered,
         const WriteConcern* wc,
         std::vector<BSONObj>* results
     ) {
@@ -41,7 +42,7 @@ namespace mongo {
         while (iter != write_operations.end()) {
             // We don't have a pending request yet
             if (!inRequest) {
-                (*iter)->startRequest(ns.toString(), &builder);
+                (*iter)->startRequest(ns.toString(), ordered, &builder);
                 inRequest = true;
                 requestType = (*iter)->operationType();
             }
@@ -52,11 +53,14 @@ namespace mongo {
                 // We can add to the request, lets see if it will fit and we can batch
                 bool addedToRequest = (*iter)->appendSelfToRequest(_client->getMaxMessageSizeBytes(), &builder);
 
-                // We added the write op into the request and can batch, so don't send yet
+                // We added the write op into the request
                 if (addedToRequest) {
                     ++opsInRequest;
                     ++iter;
-                    continue;
+
+                    // Can we batch?
+                    if (_batchableRequest(requestType))
+                        continue;
                 }
             }
 
@@ -91,6 +95,10 @@ namespace mongo {
         }
 
         return result;
+    }
+
+    bool WireProtocolWriter::_batchableRequest(Operations opCode) {
+        return opCode == dbInsert ? true : false;
     }
 
 } // namespace mongo

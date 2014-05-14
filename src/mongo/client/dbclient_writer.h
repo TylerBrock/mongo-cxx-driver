@@ -29,6 +29,7 @@ namespace mongo {
         virtual void write(
             const StringData& ns,
             const std::vector<WriteOperation*>& write_operations,
+            bool ordered,
             const WriteConcern* wc,
             std::vector<BSONObj>* results
         ) = 0;

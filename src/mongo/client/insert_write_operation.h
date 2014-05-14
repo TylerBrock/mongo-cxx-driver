@@ -23,20 +23,19 @@ namespace mongo {
 
     class InsertWriteOperation : public WriteOperation {
     public:
-        InsertWriteOperation(const BSONObj doc, int flags);
+        InsertWriteOperation(const BSONObj doc);
 
         virtual Operations operationType() const;
 
-        virtual void startRequest(const std::string& ns, BufBuilder* builder) const;
+        virtual void startRequest(const std::string& ns, bool ordered, BufBuilder* builder) const;
         virtual bool appendSelfToRequest(int maxSize, BufBuilder* builder) const;
 
         virtual void startCommand(const std::string& ns, BSONObjBuilder* command) const;
         virtual bool appendSelfToCommand(BSONArrayBuilder* batch) const;
-        virtual void endCommand(BSONArrayBuilder* batch, BSONObjBuilder* command) const;
+        virtual void endCommand(BSONArrayBuilder* batch, bool ordered, BSONObjBuilder* command) const;
 
     private:
         const BSONObj _doc;
-        int _flags;
     };
 
 } // namespace mongo

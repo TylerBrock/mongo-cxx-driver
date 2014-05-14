@@ -37,7 +37,7 @@ namespace mongo {
         return dbDelete;
     }
 
-    void DeleteWriteOperation::startRequest(const std::string& ns, BufBuilder* builder) const {
+    void DeleteWriteOperation::startRequest(const std::string& ns, bool, BufBuilder* builder) const {
         builder->appendNum(0);
         builder->appendStr(ns);
         builder->appendNum(_flags);
@@ -63,9 +63,9 @@ namespace mongo {
         return true;
     }
 
-    void DeleteWriteOperation::endCommand(BSONArrayBuilder* batch, BSONObjBuilder* builder) const {
+    void DeleteWriteOperation::endCommand(BSONArrayBuilder* batch, bool ordered, BSONObjBuilder* builder) const {
         builder->append(kBatchKey, batch->arr());
-        builder->append(kOrderedKey, true);
+        builder->append(kOrderedKey, ordered);
     }
 
 } // namespace mongo

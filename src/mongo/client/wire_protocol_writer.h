@@ -27,13 +27,15 @@ namespace mongo {
         virtual void write(
             const StringData& ns,
             const std::vector<WriteOperation*>& write_operations,
+            bool ordered,
             const WriteConcern* wc,
             std::vector<BSONObj>* results
         );
 
     private:
-        BSONObj _send(Operations opCode, const BufBuilder& builder, const WriteConcern* wc, const StringData& ns);
         DBClientBase* _client;
+        BSONObj _send(Operations opCode, const BufBuilder& builder, const WriteConcern* wc, const StringData& ns);
+        bool _batchableRequest(Operations opCode);
     };
 
 } // namespace mongo

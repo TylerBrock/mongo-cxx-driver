@@ -25,6 +25,7 @@ namespace mongo {
     void CommandWriter::write(
         const StringData& ns,
         const std::vector<WriteOperation*>& write_operations,
+        bool ordered,
         const WriteConcern* wc,
         std::vector<BSONObj>* results
     ) {
@@ -61,7 +62,7 @@ namespace mongo {
             }
 
             // Send the current request to the server, record the response, start a new request
-            (*iter)->endCommand(&batch, &command);
+            (*iter)->endCommand(&batch, ordered, &command);
             results->push_back(_send(&command, wc, ns));
             inRequest = false;
             opsInRequest = 0;
@@ -71,7 +72,7 @@ namespace mongo {
         if (opsInRequest != 0)
             // All of the flags are the same so just use the ones from the final op in batch
             --iter;
-            (*iter)->endCommand(&batch, &command);
+            (*iter)->endCommand(&batch, ordered, &command);
             results->push_back(_send(&command, wc, ns));
     }
 

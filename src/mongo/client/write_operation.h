@@ -44,7 +44,7 @@ namespace mongo {
          *
          * NOTE: The size of the preamble is fixed but operation type dependant.
          */
-        virtual void startRequest(const std::string& ns, BufBuilder* b) const = 0;
+        virtual void startRequest(const std::string& ns, bool ordered, BufBuilder* b) const = 0;
 
         /**
          * Appends a document (or documents in the case of update) which describe
@@ -93,7 +93,7 @@ namespace mongo {
          * batch of write operations into the command and injecting the ordered
          * excecution parameter (which can be operation parameter dependent).
          */
-        virtual void endCommand(BSONArrayBuilder* batch, BSONObjBuilder* command) const = 0;
+        virtual void endCommand(BSONArrayBuilder* batch, bool ordered, BSONObjBuilder* command) const = 0;
     };
 
 } // namespace mongo
