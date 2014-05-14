@@ -199,8 +199,6 @@ clientHeaders = [
     'mongo/config.h',
     'mongo/db/jsobj.h',
     'mongo/db/json.h',
-    'mongo/db/namespace_string-inl.h',
-    'mongo/db/namespace_string.h',
     'mongo/db/server_options.h',
     'mongo/logger/appender.h',
     'mongo/logger/labeled_level.h',
