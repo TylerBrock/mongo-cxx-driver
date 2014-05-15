@@ -16,9 +16,10 @@
 #pragma once
 
 #include "mongo/client/dbclient_writer.h"
-#include "mongo/client/dbclientinterface.h"
 
 namespace mongo {
+
+    class DBClientBase;
 
     class WireProtocolWriter : public DBClientWriter {
     public:
@@ -33,7 +34,7 @@ namespace mongo {
         );
 
     private:
-        DBClientBase* _client;
+        DBClientBase* const _client;
         BSONObj _send(Operations opCode, const BufBuilder& builder, const WriteConcern* wc, const StringData& ns);
         bool _batchableRequest(Operations opCode);
     };

@@ -239,6 +239,7 @@ clientHeaders = [
     'mongo/util/net/hostandport.h',
     'mongo/util/net/message.h',
     'mongo/util/net/message_port.h',
+    'mongo/util/net/operation.h',
     'mongo/util/net/sock.h',
     'mongo/util/net/ssl_manager.h',
     'mongo/util/net/ssl_options.h',

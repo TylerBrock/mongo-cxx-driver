@@ -17,10 +17,11 @@
 
 #include <vector>
 
-#include "mongo/client/dbclientinterface.h"
 #include "mongo/client/write_operation.h"
 
 namespace mongo {
+
+    class WriteConcern;
 
     class DBClientWriter {
     public:

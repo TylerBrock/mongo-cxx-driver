@@ -205,15 +205,15 @@ namespace mongo {
 
     private:
         void _handle_request() {
-            char msglen_bytes[4];
+            char msglen_bytes[sizeof(int32_t)];
             _socket->recv(msglen_bytes, sizeof(int32_t));
             int msglen;
-            memcpy(&msglen, msglen_bytes, 4);
+            memcpy(&msglen, msglen_bytes, sizeof(int32_t));
 
             char buffer[msglen];
-            memcpy(buffer, &msglen, 4);
+            memcpy(buffer, &msglen, sizeof(int32_t));
 
-            int32_t position = 4;
+            int32_t position = sizeof(int32_t);
             while (position < msglen) {
                 ssize_t got = _socket->recv(buffer + position, (msglen - position));
                 position += got;
@@ -238,7 +238,7 @@ namespace mongo {
 
         int _extract_request_id(char* buffer) {
             int32_t request_id;
-            memcpy(&request_id, buffer + 4, 4);
+            memcpy(&request_id, buffer + sizeof(int32_t), sizeof(int32_t));
             return request_id;
         }
 

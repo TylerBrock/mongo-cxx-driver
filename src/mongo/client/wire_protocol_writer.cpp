@@ -15,7 +15,7 @@
 
 #include "mongo/client/wire_protocol_writer.h"
 
-#include "mongo/bson/bsonobj.h"
+#include "mongo/client/dbclientinterface.h"
 #include "mongo/db/namespace_string.h"
 
 namespace mongo {
@@ -36,8 +36,7 @@ namespace mongo {
 
         BufBuilder builder;
 
-        std::vector<WriteOperation*>::const_iterator iter;
-        iter = write_operations.begin();
+        std::vector<WriteOperation*>::const_iterator iter = write_operations.begin();
 
         while (iter != write_operations.end()) {
             // We don't have a pending request yet
@@ -48,7 +47,7 @@ namespace mongo {
             }
 
             // now we have a pending request, can we add to it?
-            if (requestType == (*iter)->operationType() && opsInRequest < 1000) {
+            if (requestType == (*iter)->operationType() && opsInRequest < _client->getMaxWriteBatchSize()) {
 
                 // We can add to the request, lets see if it will fit and we can batch
                 bool addedToRequest = (*iter)->appendSelfToRequest(_client->getMaxMessageSizeBytes(), &builder);
@@ -98,7 +97,7 @@ namespace mongo {
     }
 
     bool WireProtocolWriter::_batchableRequest(Operations opCode) {
-        return opCode == dbInsert ? true : false;
+        return opCode == dbInsert;
     }
 
 } // namespace mongo

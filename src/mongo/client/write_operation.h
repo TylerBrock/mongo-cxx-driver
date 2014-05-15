@@ -15,13 +15,16 @@
 
 #pragma once
 
-#include "mongo/util/net/message.h"
+#include <string>
+
+#include "mongo/bson/bsonobjbuilder.h"
+#include "mongo/util/net/operation.h"
 
 namespace mongo {
 
     /**
      * Represents a single server side write operation and encapsulates
-     * the process for encoding the operation into either a wire protocl
+     * the process for encoding the operation into either a wire protocol
      * request message or a command.
      */
     class WriteOperation {
@@ -51,7 +54,7 @@ namespace mongo {
          * the write operation represented by an instance of this class into the
          * supplied BufBuilder.
          *
-         * This method will be called multiple times by a WireProtocolriter in order
+         * This method will be called multiple times by a WireProtocolWriter in order
          * to batch operations of the same type into a single wire protocol request.
          *
          * It returns a boolean value that indicates whether adding this particular

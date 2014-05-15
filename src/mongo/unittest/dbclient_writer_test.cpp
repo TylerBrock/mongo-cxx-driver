@@ -16,6 +16,7 @@
 #include "mongo/unittest/integration_test.h"
 
 #include "mongo/client/command_writer.h"
+#include "mongo/client/dbclient.h"
 #include "mongo/client/delete_write_operation.h"
 #include "mongo/client/insert_write_operation.h"
 #include "mongo/client/update_write_operation.h"
@@ -66,6 +67,7 @@ namespace {
     TYPED_TEST_CASE(DBClientWriterTest, DBClientWriters);
 
     TYPED_TEST(DBClientWriterTest, SingleInsert) {
+        if (!this->testSupported()) return;
         vector<WriteOperation*> inserts;
         InsertWriteOperation insert(BSON("a" << 1));
         inserts.push_back(&insert);
@@ -75,6 +77,7 @@ namespace {
     }
 
     TYPED_TEST(DBClientWriterTest, MultipleOrderedInserts) {
+        if (!this->testSupported()) return;
         vector<WriteOperation*> inserts;
         InsertWriteOperation insert1(BSON("a" << 1));
         InsertWriteOperation insert2(BSON("a" << 2));
@@ -88,7 +91,7 @@ namespace {
     }
 
     TYPED_TEST(DBClientWriterTest, MultipleUnorderedInserts) {
-        if (!this->testSupported()) SUCCEED();
+        if (!this->testSupported()) return;
         vector<WriteOperation*> inserts;
         InsertWriteOperation insert1(BSON("a" << 1));
         InsertWriteOperation insert2(BSON("a" << 2));
@@ -102,7 +105,7 @@ namespace {
     }
 
     TYPED_TEST(DBClientWriterTest, MultipleOrderedInsertsWithError) {
-        if (!this->testSupported()) SUCCEED();
+        if (!this->testSupported()) return;
         vector<WriteOperation*> inserts;
         InsertWriteOperation insert1(BSON("_id" << 1));
         InsertWriteOperation insert2(BSON("_id" << 2));
@@ -119,7 +122,7 @@ namespace {
     }
 
     TYPED_TEST(DBClientWriterTest, MultipleUnorderedInsertsWithError) {
-        if (!this->testSupported()) SUCCEED();
+        if (!this->testSupported()) return;
         vector<WriteOperation*> inserts;
         InsertWriteOperation insert1(BSON("_id" << 1));
         InsertWriteOperation insert2(BSON("_id" << 2));
@@ -136,7 +139,7 @@ namespace {
     }
 
     TYPED_TEST(DBClientWriterTest, MultipleOrderedInsertsWithErrorNoConcern) {
-        if (!this->testSupported()) SUCCEED();
+        if (!this->testSupported()) return;
         vector<WriteOperation*> inserts;
         InsertWriteOperation insert1(BSON("_id" << 1));
         InsertWriteOperation insert2(BSON("_id" << 2));
@@ -150,7 +153,7 @@ namespace {
     }
 
     TYPED_TEST(DBClientWriterTest, MultipleUnorderedInsertsWithErrorNoConcern) {
-        if (!this->testSupported()) SUCCEED();
+        if (!this->testSupported()) return;
         vector<WriteOperation*> inserts;
         InsertWriteOperation insert1(BSON("_id" << 1));
         InsertWriteOperation insert2(BSON("_id" << 2));
@@ -164,20 +167,35 @@ namespace {
     }
 
     TYPED_TEST(DBClientWriterTest, SingleUpdate) {
-        if (!this->testSupported()) SUCCEED();
+        if (!this->testSupported()) return;
         this->c.insert(TEST_NS, BSON("a" << 1));
-        this->c.insert(TEST_NS, BSON("a" << 2));
+        this->c.insert(TEST_NS, BSON("a" << 1));
 
         vector<WriteOperation*> updates;
         UpdateWriteOperation update(BSON("a" << 1), BSON("$set" << BSON("a" << 2)), 0);
         updates.push_back(&update);
         vector<BSONObj> results;
         this->writer->write(TEST_NS, updates, true, &WriteConcern::acknowledged, &results);
+        ASSERT_EQUALS(this->c.count(TEST_NS, Query("{a: 1}").obj), 1U);
+        ASSERT_EQUALS(this->c.count(TEST_NS, Query("{a: 2}").obj), 1U);
+    }
+
+    TYPED_TEST(DBClientWriterTest, SingleMultiUpdate) {
+        if (!this->testSupported()) return;
+        this->c.insert(TEST_NS, BSON("a" << 1));
+        this->c.insert(TEST_NS, BSON("a" << 1));
+
+        vector<WriteOperation*> updates;
+        UpdateWriteOperation update(BSON("a" << 1), BSON("$set" << BSON("a" << 2)), UpdateOption_Multi);
+        updates.push_back(&update);
+        vector<BSONObj> results;
+        this->writer->write(TEST_NS, updates, true, &WriteConcern::acknowledged, &results);
+        ASSERT_EQUALS(this->c.count(TEST_NS, Query("{a: 1}").obj), 0U);
         ASSERT_EQUALS(this->c.count(TEST_NS, Query("{a: 2}").obj), 2U);
     }
 
     TYPED_TEST(DBClientWriterTest, SingleUpsertDoesUpdate) {
-        if (!this->testSupported()) SUCCEED();
+        if (!this->testSupported()) return;
         this->c.insert(TEST_NS, BSON("a" << 1));
         this->c.insert(TEST_NS, BSON("a" << 2));
 
@@ -191,7 +209,7 @@ namespace {
     }
 
     TYPED_TEST(DBClientWriterTest, SingleUpsertDoesUpsert) {
-        if (!this->testSupported()) SUCCEED();
+        if (!this->testSupported()) return;
         this->c.insert(TEST_NS, BSON("a" << 1));
         this->c.insert(TEST_NS, BSON("a" << 2));
 
@@ -205,7 +223,7 @@ namespace {
     }
 
     TYPED_TEST(DBClientWriterTest, MultipleOrderedUpdates) {
-        if (!this->testSupported()) SUCCEED();
+        if (!this->testSupported()) return;
         this->c.insert(TEST_NS, BSON("a" << 1));
         this->c.insert(TEST_NS, BSON("b" << 1));
 
@@ -221,7 +239,7 @@ namespace {
     }
 
     TYPED_TEST(DBClientWriterTest, MultipleUnorderedUpdates) {
-        if (!this->testSupported()) SUCCEED();
+        if (!this->testSupported()) return;
         this->c.insert(TEST_NS, BSON("a" << 1));
         this->c.insert(TEST_NS, BSON("b" << 1));
 
@@ -237,7 +255,7 @@ namespace {
     }
 
     TYPED_TEST(DBClientWriterTest, MultipleOrderedUpdatesWithError) {
-        if (!this->testSupported()) SUCCEED();
+        if (!this->testSupported()) return;
         this->c.ensureIndex(TEST_NS, BSON("a" << 1), true);
         this->c.insert(TEST_NS, BSON("a" << 1));
         this->c.insert(TEST_NS, BSON("b" << 1));
@@ -257,7 +275,7 @@ namespace {
     }
 
     TYPED_TEST(DBClientWriterTest, MultipleUnorderedUpdatesWithError) {
-        if (!this->testSupported()) SUCCEED();
+        if (!this->testSupported()) return;
         this->c.ensureIndex(TEST_NS, BSON("a" << 1), true);
         this->c.insert(TEST_NS, BSON("a" << 1));
         this->c.insert(TEST_NS, BSON("b" << 1));
@@ -277,7 +295,7 @@ namespace {
     }
 
     TYPED_TEST(DBClientWriterTest, MultipleOrderedUpdatesWithErrorNoConcern) {
-        if (!this->testSupported()) SUCCEED();
+        if (!this->testSupported()) return;
         this->c.ensureIndex(TEST_NS, BSON("a" << 1), true);
         this->c.insert(TEST_NS, BSON("a" << 1));
         this->c.insert(TEST_NS, BSON("b" << 1));
@@ -294,7 +312,7 @@ namespace {
     }
 
     TYPED_TEST(DBClientWriterTest, MultipleUnorderedUpdatesWithErrorNoConcern) {
-        if (!this->testSupported()) SUCCEED();
+        if (!this->testSupported()) return;
         this->c.ensureIndex(TEST_NS, BSON("a" << 1), true);
         this->c.insert(TEST_NS, BSON("a" << 1));
         this->c.insert(TEST_NS, BSON("b" << 1));
@@ -311,7 +329,7 @@ namespace {
     }
 
     TYPED_TEST(DBClientWriterTest, SingleDelete) {
-        if (!this->testSupported()) SUCCEED();
+        if (!this->testSupported()) return;
         this->c.insert(TEST_NS, BSON("a" << 0));
         this->c.insert(TEST_NS, BSON("a" << 1));
         this->c.insert(TEST_NS, BSON("a" << 2));
@@ -327,7 +345,7 @@ namespace {
     }
 
     TYPED_TEST(DBClientWriterTest, SingleDeleteJustOne) {
-        if (!this->testSupported()) SUCCEED();
+        if (!this->testSupported()) return;
         this->c.insert(TEST_NS, BSON("a" << 0));
         this->c.insert(TEST_NS, BSON("a" << 1));
         this->c.insert(TEST_NS, BSON("a" << 2));
@@ -343,7 +361,7 @@ namespace {
     }
 
     TYPED_TEST(DBClientWriterTest, MultipleOrderedDeletes) {
-        if (!this->testSupported()) SUCCEED();
+        if (!this->testSupported()) return;
         this->c.insert(TEST_NS, BSON("a" << 1));
         this->c.insert(TEST_NS, BSON("b" << 1));
 
@@ -361,7 +379,7 @@ namespace {
     }
 
     TYPED_TEST(DBClientWriterTest, MultipleUnorderedDeletes) {
-        if (!this->testSupported()) SUCCEED();
+        if (!this->testSupported()) return;
         this->c.insert(TEST_NS, BSON("a" << 1));
         this->c.insert(TEST_NS, BSON("b" << 1));
 

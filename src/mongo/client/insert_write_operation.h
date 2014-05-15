@@ -15,15 +15,13 @@
 
 #pragma once
 
-#include "mongo/bson/bsonobj.h"
 #include "mongo/client/write_operation.h"
-#include "mongo/util/net/message.h"
 
 namespace mongo {
 
     class InsertWriteOperation : public WriteOperation {
     public:
-        InsertWriteOperation(const BSONObj doc);
+        InsertWriteOperation(const BSONObj& doc);
 
         virtual Operations operationType() const;
 

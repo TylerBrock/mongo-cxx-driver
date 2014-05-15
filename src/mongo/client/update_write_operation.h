@@ -15,9 +15,7 @@
 
 #pragma once
 
-#include "mongo/bson/bsonobj.h"
 #include "mongo/client/write_operation.h"
-#include "mongo/util/net/message.h"
 
 namespace mongo {
 

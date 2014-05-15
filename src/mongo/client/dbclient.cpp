@@ -54,6 +54,10 @@ namespace mongo {
 
     const char* const saslCommandUserSourceFieldName = "userSource";
 
+    const int defaultMaxBsonObjectSize = 16 * 1024 * 1024;
+    const int defaultMaxMessageSizeBytes = defaultMaxBsonObjectSize * 2;
+    const int defaultMaxWriteBatchSize = 1000;
+
     void ConnectionString::_fillServers( string s ) {
         
         //
@@ -1018,9 +1022,9 @@ namespace mongo {
         _writeConcern = WriteConcern::acknowledged;
         _connectionId = ConnectionIdSequence.fetchAndAdd(1);
         _minWireVersion = _maxWireVersion = 0;
-        _maxBsonObjectSize = 16 * 1024 * 1024;
-        _maxMessageSizeBytes = _maxBsonObjectSize * 2;
-        _maxWriteBatchSize = 1000;
+        _maxBsonObjectSize = defaultMaxBsonObjectSize;
+        _maxMessageSizeBytes = defaultMaxMessageSizeBytes;
+        _maxWriteBatchSize = defaultMaxWriteBatchSize;
     }
 
     DBClientBase::~DBClientBase() {
@@ -1206,7 +1210,7 @@ namespace mongo {
         return n;
     }
 
-    void DBClientBase::_write( const string& ns, const vector<WriteOperation*> writes, bool ordered, const WriteConcern* wc) {
+    void DBClientBase::_write( const string& ns, const vector<WriteOperation*>& writes, bool ordered, const WriteConcern* wc) {
         const WriteConcern* operation_wc = wc ? wc : &getWriteConcern();
 
         vector<BSONObj> results;
@@ -1216,9 +1220,19 @@ namespace mongo {
         else
             _wireProtocolWriter->write( ns, writes, ordered, operation_wc, &results );
 
-        vector<WriteOperation*>::const_iterator it;
-        for ( it = writes.begin(); it != writes.end(); ++it )
-            delete *it;
+    }
+
+    namespace {
+        struct ScopedWriteOperations {
+            ScopedWriteOperations() { }
+            ~ScopedWriteOperations() {
+                vector<WriteOperation*>::const_iterator it;
+                for ( it = ops.begin(); it != ops.end(); ++it )
+                    delete *it;
+            }
+            void enqueue(WriteOperation* op) { ops.push_back(op); }
+            std::vector<WriteOperation*> ops;
+        };
     }
 
     void DBClientBase::insert( const string & ns , BSONObj obj , int flags, const WriteConcern* wc ) {
@@ -1228,17 +1242,17 @@ namespace mongo {
     }
 
     void DBClientBase::insert( const string & ns, const vector< BSONObj >& v, int flags , const WriteConcern* wc ) {
-        vector<WriteOperation*> inserts;
+        ScopedWriteOperations inserts;
 
         vector<BSONObj>::const_iterator bsonObjIter;
         for (bsonObjIter = v.begin(); bsonObjIter != v.end(); ++bsonObjIter) {
-            inserts.push_back( new InsertWriteOperation(*bsonObjIter) );
+            inserts.enqueue( new InsertWriteOperation(*bsonObjIter) );
         }
 
         bool ordered = !(flags & InsertOption_ContinueOnError);
 
         // _write will free the inserts
-        _write( ns, inserts, ordered, wc );
+        _write( ns, inserts.ops, ordered, wc );
     }
 
     void DBClientBase::remove( const string & ns , Query obj , bool justOne, const WriteConcern* wc ) {
@@ -1246,11 +1260,11 @@ namespace mongo {
     }
 
     void DBClientBase::remove( const string & ns , Query obj , int flags, const WriteConcern* wc ) {
-        vector<WriteOperation*> deletes;
-        deletes.push_back( new DeleteWriteOperation(obj.obj, flags) );
+        ScopedWriteOperations deletes;
+        deletes.enqueue( new DeleteWriteOperation(obj.obj, flags) );
 
         // _write will free the deletes
-        _write( ns, deletes, true, wc );
+        _write( ns, deletes.ops, true, wc );
     }
 
     void DBClientBase::update( const string & ns , Query query , BSONObj obj , bool upsert, bool multi, const WriteConcern* wc ) {
@@ -1261,11 +1275,11 @@ namespace mongo {
     }
 
     void DBClientBase::update( const string & ns , Query query , BSONObj obj , int flags, const WriteConcern* wc ) {
-        vector<WriteOperation*> updates;
-        updates.push_back( new UpdateWriteOperation(query.obj, obj, flags) );
+        ScopedWriteOperations updates;
+        updates.enqueue( new UpdateWriteOperation(query.obj, obj, flags) );
 
         // _write will free the updates
-        _write( ns, updates, true, wc );
+        _write( ns, updates.ops, true, wc );
     }
 
     auto_ptr<DBClientCursor> DBClientWithCommands::getIndexes( const string &ns ) {

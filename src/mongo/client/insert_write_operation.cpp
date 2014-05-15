@@ -27,7 +27,7 @@ namespace mongo {
         const char kOrderedKey[] = "ordered";
     } // namespace
 
-    InsertWriteOperation::InsertWriteOperation(const BSONObj doc)
+    InsertWriteOperation::InsertWriteOperation(const BSONObj& doc)
         : _doc(doc)
         {}
 

@@ -15,27 +15,18 @@
 
 #pragma once
 
-#include "mongo/client/dbclient_writer.h"
-
 namespace mongo {
 
-    class DBClientBase;
-
-    class CommandWriter : public DBClientWriter {
-    public:
-        explicit CommandWriter(DBClientBase* client);
-
-        virtual void write(
-            const StringData& ns,
-            const std::vector<WriteOperation*>& write_operations,
-            bool ordered,
-            const WriteConcern* wc,
-            std::vector<BSONObj>* results
-        );
-
-    private:
-        DBClientBase* const _client;
-        BSONObj _send(BSONObjBuilder* builder, const WriteConcern* wc, const StringData& ns);
+    enum Operations {
+        opReply = 1,     /* reply. responseTo is set. */
+        dbMsg = 1000,    /* generic msg command followed by a string */
+        dbUpdate = 2001, /* update object */
+        dbInsert = 2002,
+        //dbGetByOID = 2003,
+        dbQuery = 2004,
+        dbGetMore = 2005,
+        dbDelete = 2006,
+        dbKillCursors = 2007
     };
 
 } // namespace mongo

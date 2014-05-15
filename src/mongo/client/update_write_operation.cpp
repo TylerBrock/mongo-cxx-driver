@@ -47,7 +47,7 @@ namespace mongo {
     }
 
     bool UpdateWriteOperation::appendSelfToRequest(int maxSize, BufBuilder* builder) const {
-        if (builder->getSize() + _selector.objsize() + _update.objsize() > maxSize)
+        if ((builder->getSize() + _selector.objsize() + _update.objsize()) > maxSize)
             return false;
 
         _selector.appendSelfToBufBuilder(*builder);

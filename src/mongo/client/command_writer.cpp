@@ -15,6 +15,7 @@
 
 #include "mongo/client/command_writer.h"
 
+#include "mongo/client/dbclientinterface.h"
 #include "mongo/db/namespace_string.h"
 
 namespace mongo {
@@ -36,8 +37,7 @@ namespace mongo {
         BSONObjBuilder command;
         BSONArrayBuilder batch;
 
-        std::vector<WriteOperation*>::const_iterator iter;
-        iter = write_operations.begin();
+        std::vector<WriteOperation*>::const_iterator iter = write_operations.begin();
 
         while (iter != write_operations.end()) {
             // We don't have a pending command yet
@@ -48,7 +48,7 @@ namespace mongo {
             }
 
             // Now we have a pending request, can we add to it?
-            if (requestType == (*iter)->operationType() && opsInRequest < 1000) {
+            if (requestType == (*iter)->operationType() && opsInRequest < _client->getMaxWriteBatchSize()) {
 
                 // We can add to the request, lets see if it will fit and we can batch
                 bool addedToRequest = (*iter)->appendSelfToCommand(&batch);
@@ -77,10 +77,9 @@ namespace mongo {
     }
 
     BSONObj CommandWriter::_send(BSONObjBuilder* builder, const WriteConcern* wc, const StringData& ns) {
-        BSONObj result;
-
         builder->append("writeConcern", wc->obj());
 
+        BSONObj result;
         bool commandWorked = _client->runCommand(nsToDatabase(ns), builder->obj(), result);
 
         if (!commandWorked || result.hasField("writeErrors") || result.hasField("writeConcernError")) {
