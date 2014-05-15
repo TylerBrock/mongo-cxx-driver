@@ -396,4 +396,86 @@ namespace {
         ASSERT_EQUALS(this->c.count(TEST_NS, Query("{b: 1}").obj), 0U);
     }
 
+    /*TYPED_TEST(DBClientWriterTest, LargeInsert) {
+        vector<WriteOperation*> ops;
+        string s;
+        for (int i=0; i<(16 * 1024 * 1023) - 1; ++i) { s += "a"; }
+        InsertWriteOperation insert(BSON("string" << s));
+        ops.push_back(&insert);
+        vector<BSONObj> results;
+        ASSERT_NO_THROW(
+            this->writer->write(TEST_NS, ops, true, &WriteConcern::acknowledged, &results)
+        );
+    }
+
+    TYPED_TEST(DBClientWriterTest, LargeInsertFails) {
+        vector<WriteOperation*> ops;
+        string s;
+        for (int i=0; i<(16 * 1024 * 1024); ++i) { s += "a"; }
+        InsertWriteOperation insert(BSON("string" << s));
+        ops.push_back(&insert);
+        vector<BSONObj> results;
+        ASSERT_THROWS(
+            this->writer->write(TEST_NS, ops, true, &WriteConcern::acknowledged, &results),
+            std::exception
+        );
+    }
+
+    TYPED_TEST(DBClientWriterTest, LargeDelete) {
+        vector<WriteOperation*> ops;
+        string s;
+        for (int i=0; i<(16 * 1024 * 1023); ++i) { s += "a"; }
+        DeleteWriteOperation del(BSON("string" << s), 0);
+        ops.push_back(&del);
+        vector<BSONObj> results;
+        ASSERT_NO_THROW(
+            this->writer->write(TEST_NS, ops, true, &WriteConcern::acknowledged, &results)
+        );
+    }
+
+    TYPED_TEST(DBClientWriterTest, LargeUpdateEvenSplit) {
+        vector<WriteOperation*> ops;
+        string s;
+        for (int i=0; i<(8 * 1024 * 1023) - 1; ++i) { s += "a"; }
+        UpdateWriteOperation update(
+            BSON("s" << s),
+            BSON("s" << s),
+        0);
+        ops.push_back(&update);
+        vector<BSONObj> results;
+        ASSERT_NO_THROW(
+            this->writer->write(TEST_NS, ops, true, &WriteConcern::acknowledged, &results)
+        );
+    }
+
+    TYPED_TEST(DBClientWriterTest, LargeUpdateQueryHeavy) {
+        vector<WriteOperation*> ops;
+        string s;
+        for (int i=0; i<(15 * 1024 * 1023) - 1; ++i) { s += "a"; }
+        UpdateWriteOperation update(
+            BSON("s" << s),
+            BSON("s" << "s"),
+        0);
+        ops.push_back(&update);
+        vector<BSONObj> results;
+        ASSERT_NO_THROW(
+            this->writer->write(TEST_NS, ops, true, &WriteConcern::acknowledged, &results)
+        );
+    }
+
+    TYPED_TEST(DBClientWriterTest, LargeUpdateReplacementDocHeavy) {
+        vector<WriteOperation*> ops;
+        string s;
+        for (int i=0; i<(15 * 1024 * 1023) - 1; ++i) { s += "a"; }
+        UpdateWriteOperation update(
+            BSON("s" << "s"),
+            BSON("s" << s),
+        0);
+        ops.push_back(&update);
+        vector<BSONObj> results;
+        ASSERT_NO_THROW(
+            this->writer->write(TEST_NS, ops, true, &WriteConcern::acknowledged, &results)
+        );
+    }*/
+
 }
