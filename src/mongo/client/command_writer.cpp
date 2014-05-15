@@ -20,6 +20,9 @@
 
 namespace mongo {
 
+    const int kOverhead = 8 * 1024;
+    const char kOrderedKey[] = "ordered";
+
     CommandWriter::CommandWriter(DBClientBase* client) : _client(client) {
     }
 
@@ -48,21 +51,21 @@ namespace mongo {
             }
 
             // Now we have a pending request, can we add to it?
-            if (requestType == (*iter)->operationType() && opsInRequest < _client->getMaxWriteBatchSize()) {
+            if (requestType == (*iter)->operationType() &&
+                opsInRequest < _client->getMaxWriteBatchSize()) {
 
-                // We can add to the request, lets see if it will fit and we can batch
-                bool addedToRequest = (*iter)->appendSelfToCommand(&batch);
-
-                // We added the write op into the request and can batch, so don't send yet
-                if (addedToRequest) {
+                // We can add to the command, lets see if it will fit and we can batch
+                if(_fits(&batch, *iter)) {
+                    (*iter)->appendSelfToCommand(&batch);
                     ++opsInRequest;
                     ++iter;
                     continue;
                 }
+
             }
 
             // Send the current request to the server, record the response, start a new request
-            (*iter)->endCommand(&batch, ordered, &command);
+            _endCommand(&batch, *iter, ordered, &command);
             results->push_back(_send(&command, wc, ns));
             inRequest = false;
             opsInRequest = 0;
@@ -72,8 +75,28 @@ namespace mongo {
         if (opsInRequest != 0)
             // All of the flags are the same so just use the ones from the final op in batch
             --iter;
-            (*iter)->endCommand(&batch, ordered, &command);
+            _endCommand(&batch, *iter, ordered, &command);
             results->push_back(_send(&command, wc, ns));
+    }
+
+    bool CommandWriter::_fits(BSONArrayBuilder* builder, WriteOperation* op) {
+        int opSize = op->incrementalSize();
+        int maxSize = _client->getMaxBsonObjectSize();
+
+        // This update is too large to ever be sent as a command, assert
+        uassert(0, "update command exceeds maxBsonObjectSize", opSize <= maxSize);
+
+        return (builder->len() + opSize + kOverhead) <= maxSize;
+    }
+
+    void CommandWriter::_endCommand(
+        BSONArrayBuilder* batch,
+        WriteOperation* op,
+        bool ordered,
+        BSONObjBuilder* command
+    ) {
+        command->append(op->batchName(), batch->arr());
+        command->append(kOrderedKey, ordered);
     }
 
     BSONObj CommandWriter::_send(BSONObjBuilder* builder, const WriteConcern* wc, const StringData& ns) {

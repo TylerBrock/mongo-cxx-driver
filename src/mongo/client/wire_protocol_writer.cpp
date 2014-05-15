@@ -47,17 +47,15 @@ namespace mongo {
             }
 
             // now we have a pending request, can we add to it?
-            if (requestType == (*iter)->operationType() && opsInRequest < _client->getMaxWriteBatchSize()) {
+            if (requestType == (*iter)->operationType() &&
+                opsInRequest < _client->getMaxWriteBatchSize()) {
 
                 // We can add to the request, lets see if it will fit and we can batch
-                bool addedToRequest = (*iter)->appendSelfToRequest(_client->getMaxMessageSizeBytes(), &builder);
-
-                // We added the write op into the request
-                if (addedToRequest) {
+                if(_fits(&builder, *iter)) {
+                    (*iter)->appendSelfToRequest(&builder);
                     ++opsInRequest;
                     ++iter;
 
-                    // Can we batch?
                     if (_batchableRequest(requestType))
                         continue;
                 }
@@ -73,6 +71,10 @@ namespace mongo {
         // Last batch
         if (opsInRequest != 0)
             results->push_back(_send(requestType, builder, wc, ns));
+    }
+
+    bool WireProtocolWriter::_fits(BufBuilder* builder, WriteOperation* op) {
+        return (builder->len() + op->incrementalSize()) <= _client->getMaxMessageSizeBytes();
     }
 
     BSONObj WireProtocolWriter::_send(Operations opCode, const BufBuilder& builder, const WriteConcern* wc, const StringData& ns) {

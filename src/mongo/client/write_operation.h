@@ -38,6 +38,17 @@ namespace mongo {
         virtual Operations operationType() const = 0;
 
         /**
+         * Returns the name for a batch of this type of write operation.
+         */
+        virtual const char* batchName() const = 0;
+
+        /**
+         * Returns the incremental size (in bytes) required to add this write
+         * operation to a batch.
+         */
+        virtual int incrementalSize() const = 0;
+
+        /**
          * Appends the preamble for a wire protocol message into the supplied
          * BufBuilder.
          *
@@ -47,33 +58,30 @@ namespace mongo {
          *
          * NOTE: The size of the preamble is fixed but operation type dependant.
          */
-        virtual void startRequest(const std::string& ns, bool ordered, BufBuilder* b) const = 0;
+        virtual void startRequest(const std::string& ns, bool ordered, BufBuilder* builder) const = 0;
 
         /**
          * Appends a document (or documents in the case of update) which describe
          * the write operation represented by an instance of this class into the
          * supplied BufBuilder.
          *
-         * This method will be called multiple times by a WireProtocolWriter in order
+         * This method may be called multiple times by a WireProtocolWriter in order
          * to batch operations of the same type into a single wire protocol request.
-         *
-         * It returns a boolean value that indicates whether adding this particular
-         * operation's data to the request was successful. If it returns false, this
-         * signals to the WireProtocolWriter that the batch should be considered full.
          *
          * NOTE: The size of this portion of the message is flexible but the size of
          * the message itself is bounded by the server's maxMessageSizeBytes.
          */
-        virtual bool appendSelfToRequest(int maxSize, BufBuilder* b) const = 0;
+        virtual void appendSelfToRequest(BufBuilder* builder) const = 0;
 
         /**
          * Appends the preamble for a write command into the supplied BSONObjBuilder.
          *
          * Typically this involves a single bson element having a key that represents
          * the operation type and a value which represents the collection to which the
-         * operation will be applied.
+         * operation will be applied. This write op element must be the first element
+         * in the document according to the specification.
          */
-        virtual void startCommand(const std::string& ns, BSONObjBuilder* b) const = 0;
+        virtual void startCommand(const std::string& ns, BSONObjBuilder* command) const = 0;
 
         /**
          * Appends a single document that describes the write operation represented by
@@ -82,21 +90,10 @@ namespace mongo {
          * This method will be called multiple times by a DBClientWriter in order to batch
          * operations of the same type into a single command.
          *
-         * It returns a boolean value that indicates whether adding this particular
-         * operation's data to the request was successful. If it returns false, this
-         * signals to the CommandWriter that the batch should be considered full.
-         *
          * NOTE: The ultimate size of the of the command is bounded by the sever's
          * maxBsonObjectSize.
          */
-        virtual bool appendSelfToCommand(BSONArrayBuilder* batch) const = 0;
-
-        /**
-         * Ends a single write command by appending the BSONArray representing a
-         * batch of write operations into the command and injecting the ordered
-         * excecution parameter (which can be operation parameter dependent).
-         */
-        virtual void endCommand(BSONArrayBuilder* batch, bool ordered, BSONObjBuilder* command) const = 0;
+        virtual void appendSelfToCommand(BSONArrayBuilder* batch) const = 0;
     };
 
 } // namespace mongo

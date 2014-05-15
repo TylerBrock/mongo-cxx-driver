@@ -395,4 +395,5 @@ namespace {
         ASSERT_EQUALS(this->c.count(TEST_NS, Query("{a: 1}").obj), 0U);
         ASSERT_EQUALS(this->c.count(TEST_NS, Query("{b: 1}").obj), 0U);
     }
+
 }

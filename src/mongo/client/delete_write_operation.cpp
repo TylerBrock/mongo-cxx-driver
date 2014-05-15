@@ -22,10 +22,9 @@ namespace mongo {
 
     namespace {
         const char kCommandKey[] = "delete";
-        const char kBatchKey[] = "deletes";
+        const char kBatchName[] = "deletes";
         const char kSelectorKey[] = "q";
         const char kLimitKey[] = "limit";
-        const char kOrderedKey[] = "ordered";
     } // namespace
 
     DeleteWriteOperation::DeleteWriteOperation(const BSONObj& selector, int flags)
@@ -37,35 +36,33 @@ namespace mongo {
         return dbDelete;
     }
 
+    int DeleteWriteOperation::incrementalSize() const {
+        return _selector.objsize();
+    }
+
+    const char* DeleteWriteOperation::batchName() const {
+        return kBatchName;
+    }
+
     void DeleteWriteOperation::startRequest(const std::string& ns, bool, BufBuilder* builder) const {
         builder->appendNum(0);
         builder->appendStr(ns);
         builder->appendNum(_flags);
     }
 
-    bool DeleteWriteOperation::appendSelfToRequest(int maxSize, BufBuilder* builder) const {
-        if (builder->getSize() + _selector.objsize() > maxSize)
-            return false;
-
+    void DeleteWriteOperation::appendSelfToRequest(BufBuilder* builder) const {
         _selector.appendSelfToBufBuilder(*builder);
-        return true;
     }
 
-    void DeleteWriteOperation::startCommand(const std::string& ns, BSONObjBuilder* builder) const {
-        builder->append(kCommandKey, nsToCollectionSubstring(ns));
+    void DeleteWriteOperation::startCommand(const std::string& ns, BSONObjBuilder* command) const {
+        command->append(kCommandKey, nsToCollectionSubstring(ns));
     }
 
-    bool DeleteWriteOperation::appendSelfToCommand(BSONArrayBuilder* batch) const {
+    void DeleteWriteOperation::appendSelfToCommand(BSONArrayBuilder* batch) const {
         BSONObjBuilder updateBuilder;
         updateBuilder.append(kSelectorKey, _selector);
         updateBuilder.append(kLimitKey, _flags & RemoveOption_JustOne);
         batch->append(updateBuilder.obj());
-        return true;
-    }
-
-    void DeleteWriteOperation::endCommand(BSONArrayBuilder* batch, bool ordered, BSONObjBuilder* builder) const {
-        builder->append(kBatchKey, batch->arr());
-        builder->append(kOrderedKey, ordered);
     }
 
 } // namespace mongo

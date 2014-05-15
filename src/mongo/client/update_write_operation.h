@@ -24,13 +24,14 @@ namespace mongo {
         UpdateWriteOperation(const BSONObj& selector, const BSONObj& update, int flags);
 
         virtual Operations operationType() const;
+        virtual const char* batchName() const;
+        virtual int incrementalSize() const;
 
-        virtual void startRequest(const std::string& ns, bool ordered, BufBuilder* b) const;
-        virtual bool appendSelfToRequest(int maxSize, BufBuilder* b) const;
+        virtual void startRequest(const std::string& ns, bool ordered, BufBuilder* builder) const;
+        virtual void appendSelfToRequest(BufBuilder* builder) const;
 
         virtual void startCommand(const std::string& ns, BSONObjBuilder* command) const;
-        virtual bool appendSelfToCommand(BSONArrayBuilder* batch) const;
-        virtual void endCommand(BSONArrayBuilder* batch, bool ordered, BSONObjBuilder* command) const;
+        virtual void appendSelfToCommand(BSONArrayBuilder* batch) const;
 
     private:
         const BSONObj _selector;

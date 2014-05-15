@@ -23,8 +23,7 @@ namespace mongo {
 
     namespace {
         const char kCommandKey[] = "insert";
-        const char kBatchKey[] = "documents";
-        const char kOrderedKey[] = "ordered";
+        const char kBatchName[] = "documents";
     } // namespace
 
     InsertWriteOperation::InsertWriteOperation(const BSONObj& doc)
@@ -35,31 +34,29 @@ namespace mongo {
         return dbInsert;
     }
 
+    const char* InsertWriteOperation::batchName() const {
+        return kBatchName;
+    }
+
+    int InsertWriteOperation::incrementalSize() const {
+        return _doc.objsize();
+    }
+
     void InsertWriteOperation::startRequest(const std::string& ns, bool ordered, BufBuilder* builder) const {
         builder->appendNum(ordered ? 0 : 1);
         builder->appendStr(ns);
     }
 
-    bool InsertWriteOperation::appendSelfToRequest(int maxSize, BufBuilder* builder) const {
-        if (builder->getSize() + _doc.objsize() > maxSize)
-            return false;
-
+    void InsertWriteOperation::appendSelfToRequest(BufBuilder* builder) const {
         _doc.appendSelfToBufBuilder(*builder);
-        return true;
     }
 
-    void InsertWriteOperation::startCommand(const std::string& ns, BSONObjBuilder* builder) const {
-        builder->append(kCommandKey, nsToCollectionSubstring(ns));
+    void InsertWriteOperation::startCommand(const std::string& ns, BSONObjBuilder* command) const {
+        command->append(kCommandKey, nsToCollectionSubstring(ns));
     }
 
-    bool InsertWriteOperation::appendSelfToCommand(BSONArrayBuilder* builder) const {
-        builder->append(_doc);
-        return true;
-    }
-
-    void InsertWriteOperation::endCommand(BSONArrayBuilder* batch, bool ordered, BSONObjBuilder* builder) const {
-        builder->append(kBatchKey, batch->arr());
-        builder->append(kOrderedKey, ordered);
+    void InsertWriteOperation::appendSelfToCommand(BSONArrayBuilder* batch) const {
+        batch->append(_doc);
     }
 
 } // namespace mongo

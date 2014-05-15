@@ -37,6 +37,7 @@ namespace mongo {
         DBClientBase* const _client;
         BSONObj _send(Operations opCode, const BufBuilder& builder, const WriteConcern* wc, const StringData& ns);
         bool _batchableRequest(Operations opCode);
+        bool _fits(BufBuilder* builder, WriteOperation* operation);
     };
 
 } // namespace mongo
