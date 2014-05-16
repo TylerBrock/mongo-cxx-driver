@@ -27,8 +27,8 @@ namespace mongo {
     public:
         virtual ~DBClientWriter() {};
 
-        // WriteOperations have been checke to ensure involed objects
-        // are less than the client's saximum BSON object size.
+        // This function assumes that WriteOperations have been checked to ensure
+        // involved objects are less than the client's maximum BSON object size.
         virtual void write(
             const StringData& ns,
             const std::vector<WriteOperation*>& write_operations,

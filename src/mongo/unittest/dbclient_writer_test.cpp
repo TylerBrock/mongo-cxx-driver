@@ -29,6 +29,7 @@ using namespace mongo;
 using namespace mongo::unittest;
 
 namespace {
+
     const string TEST_NS = "test.dbclient_writer";
 
     template <typename T>
@@ -478,4 +479,4 @@ namespace {
         );
     }*/
 
-}
+} // namespace

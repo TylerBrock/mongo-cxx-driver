@@ -1235,10 +1235,6 @@ namespace mongo {
         };
     }
 
-    void DBClientBase::_checkSize(const BSONObj& obj) {
-         uassert(0, "document exceeds maxBsonObjectSize", obj.objsize() <= getMaxBsonObjectSize());
-    }
-
     void DBClientBase::insert( const string & ns , BSONObj obj , int flags, const WriteConcern* wc ) {
         vector<BSONObj> toInsert;
         toInsert.push_back( obj );
@@ -1250,7 +1246,8 @@ namespace mongo {
 
         vector<BSONObj>::const_iterator bsonObjIter;
         for (bsonObjIter = v.begin(); bsonObjIter != v.end(); ++bsonObjIter) {
-            _checkSize(*bsonObjIter);
+            uassert(0, "document to be inserted exceeds maxBsonObjectSize",
+                    (*bsonObjIter).objsize() <= getMaxBsonObjectSize());
             inserts.enqueue( new InsertWriteOperation(*bsonObjIter) );
         }
 
@@ -1266,7 +1263,8 @@ namespace mongo {
 
     void DBClientBase::remove( const string & ns , Query obj , int flags, const WriteConcern* wc ) {
         ScopedWriteOperations deletes;
-        _checkSize(obj.obj);
+        uassert(0, "remove selector exceeds maxBsonObjectSize",
+                obj.obj.objsize() <= getMaxBsonObjectSize());
         deletes.enqueue( new DeleteWriteOperation(obj.obj, flags) );
 
         // _write will free the deletes
@@ -1282,8 +1280,10 @@ namespace mongo {
 
     void DBClientBase::update( const string & ns , Query query , BSONObj obj, int flags, const WriteConcern* wc ) {
         ScopedWriteOperations updates;
-        _checkSize(query.obj);
-        _checkSize(obj);
+        uassert(0, "update selector exceeds maxBsonObjectSize",
+                query.obj.objsize() <= getMaxBsonObjectSize());
+        uassert(0, "update document exceeds maxBsonObjectSize",
+                obj.objsize() <= getMaxBsonObjectSize());
         updates.enqueue( new UpdateWriteOperation(query.obj, obj, flags) );
 
         // _write will free the updates

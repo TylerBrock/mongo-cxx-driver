@@ -34,10 +34,11 @@ namespace mongo {
         );
 
     private:
-        DBClientBase* const _client;
         BSONObj _send(Operations opCode, const BufBuilder& builder, const WriteConcern* wc, const StringData& ns);
         bool _batchableRequest(Operations opCode);
         bool _fits(BufBuilder* builder, WriteOperation* operation);
+
+        DBClientBase* const _client;
     };
 
 } // namespace mongo
