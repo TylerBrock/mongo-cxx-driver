@@ -144,7 +144,7 @@ namespace {
 
 #if defined(_WIN32)
         char tmp_name[MAX_PATH];
-        GetTmpFileName(".", "tmp", 0U, tmp_name);
+        GetTempFileName(".", "tmp", 0U, tmp_name);
 #else
         char tmp_name[L_tmpnam];
         tmpnam(tmp_name);
