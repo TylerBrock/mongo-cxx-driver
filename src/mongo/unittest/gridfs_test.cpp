@@ -142,9 +142,13 @@ namespace {
 
         GridFile gf = _gfs->findFile(DATA_NAME);
 
-        std::string templateStr = "/tmp/tmpfileXXXXXX";
-        char tmp_name[L_tmpnam];
+#if defined(_WIN32)
+        char tmp_name[MAX_PATH];
+        GetTempFileNameA(".", "tmp", 0U, tmp_name);
+#else
+        char tmp_name[] = "/tmp/tmp.XXXXXXXX";
         mkstemp(tmp_name);
+#endif
 
         gf.write(tmp_name);
 
