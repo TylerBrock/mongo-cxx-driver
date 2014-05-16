@@ -143,7 +143,7 @@ namespace mongo {
             }
 
             int send(MsgData* toSend, int len) {
-                int sent = ::send(_fd, toSend, len, 0);
+                int sent = ::send(_fd, (char*)toSend, len, 0);
                 if (sent == -1) {
                     perror("send");
                     close();
@@ -210,7 +210,7 @@ namespace mongo {
             int msglen;
             memcpy(&msglen, msglen_bytes, sizeof(int32_t));
 
-            char buffer[msglen];
+            char buffer[8 * 1024];
             memcpy(buffer, &msglen, sizeof(int32_t));
 
             int32_t position = sizeof(int32_t);
