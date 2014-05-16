@@ -1,2 +1,2 @@
 * text=auto
-data=binary
+src/mongo/unitttest/data=binary
