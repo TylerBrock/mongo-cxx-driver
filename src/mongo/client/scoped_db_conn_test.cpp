@@ -210,16 +210,16 @@ namespace mongo {
             int msglen;
             memcpy(&msglen, msglen_bytes, sizeof(int32_t));
 
-            char buffer[8 * 1024];
-            memcpy(buffer, &msglen, sizeof(int32_t));
+            boost::scoped_array<char> buffer(new char[msglen]);
+            memcpy(buffer.get(), &msglen, sizeof(int32_t));
 
             int32_t position = sizeof(int32_t);
             while (position < msglen) {
-                int got = _socket->recv(buffer + position, (msglen - position));
+                int got = _socket->recv(buffer.get() + position, (msglen - position));
                 position += got;
             }
 
-            int32_t request_id = _extract_request_id(buffer);
+            int32_t request_id = _extract_request_id(buffer.get());
 
             Message reply;
             replyToQuery(0, reply, _build_is_master());
