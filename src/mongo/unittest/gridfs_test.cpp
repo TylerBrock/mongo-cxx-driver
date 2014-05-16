@@ -142,8 +142,10 @@ namespace {
 
         GridFile gf = _gfs->findFile(DATA_NAME);
 
-        char *tmp_name= strdup("/tmp/tmpfileXXXXXX");
+        std::string templateStr = "/tmp/tmpfileXXXXXX";
+        char tmp_name[L_tmpnam];
         mkstemp(tmp_name);
+
         gf.write(tmp_name);
 
         ifstream written_file;
