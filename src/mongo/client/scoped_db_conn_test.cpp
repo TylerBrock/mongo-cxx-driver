@@ -142,7 +142,7 @@ namespace mongo {
                 }
             }
 
-            ssize_t send(MsgData* toSend, int len) {
+            int send(MsgData* toSend, int len) {
                 int sent = ::send(_fd, toSend, len, 0);
                 if (sent == -1) {
                     perror("send");
@@ -152,8 +152,8 @@ namespace mongo {
                 return sent;
             }
 
-            ssize_t recv(char* buffer, int len) {
-                ssize_t received = ::recv(_fd, buffer, len, 0);
+            int recv(char* buffer, int len) {
+                int received = ::recv(_fd, buffer, len, 0);
                 if (received == -1) {
                     perror("recv");
                     close();
@@ -215,7 +215,7 @@ namespace mongo {
 
             int32_t position = sizeof(int32_t);
             while (position < msglen) {
-                ssize_t got = _socket->recv(buffer + position, (msglen - position));
+                int got = _socket->recv(buffer + position, (msglen - position));
                 position += got;
             }
 
