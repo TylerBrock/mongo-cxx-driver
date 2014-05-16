@@ -46,6 +46,7 @@ namespace {
     const unsigned int UOTHER_LEN = 18;
     const int DATA_LEN = UDATA_LEN;
     const int OTHER_LEN = UOTHER_LEN;
+    const char DATA_LOC[] = "./src/mongo/unittest/data";
 
     class GridFSTest : public unittest::Test {
     public:
@@ -83,10 +84,15 @@ namespace {
 
     TEST_F(GridFSTest, StoreFileFromFile) {
         BSONObj result;
+
+        ifstream dataFile(DATA_LOC);
+        dataFile.seekg(0, std::ios_base::end);
+        int fileSize = dataFile.tellg();
+
         result = _gfs->storeFile("./src/mongo/unittest/data", DATA_NAME);
 
         ASSERT_EQUALS(result["filename"].str(), DATA_NAME);
-        ASSERT_EQUALS(result["length"].numberInt(), 20);
+        ASSERT_EQUALS(result["length"].numberInt(), fileSize);
         ASSERT_EQUALS(result["chunkSize"].numberInt(), DEFAULT_CHUNK_SIZE);
         ASSERT_TRUE(result.hasField("uploadDate"));
         ASSERT_TRUE(result.hasField("md5"));
@@ -135,8 +141,14 @@ namespace {
         _gfs->storeFile(DATA, DATA_LEN, DATA_NAME);
 
         GridFile gf = _gfs->findFile(DATA_NAME);
+
+#if defined(_WIN32)
+        char tmp_name[MAX_PATH];
+        GetTmpFileName(".", "tmp", 0U, tmp_name);
+#else
         char tmp_name[L_tmpnam];
         tmpnam(tmp_name);
+#endif
         gf.write(tmp_name);
 
         ifstream written_file;
