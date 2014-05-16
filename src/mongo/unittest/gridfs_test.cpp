@@ -143,9 +143,9 @@ namespace {
         GridFile gf = _gfs->findFile(DATA_NAME);
 
 #if defined(_WIN32)
-        char tmp_path[MAX_PATH + 1];
+        char tmp_path[MAX_PATH - 14];
         GetTempPathA(MAX_PATH, tmp_path);
-        char tmp_name[MAX_PATH - 14];
+        char tmp_name[MAX_PATH];
         GetTempFileNameA(tmp_path, "tmp", 0U, tmp_name);
 #else
         char tmp_name[] = "/tmp/tmp.XXXXXXXX";
