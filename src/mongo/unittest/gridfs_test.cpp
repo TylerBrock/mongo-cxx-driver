@@ -142,13 +142,8 @@ namespace {
 
         GridFile gf = _gfs->findFile(DATA_NAME);
 
-#if defined(_WIN32)
-        char tmp_name[MAX_PATH];
-        GetTempFileNameA(".", "tmp", 0U, tmp_name);
-#else
-        char tmp_name[L_tmpnam];
-        tmpnam(tmp_name);
-#endif
+        char *tmp_name= strdup("/tmp/tmpfileXXXXXX");
+        mkstemp(tmp_name);
         gf.write(tmp_name);
 
         ifstream written_file;
