@@ -83,7 +83,7 @@ namespace {
 
     TEST_F(GridFSTest, StoreFileFromFile) {
         BSONObj result;
-        result = _gfs->storeFile("./src/mongo/unittest/data.txt", DATA_NAME);
+        result = _gfs->storeFile("./src/mongo/unittest/data", DATA_NAME);
 
         ASSERT_EQUALS(result["filename"].str(), DATA_NAME);
         ASSERT_EQUALS(result["length"].numberInt(), 20);
