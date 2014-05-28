@@ -13,24 +13,26 @@
  *    limitations under the License.
  */
 
-#include "mongo/client/exceptions.h"
+#include "mongo/client/write_concern_error.h"
 
 namespace mongo {
 
-    namespace {
-        const char kName[] = "OperationException";
-    }
-
-    OperationException::OperationException(const BSONObj& errorObj)
-        : _lastError(errorObj)
-        , _errorString(std::string(kName) + ": " + errorObj.toString())
+    WriteConcernError::WriteConcernError(int32_t code, std::string message, BSONObj details)
+        : _code(code)
+        , _message(message)
+        , _details(details)
     {}
 
-    OperationException::~OperationException() throw() {
+    int32_t WriteConcernError::code() const {
+        return _code;
     }
 
-    const char* OperationException::what() const throw() {
-        return _errorString.c_str();
+    std::string WriteConcernError::message() const {
+        return _message;
+    }
+
+    const BSONObj& WriteConcernError::details() const {
+        return _details;
     }
 
 } // namespace mongo

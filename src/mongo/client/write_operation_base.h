@@ -13,24 +13,22 @@
  *    limitations under the License.
  */
 
-#include "mongo/client/exceptions.h"
+#pragma once
+
+#include "mongo/client/write_operation.h"
+
+#include "mongo/platform/cstdint.h"
 
 namespace mongo {
 
-    namespace {
-        const char kName[] = "OperationException";
-    }
+    class WriteOperationBase : public WriteOperation {
+    public:
+        WriteOperationBase();
+        virtual void setSequenceId(int64_t index);
+        virtual int64_t getSequenceId() const;
 
-    OperationException::OperationException(const BSONObj& errorObj)
-        : _lastError(errorObj)
-        , _errorString(std::string(kName) + ": " + errorObj.toString())
-    {}
-
-    OperationException::~OperationException() throw() {
-    }
-
-    const char* OperationException::what() const throw() {
-        return _errorString.c_str();
-    }
+    private:
+        int64_t _originalIndex;
+    };
 
 } // namespace mongo

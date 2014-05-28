@@ -36,7 +36,7 @@ namespace mongo {
          * Returns the MongoDB wire protocol operation type represented
          * by an instance of this particular write operation.
          */
-        virtual Operations operationType() const = 0;
+        virtual WriteOpType operationType() const = 0;
 
         /**
          * Returns the name for a batch of this type of write operation.
@@ -95,6 +95,17 @@ namespace mongo {
          * maxBsonObjectSize.
          */
         virtual void appendSelfToCommand(BSONArrayBuilder* batch) const = 0;
+
+        /**
+         * Helper for appendSelfToCommand that injects the data represented by an
+         * instance of this class into a BSONObj.
+         *
+         * Broken out as a helper so that WriteResults can include the raw op.
+         */
+        virtual void appendSelfToBSONObj(BSONObjBuilder* obj) const = 0;
+
+        virtual void setSequenceId(int64_t index) = 0;
+        virtual int64_t getSequenceId() const = 0;
     };
 
 } // namespace mongo

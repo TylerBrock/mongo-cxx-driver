@@ -95,6 +95,8 @@ clientSourceBasic = [
     'mongo/client/update_write_operation.cpp',
     'mongo/client/wire_protocol_writer.cpp',
     'mongo/client/write_concern.cpp',
+    'mongo/client/write_operation_base.cpp',
+    'mongo/client/write_result.cpp',
     'mongo/db/jsobj.cpp',
     'mongo/db/json.cpp',
     'mongo/db/dbmessage.cpp',

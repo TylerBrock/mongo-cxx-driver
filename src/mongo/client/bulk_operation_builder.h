@@ -22,9 +22,11 @@
 
 namespace mongo {
 
+    class BulkOperationResult;
     class DBClientBase;
     class WriteConcern;
     class WriteOperation;
+    class WriteResult;
 
     /**
      * Class for constructing and executing bulk operations against MongoDB via a
@@ -97,7 +99,7 @@ namespace mongo {
          * @param wc The Write concern for the entire bulk operation. 0 = default (acknowledged);
          * @param results Vector where the results of operations will go.
          */
-        void execute(const WriteConcern* wc, std::vector<BSONObj>* results);
+        void execute(const WriteConcern* wc, WriteResult* wr);
 
     private:
         void enqueue(WriteOperation* const operation);
@@ -106,6 +108,7 @@ namespace mongo {
         const std::string _ns;
         const bool _ordered;
         bool _executed;
+        int64_t _sequenceId;
         std::vector<WriteOperation*> _write_operations;
     };
 

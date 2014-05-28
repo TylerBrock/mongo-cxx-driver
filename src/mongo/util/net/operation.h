@@ -29,4 +29,10 @@ namespace mongo {
         dbKillCursors = 2007
     };
 
+    enum WriteOpType {
+        dbWriteUpdate = 2001,
+        dbWriteInsert = 2002,
+        dbWriteDelete = 2006
+    };
+
 } // namespace mongo

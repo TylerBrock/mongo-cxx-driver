@@ -13,24 +13,29 @@
  *    limitations under the License.
  */
 
-#include "mongo/client/exceptions.h"
+#pragma once
+
+#include <string>
+
+#include "mongo/bson/bsonobj.h"
 
 namespace mongo {
 
-    namespace {
-        const char kName[] = "OperationException";
-    }
+    class WriteError {
+    public:
+        WriteError(int64_t index, int32_t code, std::string message, BSONObj op, BSONObj details);
+        int64_t index() const;
+        int32_t code() const;
+        std::string message() const;
+        const BSONObj& op() const;
+        const BSONObj& details() const;
 
-    OperationException::OperationException(const BSONObj& errorObj)
-        : _lastError(errorObj)
-        , _errorString(std::string(kName) + ": " + errorObj.toString())
-    {}
-
-    OperationException::~OperationException() throw() {
-    }
-
-    const char* OperationException::what() const throw() {
-        return _errorString.c_str();
-    }
+    private:
+        int64_t _index;
+        int32_t _code;
+        std::string _message;
+        BSONObj _op;
+        BSONObj _details;
+    };
 
 } // namespace mongo

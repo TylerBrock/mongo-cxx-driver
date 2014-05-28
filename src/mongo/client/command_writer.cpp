@@ -16,6 +16,7 @@
 #include "mongo/client/command_writer.h"
 
 #include "mongo/client/dbclientinterface.h"
+#include "mongo/client/write_result.h"
 #include "mongo/db/namespace_string.h"
 
 namespace mongo {
@@ -31,8 +32,10 @@ namespace mongo {
         const std::vector<WriteOperation*>& write_operations,
         bool ordered,
         const WriteConcern* wc,
-        std::vector<BSONObj>* results
+        WriteResult* wr
     ) {
+        // Effectively a map of batch relative indexes to WriteOperations
+        std::vector<WriteOperation*> batchOps;
 
         std::vector<WriteOperation*>::const_iterator batch_begin = write_operations.begin();
         const std::vector<WriteOperation*>::const_iterator end = write_operations.end();
@@ -47,6 +50,9 @@ namespace mongo {
             // passed an over size write operation in violation of our contract.
             invariant(_fits(batch.get(), *batch_iter));
 
+            // Get and store the current operation type for this batch
+            WriteOpType batchOpType = (*batch_iter)->operationType();
+
             // Begin the command for this batch.
             (*batch_iter)->startCommand(ns.toString(), command.get());
 
@@ -56,6 +62,9 @@ namespace mongo {
                 // checks below passed.
                 (*batch_iter)->appendSelfToCommand(batch.get());
 
+                // Associate batch index with WriteOperation
+                batchOps.push_back(*batch_iter);
+
                 // Peek at the next operation.
                 const std::vector<WriteOperation*>::const_iterator next = boost::next(batch_iter);
 
@@ -64,7 +73,7 @@ namespace mongo {
                     break;
 
                 // If the next operation is of a different type, issue what we have.
-                if ((*next)->operationType() != (*batch_iter)->operationType())
+                if ((*next)->operationType() != batchOpType)
                     break;
 
                 // If adding the next op would put us over the limit of ops in a batch, issue
@@ -84,12 +93,21 @@ namespace mongo {
             _endCommand(batch.get(), *batch_iter, ordered, command.get());
 
             // Issue the complete command.
-            results->push_back(_send(command.get(), wc, ns));
+            BSONObj batchResult = _send(command.get(), wc, ns);
+
+            // Merge this batch's result into the result for all batches written.
+            wr->mergeCommandResult(batchOps, batchResult);
+            batchOps.clear();
+
+            // Check if we need to raise an error
+            _checkResult(wr, ordered);
 
             // The next batch begins with the op after the last one in the just issued batch.
             batch_begin = ++batch_iter;
         }
 
+        // Check if we need to raise an error
+        _checkResult(wr, true);
     }
 
     bool CommandWriter::_fits(BSONArrayBuilder* builder, WriteOperation* op) {
@@ -112,15 +130,23 @@ namespace mongo {
         command->append(kOrderedKey, ordered);
     }
 
-    BSONObj CommandWriter::_send(BSONObjBuilder* command, const WriteConcern* wc, const StringData& ns) {
+    void CommandWriter::_checkResult(const WriteResult* const wr, bool ordered) {
+        if (ordered && wr->hasWriteErrors()) {
+            throw OperationException(wr->writeErrors().front());
+        }
+    }
+
+    BSONObj CommandWriter::_send(
+        BSONObjBuilder* command,
+        const WriteConcern* wc,
+        const StringData& ns
+    ) {
         command->append("writeConcern", wc->obj());
 
         BSONObj result;
         bool commandWorked = _client->runCommand(nsToDatabase(ns), command->obj(), result);
 
-        if (!commandWorked || result.hasField("writeErrors")) {
-            throw OperationException(result);
-        }
+        if (!commandWorked) throw OperationException(result);
 
         return result;
     }

@@ -22,6 +22,7 @@
 namespace mongo {
 
     class WriteConcern;
+    class WriteResult;
 
     class DBClientWriter {
     public:
@@ -34,7 +35,7 @@ namespace mongo {
             const std::vector<WriteOperation*>& write_operations,
             bool ordered,
             const WriteConcern* wc,
-            std::vector<BSONObj>* results
+            WriteResult* wr
         ) = 0;
     };
 

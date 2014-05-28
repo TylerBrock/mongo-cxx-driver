@@ -30,13 +30,24 @@ namespace mongo {
             const std::vector<WriteOperation*>& write_operations,
             bool ordered,
             const WriteConcern* wc,
-            std::vector<BSONObj>* results
+            WriteResult* wr
         );
 
     private:
-        void _endCommand(BSONArrayBuilder* batch, WriteOperation* op, bool ordered, BSONObjBuilder* command);
-        BSONObj _send(BSONObjBuilder* builder, const WriteConcern* wc, const StringData& ns);
+        void _endCommand(
+            BSONArrayBuilder* batch,
+            WriteOperation* op, bool ordered,
+            BSONObjBuilder* command
+        );
+
+        BSONObj _send(
+            BSONObjBuilder* command,
+            const WriteConcern* wc,
+            const StringData& ns
+        );
+
         bool _fits(BSONArrayBuilder* builder, WriteOperation* operation);
+        void _checkResult(const WriteResult* const wr, bool ordered);
 
         DBClientBase* const _client;
     };

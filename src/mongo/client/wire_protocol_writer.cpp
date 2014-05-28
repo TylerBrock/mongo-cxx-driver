@@ -16,6 +16,7 @@
 #include "mongo/client/wire_protocol_writer.h"
 
 #include "mongo/client/dbclientinterface.h"
+#include "mongo/client/write_result.h"
 #include "mongo/db/namespace_string.h"
 
 namespace mongo {
@@ -28,8 +29,10 @@ namespace mongo {
         const std::vector<WriteOperation*>& write_operations,
         bool ordered,
         const WriteConcern* wc,
-        std::vector<BSONObj>* results
+        WriteResult* wr
     ) {
+        // Effectively a map of batch relative indexes to WriteOperations
+        std::vector<WriteOperation*> batchOps;
 
         BufBuilder builder;
 
@@ -44,6 +47,9 @@ namespace mongo {
             // passed an over size write operation in violation of our contract.
             invariant(_fits(&builder, *batch_iter));
 
+            // Get and store the current operation type for this batch
+            WriteOpType batchOpType = (*batch_iter)->operationType();
+
             // Begin the command for this batch.
             (*batch_iter)->startRequest(ns.toString(), ordered, &builder);
 
@@ -53,8 +59,11 @@ namespace mongo {
                 // below checks passed.
                 (*batch_iter)->appendSelfToRequest(&builder);
 
+                // Associate batch index with WriteOperation
+                batchOps.push_back(*batch_iter);
+
                 // If the operation we just queued isn't batchable, issue what we have.
-                if (!_batchableRequest((*batch_iter)->operationType()))
+                if (!_batchableRequest(batchOpType, wr))
                     break;
 
                 // Peek at the next operation.
@@ -65,7 +74,7 @@ namespace mongo {
                     break;
 
                 // If the next operation is of a different type, issue what we have.
-                if ((*next)->operationType() != (*batch_iter)->operationType())
+                if ((*next)->operationType() != batchOpType)
                     break;
 
                 // If adding the next op would put us over the limit of ops in a batch, issue
@@ -82,7 +91,14 @@ namespace mongo {
             }
 
             // Issue the complete command.
-            results->push_back(_send((*batch_iter)->operationType(), builder, wc, ns));
+            BSONObj batchResult = _send(batchOpType, builder, wc, ns);
+
+            // Merge this batch's result into the result for all batches written.
+            wr->mergeGleResult(batchOps, batchResult);
+            batchOps.clear();
+
+            // Check if we need to raise an error
+            _checkResult(wr, ordered);
 
             // Reset the builder so we can build the next request.
             builder.reset();
@@ -91,13 +107,20 @@ namespace mongo {
             batch_begin = ++batch_iter;
         }
 
+        // Check if we need to raise an error
+        _checkResult(wr, true);
     }
 
     bool WireProtocolWriter::_fits(BufBuilder* builder, WriteOperation* op) {
         return (builder->len() + op->incrementalSize()) <= _client->getMaxMessageSizeBytes();
     }
 
-    BSONObj WireProtocolWriter::_send(Operations opCode, const BufBuilder& builder, const WriteConcern* wc, const StringData& ns) {
+    BSONObj WireProtocolWriter::_send(
+        WriteOpType opCode,
+        const BufBuilder& builder,
+        const WriteConcern* wc,
+        const StringData& ns
+    ) {
         Message request;
         request.setData(opCode, builder.buf(), builder.len());
         _client->say(request);
@@ -108,18 +131,26 @@ namespace mongo {
             BSONObjBuilder bob;
             bob.append("getlasterror", true);
             bob.appendElements(wc->obj());
-            _client->runCommand(nsToDatabase(ns), bob.obj(), result);
 
-            if (!result["err"].isNull()) {
-                throw OperationException(result);
-            }
+            bool commandWorked = _client->runCommand(nsToDatabase(ns), bob.obj(), result);
+
+            if (!commandWorked) throw OperationException(result);
         }
 
         return result;
     }
 
-    bool WireProtocolWriter::_batchableRequest(Operations opCode) {
-        return opCode == dbInsert;
+    void WireProtocolWriter::_checkResult(const WriteResult* const wr, bool ordered) {
+        if (ordered && wr->hasWriteErrors()) {
+            throw OperationException(wr->writeErrors().front());
+        }
+    }
+
+    bool WireProtocolWriter::_batchableRequest(WriteOpType opCode, const WriteResult* const wr) {
+        return (
+            opCode == dbWriteInsert &&                   // We are doing an insert
+            !(wr->requiresDetailedInsertResults())  // We must report inserts individually (bulk)
+        );
     }
 
 } // namespace mongo
