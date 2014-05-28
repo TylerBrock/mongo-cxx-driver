@@ -67,8 +67,18 @@ namespace mongo {
         }
 
         // Handle Write Errors
+        if (result.hasField("writeErrors")) {
+            std::vector<BSONElement> writeErrors = result.getField("writeErrors").Array();
+            // TODO: rewrite ids
+            std::vector<BSONElement>::const_iterator it;
+            for (it = writeErrors.begin(); it != writeErrors.end(); ++it)
+                _writeErrors.push_back((*it).Obj());
+        }
 
         // Handle Write Concern Errors
+        if (result.hasField("writeConcernError")) {
+            _writeConcernErrors.push_back(result.getObjectField("writeConcernError"));
+        }
     }
 
 } // namespace mongo
