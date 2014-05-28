@@ -15,26 +15,29 @@
 
 #pragma once
 
-#include "mongo/client/reorderable_write_operation.h"
+#include <vector>
+
+#include "mongo/bson/bsonobj.h"
+#include "mongo/util/net/operation.h"
 
 namespace mongo {
 
-    class InsertWriteOperation : public ReorderableWriteOperation {
+    class WriteResult {
     public:
-        InsertWriteOperation(const BSONObj& doc);
-
-        virtual Operations operationType() const;
-        virtual const char* batchName() const;
-        virtual int incrementalSize() const;
-
-        virtual void startRequest(const std::string& ns, bool ordered, BufBuilder* builder) const;
-        virtual void appendSelfToRequest(BufBuilder* builder) const;
-
-        virtual void startCommand(const std::string& ns, BSONObjBuilder* command) const;
-        virtual void appendSelfToCommand(BSONArrayBuilder* batch) const;
+        bool hasErrors();
+        bool hasWriteError();
+        bool hasWriteConcernError();
+        void merge(Operations opType, const std::vector<int>& indexes, const BSONObj& result);
 
     private:
-        const BSONObj _doc;
+        std::vector<BSONObj> _writeErrors;
+        std::vector<BSONObj> _writeConcernErrors;
+        int _nInserted;
+        int _nUpserted;
+        int _nMatched;
+        int _nModified;
+        int _nRemoved;
+        std::vector<BSONObj> _upserted;
     };
 
 } // namespace mongo

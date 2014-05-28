@@ -25,12 +25,11 @@ namespace mongo {
     public:
         explicit WireProtocolWriter(DBClientBase* client);
 
-        virtual void write(
+        virtual WriteResult write(
             const StringData& ns,
-            const std::vector<WriteOperation*>& write_operations,
+            const std::vector<ReorderableWriteOperation*>& write_operations,
             bool ordered,
-            const WriteConcern* wc,
-            std::vector<BSONObj>* results
+            const WriteConcern* wc
         );
 
     private:

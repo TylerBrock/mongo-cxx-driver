@@ -16,6 +16,7 @@
 #include "mongo/client/wire_protocol_writer.h"
 
 #include "mongo/client/dbclientinterface.h"
+#include "mongo/client/write_result.h"
 #include "mongo/db/namespace_string.h"
 
 namespace mongo {
@@ -23,14 +24,12 @@ namespace mongo {
     WireProtocolWriter::WireProtocolWriter(DBClientBase* client) : _client(client) {
     }
 
-    void WireProtocolWriter::write(
+    WriteResult WireProtocolWriter::write(
         const StringData& ns,
-        const std::vector<WriteOperation*>& write_operations,
+        const std::vector<ReorderableWriteOperation*>& write_operations,
         bool ordered,
-        const WriteConcern* wc,
-        std::vector<BSONObj>* results
+        const WriteConcern* wc
     ) {
-
         BufBuilder builder;
 
         std::vector<WriteOperation*>::const_iterator batch_begin = write_operations.begin();
@@ -90,7 +89,6 @@ namespace mongo {
             // The next batch begins with the op after the last one in the just issued batch.
             batch_begin = ++batch_iter;
         }
-
     }
 
     bool WireProtocolWriter::_fits(BufBuilder* builder, WriteOperation* op) {

@@ -16,6 +16,7 @@
 #include "mongo/client/command_writer.h"
 
 #include "mongo/client/dbclientinterface.h"
+#include "mongo/client/write_result.h"
 #include "mongo/db/namespace_string.h"
 
 namespace mongo {
@@ -26,14 +27,12 @@ namespace mongo {
     CommandWriter::CommandWriter(DBClientBase* client) : _client(client) {
     }
 
-    void CommandWriter::write(
+    WriteResult CommandWriter::write(
         const StringData& ns,
-        const std::vector<WriteOperation*>& write_operations,
+        const std::vector<ReorderableWriteOperation*>& write_operations,
         bool ordered,
-        const WriteConcern* wc,
-        std::vector<BSONObj>* results
+        const WriteConcern* wc
     ) {
-
         std::vector<WriteOperation*>::const_iterator batch_begin = write_operations.begin();
         const std::vector<WriteOperation*>::const_iterator end = write_operations.end();
 
@@ -89,7 +88,6 @@ namespace mongo {
             // The next batch begins with the op after the last one in the just issued batch.
             batch_begin = ++batch_iter;
         }
-
     }
 
     bool CommandWriter::_fits(BSONArrayBuilder* builder, WriteOperation* op) {

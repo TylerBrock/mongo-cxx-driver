@@ -15,27 +15,12 @@
 
 #pragma once
 
-#include <vector>
-
-#include "mongo/client/reorderable_write_operation.h"
+#include "mongo/client/write_operation.h"
 
 namespace mongo {
 
-    class WriteConcern;
-    class WriteResult;
-
-    class DBClientWriter {
-    public:
-        virtual ~DBClientWriter() {};
-
-        // This function assumes that WriteOperations have been checked to ensure
-        // involved objects are less than the client's maximum BSON object size.
-        virtual WriteResult write(
-            const StringData& ns,
-            const std::vector<ReorderableWriteOperation*>& write_operations,
-            bool ordered,
-            const WriteConcern* wc
-        ) = 0;
+    struct ReorderableWriteOperation : public WriteOperation {
+        int originalIndex;
     };
 
 } // namespace mongo

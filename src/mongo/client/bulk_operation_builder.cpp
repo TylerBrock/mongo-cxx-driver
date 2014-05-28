@@ -22,6 +22,7 @@
 #include "mongo/client/dbclientinterface.h"
 #include "mongo/client/insert_write_operation.h"
 #include "mongo/client/write_options.h"
+#include "mongo/client/write_result.h"
 
 namespace mongo {
 
@@ -53,16 +54,27 @@ namespace mongo {
         enqueue(insert_op);
     }
 
-    void BulkOperationBuilder::execute(const WriteConcern* wc, std::vector<BSONObj>* results) {
+    WriteResult BulkOperationBuilder::execute(const WriteConcern* wc) {
         uassert(0, "Bulk operations cannot be re-executed", !_executed);
         uassert(0, "Bulk operations cannot be executed without any operations",
             !_write_operations.empty());
 
+        int currentIndex = 0;
+
+        std::vector<WriteOperation*>::iterator it;
+        for (it = _write_operations.begin(); it != _write_operations.end(); ++it) {
+            (*it)->setOriginalIndex(currentIndex);
+            ++currentIndex;
+        }
+
         if (!_ordered)
             std::sort(_write_operations.begin(), _write_operations.end(), compare);
 
-        _client->_write(_ns, _write_operations, _ordered, wc, results);
+        WriteResult result = _client->_write(_ns, _write_operations, _ordered, wc);
+
         _executed = true;
+
+        return result;
     }
 
     void BulkOperationBuilder::enqueue(WriteOperation* operation) {

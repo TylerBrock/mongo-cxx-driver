@@ -48,6 +48,30 @@ namespace {
         ASSERT_EQUALS(doc["a"].numberInt(), 1);
     }
 
+    TEST_F(BulkOperationTest, InsertBadKeyOrdered) {
+        BulkOperationBuilder bulk(&c, TEST_NS, true);
+        bulk.insert(BSON("$a" << 1));
+
+        vector<BSONObj> results;
+        ASSERT_THROW(
+            bulk.execute(&WriteConcern::acknowledged, &results),
+            OperationException
+        );
+        ASSERT_EQUALS(c.count(TEST_NS, Query("{}").obj), 0U);
+    }
+
+    TEST_F(BulkOperationTest, InsertBadKeyUnordered) {
+        BulkOperationBuilder bulk(&c, TEST_NS, false);
+        bulk.insert(BSON("$a" << 1));
+
+        vector<BSONObj> results;
+        ASSERT_THROW(
+            bulk.execute(&WriteConcern::acknowledged, &results),
+            OperationException
+        );
+        ASSERT_EQUALS(c.count(TEST_NS, Query("{}").obj), 0U);
+    }
+
     TEST_F(BulkOperationTest, UpdateOneMatchingSelector) {
         c.insert(TEST_NS, BSON("a" << 1));
         c.insert(TEST_NS, BSON("a" << 1));
