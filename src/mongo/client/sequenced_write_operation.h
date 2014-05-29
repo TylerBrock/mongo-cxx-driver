@@ -17,10 +17,17 @@
 
 #include "mongo/client/write_operation.h"
 
+#include "mongo/platform/cstdint.h"
+
 namespace mongo {
 
-    struct ReorderableWriteOperation : public WriteOperation {
-        int originalIndex;
+    class SequencedWriteOperation : public WriteOperation {
+    public:
+        SequencedWriteOperation();
+        virtual void setSequenceId(int64_t index);
+        virtual int64_t getSequenceId() const;
+    private:
+        int64_t _originalIndex;
     };
 
 } // namespace mongo

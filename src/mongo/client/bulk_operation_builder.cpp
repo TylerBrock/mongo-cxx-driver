@@ -54,27 +54,22 @@ namespace mongo {
         enqueue(insert_op);
     }
 
-    WriteResult BulkOperationBuilder::execute(const WriteConcern* wc) {
+    void BulkOperationBuilder::execute(const WriteConcern* wc, WriteResult* wr) {
         uassert(0, "Bulk operations cannot be re-executed", !_executed);
         uassert(0, "Bulk operations cannot be executed without any operations",
             !_write_operations.empty());
 
-        int currentIndex = 0;
-
         std::vector<WriteOperation*>::iterator it;
         for (it = _write_operations.begin(); it != _write_operations.end(); ++it) {
-            (*it)->setOriginalIndex(currentIndex);
-            ++currentIndex;
+            (*it)->setSequenceId(std::distance(_write_operations.begin(), it));
         }
 
         if (!_ordered)
             std::sort(_write_operations.begin(), _write_operations.end(), compare);
 
-        WriteResult result = _client->_write(_ns, _write_operations, _ordered, wc);
+        _client->_write(_ns, _write_operations, _ordered, wc, wr);
 
         _executed = true;
-
-        return result;
     }
 
     void BulkOperationBuilder::enqueue(WriteOperation* operation) {

@@ -1036,7 +1036,7 @@ namespace mongo {
             const std::vector<WriteOperation*>& writes,
             bool ordered,
             const WriteConcern* wc,
-            std::vector<BSONObj>* results
+            WriteResult* wr
         );
     public:
         static const uint64_t INVALID_SOCK_CREATION_TIME;

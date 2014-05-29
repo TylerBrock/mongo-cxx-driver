@@ -17,7 +17,7 @@
 
 #include <vector>
 
-#include "mongo/client/reorderable_write_operation.h"
+#include "mongo/client/write_operation.h"
 
 namespace mongo {
 
@@ -30,11 +30,12 @@ namespace mongo {
 
         // This function assumes that WriteOperations have been checked to ensure
         // involved objects are less than the client's maximum BSON object size.
-        virtual WriteResult write(
+        virtual void write(
             const StringData& ns,
-            const std::vector<ReorderableWriteOperation*>& write_operations,
+            const std::vector<WriteOperation*>& write_operations,
             bool ordered,
-            const WriteConcern* wc
+            const WriteConcern* wc,
+            WriteResult* wr
         ) = 0;
     };
 

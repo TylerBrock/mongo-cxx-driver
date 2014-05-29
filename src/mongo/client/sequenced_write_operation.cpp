@@ -13,28 +13,19 @@
  *    limitations under the License.
  */
 
-#pragma once
-
 #include "mongo/client/sequenced_write_operation.h"
 
 namespace mongo {
 
-    class InsertWriteOperation : public SequencedWriteOperation {
-    public:
-        InsertWriteOperation(const BSONObj& doc);
+    SequencedWriteOperation::SequencedWriteOperation() : _originalIndex(0) {
+    }
 
-        virtual Operations operationType() const;
-        virtual const char* batchName() const;
-        virtual int incrementalSize() const;
+    void SequencedWriteOperation::setSequenceId(int64_t index) {
+        _originalIndex = index;
+    }
 
-        virtual void startRequest(const std::string& ns, bool ordered, BufBuilder* builder) const;
-        virtual void appendSelfToRequest(BufBuilder* builder) const;
+    int64_t SequencedWriteOperation::getSequenceId() const {
+        return _originalIndex;
+    }
 
-        virtual void startCommand(const std::string& ns, BSONObjBuilder* command) const;
-        virtual void appendSelfToCommand(BSONArrayBuilder* batch) const;
-
-    private:
-        const BSONObj _doc;
-    };
-
-} // namespace mongo
+}

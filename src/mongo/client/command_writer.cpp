@@ -27,11 +27,12 @@ namespace mongo {
     CommandWriter::CommandWriter(DBClientBase* client) : _client(client) {
     }
 
-    WriteResult CommandWriter::write(
+    void CommandWriter::write(
         const StringData& ns,
-        const std::vector<ReorderableWriteOperation*>& write_operations,
+        const std::vector<WriteOperation*>& write_operations,
         bool ordered,
-        const WriteConcern* wc
+        const WriteConcern* wc,
+        WriteResult*
     ) {
         std::vector<WriteOperation*>::const_iterator batch_begin = write_operations.begin();
         const std::vector<WriteOperation*>::const_iterator end = write_operations.end();

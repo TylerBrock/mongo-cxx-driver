@@ -15,11 +15,11 @@
 
 #pragma once
 
-#include "mongo/client/reorderable_write_operation.h"
+#include "mongo/client/sequenced_write_operation.h"
 
 namespace mongo {
 
-    class DeleteWriteOperation : public ReorderableWriteOperation {
+    class DeleteWriteOperation : public SequencedWriteOperation {
     public:
         DeleteWriteOperation(const BSONObj& selector, int flags);
 

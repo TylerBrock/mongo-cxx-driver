@@ -48,7 +48,7 @@ namespace mongo {
                         std::vector<BSONElement>::const_iterator it;
                         for (it = upsertedArray.begin(); it != upsertedArray.end(); ++it) {
                             BSONObjBuilder bob;
-                            bob.append("index", 0);
+                            bob.append("index", indexes[(*it).Obj().getIntField("index")]);
                             bob.append("_id", (*it).OID());
                             _upserted.push_back(bob.obj());
                         }

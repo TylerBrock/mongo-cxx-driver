@@ -95,6 +95,9 @@ namespace mongo {
          * maxBsonObjectSize.
          */
         virtual void appendSelfToCommand(BSONArrayBuilder* batch) const = 0;
+
+        virtual void setSequenceId(int64_t index) = 0;
+        virtual int64_t getSequenceId() const = 0;
     };
 
 } // namespace mongo

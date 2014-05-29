@@ -26,6 +26,7 @@ namespace mongo {
     class DBClientBase;
     class WriteConcern;
     class WriteOperation;
+    class WriteResult;
 
     /**
      * Class for constructing and executing bulk operations against MongoDB via a
@@ -98,7 +99,7 @@ namespace mongo {
          * @param wc The Write concern for the entire bulk operation. 0 = default (acknowledged);
          * @param results Vector where the results of operations will go.
          */
-        BulkOperationResult execute(const WriteConcern* wc);
+        void execute(const WriteConcern* wc, WriteResult* wr);
 
     private:
         void enqueue(WriteOperation* const operation);
