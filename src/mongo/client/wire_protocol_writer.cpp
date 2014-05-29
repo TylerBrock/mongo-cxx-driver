@@ -29,9 +29,10 @@ namespace mongo {
         const std::vector<WriteOperation*>& write_operations,
         bool ordered,
         const WriteConcern* wc,
-        WriteResult*
+        WriteResult* wr
     ) {
         BufBuilder builder;
+        std::vector<int> batchSequenceIds;
 
         std::vector<WriteOperation*>::const_iterator batch_begin = write_operations.begin();
         const std::vector<WriteOperation*>::const_iterator end = write_operations.end();
@@ -44,6 +45,9 @@ namespace mongo {
             // passed an over size write operation in violation of our contract.
             invariant(_fits(&builder, *batch_iter));
 
+            // Get and store the current operation type for this batch
+            Operations batchOpType = (*batch_iter)->operationType();
+
             // Begin the command for this batch.
             (*batch_iter)->startRequest(ns.toString(), ordered, &builder);
 
@@ -54,7 +58,7 @@ namespace mongo {
                 (*batch_iter)->appendSelfToRequest(&builder);
 
                 // If the operation we just queued isn't batchable, issue what we have.
-                if (!_batchableRequest((*batch_iter)->operationType()))
+                if (!_batchableRequest(batchOpType))
                     break;
 
                 // Peek at the next operation.
@@ -65,7 +69,7 @@ namespace mongo {
                     break;
 
                 // If the next operation is of a different type, issue what we have.
-                if ((*next)->operationType() != (*batch_iter)->operationType())
+                if ((*next)->operationType() != batchOpType)
                     break;
 
                 // If adding the next op would put us over the limit of ops in a batch, issue
@@ -82,7 +86,11 @@ namespace mongo {
             }
 
             // Issue the complete command.
-            results->push_back(_send((*batch_iter)->operationType(), builder, wc, ns));
+            BSONObj batchResult = _send(batchOpType, builder, wc, ns);
+
+            // Merge this batch's result into the result for all batches written.
+            wr->merge(batchOpType, batchSequenceIds, batchResult);
+            batchSequenceIds.clear();
 
             // Reset the builder so we can build the next request.
             builder.reset();

@@ -32,8 +32,10 @@ namespace mongo {
         const std::vector<WriteOperation*>& write_operations,
         bool ordered,
         const WriteConcern* wc,
-        WriteResult*
+        WriteResult* wr
     ) {
+        std::vector<int> batchSequenceIds;
+
         std::vector<WriteOperation*>::const_iterator batch_begin = write_operations.begin();
         const std::vector<WriteOperation*>::const_iterator end = write_operations.end();
 
@@ -47,6 +49,9 @@ namespace mongo {
             // passed an over size write operation in violation of our contract.
             invariant(_fits(batch.get(), *batch_iter));
 
+            // Get and store the current operation type for this batch
+            Operations batchOpType = (*batch_iter)->operationType();
+
             // Begin the command for this batch.
             (*batch_iter)->startCommand(ns.toString(), command.get());
 
@@ -56,6 +61,9 @@ namespace mongo {
                 // checks below passed.
                 (*batch_iter)->appendSelfToCommand(batch.get());
 
+                // Map batch relative index to sequence
+                batchSequenceIds.push_back((*batch_iter)->getSequenceId());
+
                 // Peek at the next operation.
                 const std::vector<WriteOperation*>::const_iterator next = boost::next(batch_iter);
 
@@ -64,7 +72,7 @@ namespace mongo {
                     break;
 
                 // If the next operation is of a different type, issue what we have.
-                if ((*next)->operationType() != (*batch_iter)->operationType())
+                if ((*next)->operationType() != batchOpType)
                     break;
 
                 // If adding the next op would put us over the limit of ops in a batch, issue
@@ -84,7 +92,11 @@ namespace mongo {
             _endCommand(batch.get(), *batch_iter, ordered, command.get());
 
             // Issue the complete command.
-            results->push_back(_send(command.get(), wc, ns));
+            BSONObj batchResult = _send(command.get(), wc, ns);
+
+            // Merge this batch's result into the result for all batches written.
+            wr->merge(batchOpType, batchSequenceIds, batchResult);
+            batchSequenceIds.clear();
 
             // The next batch begins with the op after the last one in the just issued batch.
             batch_begin = ++batch_iter;

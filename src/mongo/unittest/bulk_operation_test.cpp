@@ -16,6 +16,7 @@
 #include "mongo/unittest/integration_test.h"
 
 #include "mongo/client/dbclient.h"
+#include "mongo/client/write_result.h"
 
 namespace {
 
@@ -37,12 +38,38 @@ namespace {
         DBClientConnection c;
     };
 
-    TEST_F(BulkOperationTest, Insert) {
+    TEST_F(BulkOperationTest, InsertOrdered) {
         BulkOperationBuilder bulk(&c, TEST_NS, true);
         bulk.insert(BSON("a" << 1));
 
-        vector<BSONObj> results;
-        bulk.execute(&WriteConcern::acknowledged, &results);
+        WriteResult result;
+        bulk.execute(&WriteConcern::acknowledged, &result);
+
+        ASSERT_EQUALS(result.nInserted(), 1);
+        ASSERT_EQUALS(result.nUpserted(), 0);
+        ASSERT_EQUALS(result.nMatched(), 0);
+        ASSERT_EQUALS(result.nModified(), 0);
+        ASSERT_EQUALS(result.nRemoved(), 0);
+        ASSERT_FALSE(result.hasErrors());
+
+        BSONObj doc = c.findOne(TEST_NS, Query("{}").obj);
+        ASSERT_EQUALS(doc["a"].numberInt(), 1);
+    }
+
+
+    TEST_F(BulkOperationTest, InsertUnordered) {
+        BulkOperationBuilder bulk(&c, TEST_NS, false);
+        bulk.insert(BSON("a" << 1));
+
+        WriteResult result;
+        bulk.execute(&WriteConcern::acknowledged, &result);
+
+        ASSERT_EQUALS(result.nInserted(), 1);
+        ASSERT_EQUALS(result.nUpserted(), 0);
+        ASSERT_EQUALS(result.nMatched(), 0);
+        ASSERT_EQUALS(result.nModified(), 0);
+        ASSERT_EQUALS(result.nRemoved(), 0);
+        ASSERT_FALSE(result.hasErrors());
 
         BSONObj doc = c.findOne(TEST_NS, Query("{}").obj);
         ASSERT_EQUALS(doc["a"].numberInt(), 1);
@@ -52,9 +79,9 @@ namespace {
         BulkOperationBuilder bulk(&c, TEST_NS, true);
         bulk.insert(BSON("$a" << 1));
 
-        vector<BSONObj> results;
+        WriteResult result;
         ASSERT_THROW(
-            bulk.execute(&WriteConcern::acknowledged, &results),
+            bulk.execute(&WriteConcern::acknowledged, &result),
             OperationException
         );
         ASSERT_EQUALS(c.count(TEST_NS, Query("{}").obj), 0U);
@@ -64,9 +91,9 @@ namespace {
         BulkOperationBuilder bulk(&c, TEST_NS, false);
         bulk.insert(BSON("$a" << 1));
 
-        vector<BSONObj> results;
+        WriteResult result;
         ASSERT_THROW(
-            bulk.execute(&WriteConcern::acknowledged, &results),
+            bulk.execute(&WriteConcern::acknowledged, &result),
             OperationException
         );
         ASSERT_EQUALS(c.count(TEST_NS, Query("{}").obj), 0U);
@@ -79,8 +106,16 @@ namespace {
         BulkOperationBuilder bulk(&c, TEST_NS, true);
         bulk.find(BSON("a" << 1)).updateOne(BSON("$inc" << BSON("x" << 1)));
 
-        vector<BSONObj> results;
-        bulk.execute(&WriteConcern::acknowledged, &results);
+        WriteResult result;
+        bulk.execute(&WriteConcern::acknowledged, &result);
+
+        ASSERT_EQUALS(result.nInserted(), 0);
+        ASSERT_EQUALS(result.nUpserted(), 0);
+        // TODO: test nModified is null or omitted if legacy server
+        ASSERT_EQUALS(result.nMatched(), 1);
+        ASSERT_EQUALS(result.nModified(), 1);
+        ASSERT_EQUALS(result.nRemoved(), 0);
+        ASSERT_FALSE(result.hasErrors());
 
         ASSERT_EQUALS(c.count(TEST_NS, Query("{x: 1}").obj), 1U);
     }
@@ -93,8 +128,16 @@ namespace {
         BulkOperationBuilder bulk(&c, TEST_NS, true);
         bulk.find(BSON("a" << 1)).update(BSON("$inc" << BSON("x" << 1)));
 
-        vector<BSONObj> results;
-        bulk.execute(&WriteConcern::acknowledged, &results);
+        WriteResult result;
+        bulk.execute(&WriteConcern::acknowledged, &result);
+
+        ASSERT_EQUALS(result.nInserted(), 0);
+        ASSERT_EQUALS(result.nUpserted(), 0);
+        ASSERT_EQUALS(result.nMatched(), 2);
+        // TODO: test nModified is null or omitted if legacy server
+        ASSERT_EQUALS(result.nModified(), 2);
+        ASSERT_EQUALS(result.nRemoved(), 0);
+        ASSERT_FALSE(result.hasErrors());
 
         ASSERT_EQUALS(c.count(TEST_NS, Query("{a: 1, x: 1}").obj), 2U);
     }
@@ -107,8 +150,17 @@ namespace {
         BulkOperationBuilder bulk(&c, TEST_NS, true);
         bulk.find(fromjson("{}")).update(BSON("$inc" << BSON("x" << 1)));
 
-        vector<BSONObj> results;
-        bulk.execute(&WriteConcern::acknowledged, &results);
+        WriteResult result;
+        bulk.execute(&WriteConcern::acknowledged, &result);
+
+        ASSERT_EQUALS(result.nInserted(), 0);
+        ASSERT_EQUALS(result.nUpserted(), 0);
+        ASSERT_EQUALS(result.nMatched(), 3);
+        // TODO: test nModified is null or omitted if legacy server
+        ASSERT_EQUALS(result.nModified(), 3);
+        ASSERT_EQUALS(result.nRemoved(), 0);
+        ASSERT_FALSE(result.hasErrors());
+
 
         ASSERT_EQUALS(c.count(TEST_NS, Query("{x: 1}").obj), 3U);
     }
@@ -120,8 +172,17 @@ namespace {
         BulkOperationBuilder bulk(&c, TEST_NS, true);
         bulk.find(BSON("a" << 1)).replaceOne(BSON("x" << 1));
 
-        vector<BSONObj> results;
-        bulk.execute(&WriteConcern::acknowledged, &results);
+        WriteResult result;
+        bulk.execute(&WriteConcern::acknowledged, &result);
+
+        ASSERT_EQUALS(result.nInserted(), 0);
+        ASSERT_EQUALS(result.nUpserted(), 0);
+        ASSERT_EQUALS(result.nMatched(), 1);
+        // TODO: test nModified is null or omitted if legacy server
+        ASSERT_EQUALS(result.nModified(), 1);
+        ASSERT_EQUALS(result.nRemoved(), 0);
+        ASSERT_FALSE(result.hasErrors());
+
 
         ASSERT_EQUALS(c.count(TEST_NS, Query("{x: 1}").obj), 1U);
         ASSERT_FALSE(c.findOne(TEST_NS, Query("{x: 1}").obj).hasField("a"));
@@ -135,8 +196,16 @@ namespace {
         BulkOperationBuilder bulk(&c, TEST_NS, true);
         bulk.find(BSON("a" << 1)).upsert().updateOne(BSON("$inc" << BSON("x" << 1)));
 
-        vector<BSONObj> results;
-        bulk.execute(&WriteConcern::acknowledged, &results);
+        WriteResult result;
+        bulk.execute(&WriteConcern::acknowledged, &result);
+
+        ASSERT_EQUALS(result.nInserted(), 0);
+        ASSERT_EQUALS(result.nUpserted(), 0);
+        ASSERT_EQUALS(result.nMatched(), 1);
+        // TODO: test nModified is null or omitted if legacy server
+        ASSERT_EQUALS(result.nModified(), 1);
+        ASSERT_EQUALS(result.nRemoved(), 0);
+        ASSERT_FALSE(result.hasErrors());
 
         ASSERT_EQUALS(c.count(TEST_NS, Query("{x: 1}").obj), 1U);
         ASSERT_EQUALS(c.count(TEST_NS, Query("{}").obj), 3U);
@@ -149,8 +218,16 @@ namespace {
         BulkOperationBuilder bulk(&c, TEST_NS, true);
         bulk.find(BSON("a" << 2)).upsert().updateOne(BSON("$inc" << BSON("x" << 1)));
 
-        vector<BSONObj> results;
-        bulk.execute(&WriteConcern::acknowledged, &results);
+        WriteResult result;
+        bulk.execute(&WriteConcern::acknowledged, &result);
+
+        ASSERT_EQUALS(result.nInserted(), 0);
+        ASSERT_EQUALS(result.nUpserted(), 1);
+        ASSERT_EQUALS(result.nMatched(), 0);
+        // TODO: test nModified is null or omitted if legacy server
+        ASSERT_EQUALS(result.nModified(), 0);
+        ASSERT_EQUALS(result.nRemoved(), 0);
+        ASSERT_FALSE(result.hasErrors());
 
         ASSERT_EQUALS(c.count(TEST_NS, Query("{x: 1}").obj), 1U);
         ASSERT_TRUE(c.findOne(TEST_NS, Query("{x: 1}").obj).hasField("a"));
@@ -165,8 +242,16 @@ namespace {
         BulkOperationBuilder bulk(&c, TEST_NS, true);
         bulk.find(BSON("a" << 1)).upsert().update(BSON("$inc" << BSON("x" << 1)));
 
-        vector<BSONObj> results;
-        bulk.execute(&WriteConcern::acknowledged, &results);
+        WriteResult result;
+        bulk.execute(&WriteConcern::acknowledged, &result);
+
+        ASSERT_EQUALS(result.nInserted(), 0);
+        ASSERT_EQUALS(result.nUpserted(), 0);
+        ASSERT_EQUALS(result.nMatched(), 2);
+        // TODO: test nModified is null or omitted if legacy server
+        ASSERT_EQUALS(result.nModified(), 2);
+        ASSERT_EQUALS(result.nRemoved(), 0);
+        ASSERT_FALSE(result.hasErrors());
 
         ASSERT_EQUALS(c.count(TEST_NS, Query("{x: 1}").obj), 2U);
         ASSERT_EQUALS(c.count(TEST_NS, Query("{}").obj), 3U);
@@ -179,8 +264,16 @@ namespace {
         BulkOperationBuilder bulk(&c, TEST_NS, true);
         bulk.find(BSON("a" << 2)).upsert().update(BSON("$inc" << BSON("x" << 1)));
 
-        vector<BSONObj> results;
-        bulk.execute(&WriteConcern::acknowledged, &results);
+        WriteResult result;
+        bulk.execute(&WriteConcern::acknowledged, &result);
+
+        ASSERT_EQUALS(result.nInserted(), 0);
+        ASSERT_EQUALS(result.nUpserted(), 1);
+        ASSERT_EQUALS(result.nMatched(), 0);
+        // TODO: test nModified is null or omitted if legacy server
+        ASSERT_EQUALS(result.nModified(), 0);
+        ASSERT_EQUALS(result.nRemoved(), 0);
+        ASSERT_FALSE(result.hasErrors());
 
         ASSERT_EQUALS(c.count(TEST_NS, Query("{x: 1}").obj), 1U);
         ASSERT_TRUE(c.findOne(TEST_NS, Query("{x: 1}").obj).hasField("a"));
@@ -195,8 +288,16 @@ namespace {
         BulkOperationBuilder bulk(&c, TEST_NS, true);
         bulk.find(BSON("a" << 1)).upsert().replaceOne(BSON("x" << 1));
 
-        vector<BSONObj> results;
-        bulk.execute(&WriteConcern::acknowledged, &results);
+        WriteResult result;
+        bulk.execute(&WriteConcern::acknowledged, &result);
+
+        ASSERT_EQUALS(result.nInserted(), 0);
+        ASSERT_EQUALS(result.nUpserted(), 0);
+        ASSERT_EQUALS(result.nMatched(), 1);
+        // TODO: test nModified is null or omitted if legacy server
+        ASSERT_EQUALS(result.nModified(), 1);
+        ASSERT_EQUALS(result.nRemoved(), 0);
+        ASSERT_FALSE(result.hasErrors());
 
         ASSERT_EQUALS(c.count(TEST_NS, Query("{x: 1}").obj), 1U);
         ASSERT_EQUALS(c.count(TEST_NS, Query("{a: 1}").obj), 1U);
@@ -210,10 +311,18 @@ namespace {
         BulkOperationBuilder bulk(&c, TEST_NS, true);
         bulk.find(BSON("a" << 2)).upsert().replaceOne(BSON("x" << 1));
 
-        vector<BSONObj> results;
-        bulk.execute(&WriteConcern::acknowledged, &results);
+        WriteResult result;
+        bulk.execute(&WriteConcern::acknowledged, &result);
 
-        ASSERT_TRUE(results.front().hasField("upserted"));
+        ASSERT_EQUALS(result.nInserted(), 0);
+        ASSERT_EQUALS(result.nUpserted(), 1);
+        ASSERT_EQUALS(result.nMatched(), 0);
+        // TODO: test nModified is null or omitted if legacy server
+        ASSERT_EQUALS(result.nModified(), 0);
+        ASSERT_EQUALS(result.nRemoved(), 0);
+        ASSERT_FALSE(result.hasErrors());
+
+        ASSERT_EQUALS(result.nUpserted(), 1);
         ASSERT_EQUALS(c.count(TEST_NS, Query("{x: 1}").obj), 1U);
         ASSERT_FALSE(c.findOne(TEST_NS, Query("{x: 1}").obj).hasField("a"));
         ASSERT_EQUALS(c.count(TEST_NS, Query("{}").obj), 3U);
@@ -227,10 +336,17 @@ namespace {
         BulkOperationBuilder bulk(&c, TEST_NS, true);
         bulk.find(BSON("a" << 1)).removeOne();
 
-        vector<BSONObj> results;
-        bulk.execute(&WriteConcern::acknowledged, &results);
+        WriteResult result;
+        bulk.execute(&WriteConcern::acknowledged, &result);
 
-        ASSERT_EQUALS(results.front().getIntField("n"), 1);
+        ASSERT_EQUALS(result.nInserted(), 0);
+        ASSERT_EQUALS(result.nUpserted(), 0);
+        ASSERT_EQUALS(result.nMatched(), 0);
+        // TODO: test nModified is null or omitted if legacy server
+        ASSERT_EQUALS(result.nModified(), 0);
+        ASSERT_EQUALS(result.nRemoved(), 1);
+        ASSERT_FALSE(result.hasErrors());
+
         ASSERT_EQUALS(c.count(TEST_NS, Query("{}").obj), 2U);
         ASSERT_EQUALS(c.count(TEST_NS, Query("{a: 1}").obj), 1U);
     }
@@ -243,10 +359,17 @@ namespace {
         BulkOperationBuilder bulk(&c, TEST_NS, true);
         bulk.find(BSON("a" << 1)).remove();
 
-        vector<BSONObj> results;
-        bulk.execute(&WriteConcern::acknowledged, &results);
+        WriteResult result;
+        bulk.execute(&WriteConcern::acknowledged, &result);
 
-        ASSERT_EQUALS(results.front().getIntField("n"), 2);
+        ASSERT_EQUALS(result.nInserted(), 0);
+        ASSERT_EQUALS(result.nUpserted(), 0);
+        ASSERT_EQUALS(result.nMatched(), 0);
+        // TODO: test nModified is null or omitted if legacy server
+        ASSERT_EQUALS(result.nModified(), 0);
+        ASSERT_EQUALS(result.nRemoved(), 2);
+        ASSERT_FALSE(result.hasErrors());
+
         ASSERT_EQUALS(c.count(TEST_NS, Query("{}").obj), 1U);
         ASSERT_EQUALS(c.count(TEST_NS, Query("{a: 1}").obj), 0U);
     }
@@ -259,10 +382,17 @@ namespace {
         BulkOperationBuilder bulk(&c, TEST_NS, true);
         bulk.find(fromjson("{}")).remove();
 
-        vector<BSONObj> results;
-        bulk.execute(&WriteConcern::acknowledged, &results);
+        WriteResult result;
+        bulk.execute(&WriteConcern::acknowledged, &result);
 
-        ASSERT_EQUALS(results.front().getIntField("n"), 3);
+        ASSERT_EQUALS(result.nInserted(), 0);
+        ASSERT_EQUALS(result.nUpserted(), 0);
+        ASSERT_EQUALS(result.nMatched(), 0);
+        // TODO: test nModified is null or omitted if legacy server
+        ASSERT_EQUALS(result.nModified(), 0);
+        ASSERT_EQUALS(result.nRemoved(), 3);
+        ASSERT_FALSE(result.hasErrors());
+
         ASSERT_EQUALS(c.count(TEST_NS, Query("{}").obj), 0U);
     }
 
@@ -275,10 +405,16 @@ namespace {
         bulk.find(BSON("a" << 1)).remove();
         bulk.insert(BSON("b" << 1));
 
-        vector<BSONObj> results;
-        bulk.execute(&WriteConcern::acknowledged, &results);
+        WriteResult result;
+        bulk.execute(&WriteConcern::acknowledged, &result);
 
-        ASSERT_EQUALS(results.size(), 4U);
+        ASSERT_EQUALS(result.nInserted(), 4);
+        ASSERT_EQUALS(result.nUpserted(), 0);
+        ASSERT_EQUALS(result.nMatched(), 1);
+        // TODO: test nModified is null or omitted if legacy server
+        ASSERT_EQUALS(result.nModified(), 1);
+        ASSERT_EQUALS(result.nRemoved(), 1);
+        ASSERT_FALSE(result.hasErrors());
     }
 
     TEST_F(BulkOperationTest, MultipleUnorderedOperations) {
@@ -290,21 +426,34 @@ namespace {
         bulk.find(BSON("a" << 1)).remove();
         bulk.insert(BSON("b" << 1));
 
-        vector<BSONObj> results;
-        bulk.execute(&WriteConcern::acknowledged, &results);
+        WriteResult result;
+        bulk.execute(&WriteConcern::acknowledged, &result);
 
-        ASSERT_EQUALS(results.size(), 3U);
+        // not deterministic in general for the user... subject to change
+        ASSERT_EQUALS(result.nInserted(), 4);
+        ASSERT_EQUALS(result.nUpserted(), 0);
+        ASSERT_EQUALS(result.nMatched(), 1);
+        // TODO: test nModified is null or omitted if legacy server
+        ASSERT_EQUALS(result.nModified(), 1);
+        ASSERT_EQUALS(result.nRemoved(), 0);
+        ASSERT_FALSE(result.hasErrors());
     }
 
-    TEST_F(BulkOperationTest, TwoBatches) {
+    TEST_F(BulkOperationTest, ExceedBatchSize) {
         BulkOperationBuilder bulk(&c, TEST_NS, false);
         for (int i=0; i < c.getMaxWriteBatchSize() + 1; ++i)
             bulk.insert(BSON("a" << 1));
 
-        vector<BSONObj> results;
-        bulk.execute(&WriteConcern::acknowledged, &results);
+        WriteResult result;
+        bulk.execute(&WriteConcern::acknowledged, &result);
 
-        ASSERT_EQUALS(results.size(), 2U);
+        ASSERT_EQUALS(result.nInserted(), c.getMaxWriteBatchSize() + 1);
+        ASSERT_EQUALS(result.nUpserted(), 0);
+        ASSERT_EQUALS(result.nMatched(), 0);
+        // TODO: test nModified is null or omitted if legacy server
+        ASSERT_EQUALS(result.nModified(), 0);
+        ASSERT_EQUALS(result.nRemoved(), 0);
+        ASSERT_FALSE(result.hasErrors());
     }
 
 } // namespace

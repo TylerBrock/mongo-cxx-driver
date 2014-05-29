@@ -24,10 +24,19 @@ namespace mongo {
 
     class WriteResult {
     public:
-        bool hasErrors();
-        bool hasWriteError();
-        bool hasWriteConcernError();
-        void merge(Operations opType, const std::vector<int>& indexes, const BSONObj& result);
+        WriteResult();
+
+        bool hasErrors() const;
+        bool hasWriteError() const;
+        bool hasWriteConcernError() const;
+
+        int nInserted() const;
+        int nUpserted() const;
+        int nMatched() const;
+        int nModified() const;
+        int nRemoved() const;
+
+        void merge(Operations opType, const std::vector<int>& sequenceIds, const BSONObj& result);
 
     private:
         std::vector<BSONObj> _writeErrors;
