@@ -17,10 +17,12 @@
 
 #include <vector>
 
-#include "mongo/bson/bsonobj.h"
 #include "mongo/util/net/operation.h"
 
 namespace mongo {
+
+    class BSONObj;
+    class WriteOperation;
 
     class WriteResult {
     public:
@@ -29,6 +31,7 @@ namespace mongo {
         bool hasErrors() const;
         bool hasWriteError() const;
         bool hasWriteConcernError() const;
+        bool hasModifiedCount() const;
 
         int nInserted() const;
         int nUpserted() const;
@@ -36,11 +39,14 @@ namespace mongo {
         int nModified() const;
         int nRemoved() const;
 
-        void merge(Operations opType, const std::vector<int>& sequenceIds, const BSONObj& result);
+        std::vector<BSONObj> upserted() const;
+
+        void merge(Operations opType, const std::vector<WriteOperation*>& ops, const BSONObj& result);
 
     private:
         std::vector<BSONObj> _writeErrors;
         std::vector<BSONObj> _writeConcernErrors;
+        bool _hasModifiedCount;
         int _nInserted;
         int _nUpserted;
         int _nMatched;

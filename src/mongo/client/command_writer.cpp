@@ -34,7 +34,8 @@ namespace mongo {
         const WriteConcern* wc,
         WriteResult* wr
     ) {
-        std::vector<int> batchSequenceIds;
+        // Effectively a map of batch relative indexes to WriteOperations
+        std::vector<WriteOperation*> batchOps;
 
         std::vector<WriteOperation*>::const_iterator batch_begin = write_operations.begin();
         const std::vector<WriteOperation*>::const_iterator end = write_operations.end();
@@ -61,8 +62,8 @@ namespace mongo {
                 // checks below passed.
                 (*batch_iter)->appendSelfToCommand(batch.get());
 
-                // Map batch relative index to sequence
-                batchSequenceIds.push_back((*batch_iter)->getSequenceId());
+                // Associate batch index with WriteOperation
+                batchOps.push_back(*batch_iter);
 
                 // Peek at the next operation.
                 const std::vector<WriteOperation*>::const_iterator next = boost::next(batch_iter);
@@ -95,8 +96,8 @@ namespace mongo {
             BSONObj batchResult = _send(command.get(), wc, ns);
 
             // Merge this batch's result into the result for all batches written.
-            wr->merge(batchOpType, batchSequenceIds, batchResult);
-            batchSequenceIds.clear();
+            wr->merge(batchOpType, batchOps, batchResult);
+            batchOps.clear();
 
             // The next batch begins with the op after the last one in the just issued batch.
             batch_begin = ++batch_iter;

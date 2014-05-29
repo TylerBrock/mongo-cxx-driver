@@ -48,8 +48,10 @@ namespace {
         ASSERT_EQUALS(result.nInserted(), 1);
         ASSERT_EQUALS(result.nUpserted(), 0);
         ASSERT_EQUALS(result.nMatched(), 0);
-        ASSERT_EQUALS(result.nModified(), 0);
+        if (result.hasModifiedCount())
+            ASSERT_EQUALS(result.nModified(), 0);
         ASSERT_EQUALS(result.nRemoved(), 0);
+        ASSERT_TRUE(result.upserted().empty());
         ASSERT_FALSE(result.hasErrors());
 
         BSONObj doc = c.findOne(TEST_NS, Query("{}").obj);
@@ -67,8 +69,10 @@ namespace {
         ASSERT_EQUALS(result.nInserted(), 1);
         ASSERT_EQUALS(result.nUpserted(), 0);
         ASSERT_EQUALS(result.nMatched(), 0);
-        ASSERT_EQUALS(result.nModified(), 0);
+        if (result.hasModifiedCount())
+            ASSERT_EQUALS(result.nModified(), 0);
         ASSERT_EQUALS(result.nRemoved(), 0);
+        ASSERT_TRUE(result.upserted().empty());
         ASSERT_FALSE(result.hasErrors());
 
         BSONObj doc = c.findOne(TEST_NS, Query("{}").obj);
@@ -111,10 +115,11 @@ namespace {
 
         ASSERT_EQUALS(result.nInserted(), 0);
         ASSERT_EQUALS(result.nUpserted(), 0);
-        // TODO: test nModified is null or omitted if legacy server
         ASSERT_EQUALS(result.nMatched(), 1);
-        ASSERT_EQUALS(result.nModified(), 1);
+        if (result.hasModifiedCount())
+            ASSERT_EQUALS(result.nModified(), 1);
         ASSERT_EQUALS(result.nRemoved(), 0);
+        ASSERT_TRUE(result.upserted().empty());
         ASSERT_FALSE(result.hasErrors());
 
         ASSERT_EQUALS(c.count(TEST_NS, Query("{x: 1}").obj), 1U);
@@ -134,9 +139,10 @@ namespace {
         ASSERT_EQUALS(result.nInserted(), 0);
         ASSERT_EQUALS(result.nUpserted(), 0);
         ASSERT_EQUALS(result.nMatched(), 2);
-        // TODO: test nModified is null or omitted if legacy server
-        ASSERT_EQUALS(result.nModified(), 2);
+        if (result.hasModifiedCount())
+            ASSERT_EQUALS(result.nModified(), 2);
         ASSERT_EQUALS(result.nRemoved(), 0);
+        ASSERT_TRUE(result.upserted().empty());
         ASSERT_FALSE(result.hasErrors());
 
         ASSERT_EQUALS(c.count(TEST_NS, Query("{a: 1, x: 1}").obj), 2U);
@@ -156,9 +162,10 @@ namespace {
         ASSERT_EQUALS(result.nInserted(), 0);
         ASSERT_EQUALS(result.nUpserted(), 0);
         ASSERT_EQUALS(result.nMatched(), 3);
-        // TODO: test nModified is null or omitted if legacy server
-        ASSERT_EQUALS(result.nModified(), 3);
+        if (result.hasModifiedCount())
+            ASSERT_EQUALS(result.nModified(), 3);
         ASSERT_EQUALS(result.nRemoved(), 0);
+        ASSERT_TRUE(result.upserted().empty());
         ASSERT_FALSE(result.hasErrors());
 
 
@@ -178,9 +185,10 @@ namespace {
         ASSERT_EQUALS(result.nInserted(), 0);
         ASSERT_EQUALS(result.nUpserted(), 0);
         ASSERT_EQUALS(result.nMatched(), 1);
-        // TODO: test nModified is null or omitted if legacy server
-        ASSERT_EQUALS(result.nModified(), 1);
+        if (result.hasModifiedCount())
+            ASSERT_EQUALS(result.nModified(), 1);
         ASSERT_EQUALS(result.nRemoved(), 0);
+        ASSERT_TRUE(result.upserted().empty());
         ASSERT_FALSE(result.hasErrors());
 
 
@@ -202,9 +210,10 @@ namespace {
         ASSERT_EQUALS(result.nInserted(), 0);
         ASSERT_EQUALS(result.nUpserted(), 0);
         ASSERT_EQUALS(result.nMatched(), 1);
-        // TODO: test nModified is null or omitted if legacy server
-        ASSERT_EQUALS(result.nModified(), 1);
+        if (result.hasModifiedCount())
+            ASSERT_EQUALS(result.nModified(), 1);
         ASSERT_EQUALS(result.nRemoved(), 0);
+        ASSERT_TRUE(result.upserted().empty());
         ASSERT_FALSE(result.hasErrors());
 
         ASSERT_EQUALS(c.count(TEST_NS, Query("{x: 1}").obj), 1U);
@@ -224,9 +233,10 @@ namespace {
         ASSERT_EQUALS(result.nInserted(), 0);
         ASSERT_EQUALS(result.nUpserted(), 1);
         ASSERT_EQUALS(result.nMatched(), 0);
-        // TODO: test nModified is null or omitted if legacy server
-        ASSERT_EQUALS(result.nModified(), 0);
+        if (result.hasModifiedCount())
+            ASSERT_EQUALS(result.nModified(), 0);
         ASSERT_EQUALS(result.nRemoved(), 0);
+        ASSERT_EQUALS(result.upserted().size(), 1U);
         ASSERT_FALSE(result.hasErrors());
 
         ASSERT_EQUALS(c.count(TEST_NS, Query("{x: 1}").obj), 1U);
@@ -248,9 +258,10 @@ namespace {
         ASSERT_EQUALS(result.nInserted(), 0);
         ASSERT_EQUALS(result.nUpserted(), 0);
         ASSERT_EQUALS(result.nMatched(), 2);
-        // TODO: test nModified is null or omitted if legacy server
-        ASSERT_EQUALS(result.nModified(), 2);
+        if (result.hasModifiedCount())
+            ASSERT_EQUALS(result.nModified(), 2);
         ASSERT_EQUALS(result.nRemoved(), 0);
+        ASSERT_TRUE(result.upserted().empty());
         ASSERT_FALSE(result.hasErrors());
 
         ASSERT_EQUALS(c.count(TEST_NS, Query("{x: 1}").obj), 2U);
@@ -270,14 +281,32 @@ namespace {
         ASSERT_EQUALS(result.nInserted(), 0);
         ASSERT_EQUALS(result.nUpserted(), 1);
         ASSERT_EQUALS(result.nMatched(), 0);
-        // TODO: test nModified is null or omitted if legacy server
-        ASSERT_EQUALS(result.nModified(), 0);
+        if (result.hasModifiedCount())
+            ASSERT_EQUALS(result.nModified(), 0);
         ASSERT_EQUALS(result.nRemoved(), 0);
+        ASSERT_EQUALS(result.upserted().size(), 1U);
         ASSERT_FALSE(result.hasErrors());
 
         ASSERT_EQUALS(c.count(TEST_NS, Query("{x: 1}").obj), 1U);
         ASSERT_TRUE(c.findOne(TEST_NS, Query("{x: 1}").obj).hasField("a"));
         ASSERT_EQUALS(c.count(TEST_NS, Query("{}").obj), 3U);
+    }
+
+    TEST_F(BulkOperationTest, MultipleUpsertsMixedBatchHaveCorrectSequence) {
+        c.insert(TEST_NS, BSON("a" << 1));
+        c.insert(TEST_NS, BSON("a" << 1));
+
+        BulkOperationBuilder bulk(&c, TEST_NS, true);
+        bulk.find(BSON("a" << 2)).upsert().update(BSON("$inc" << BSON("x" << 1)));
+        bulk.find(BSON("a" << 3)).upsert().update(BSON("$inc" << BSON("x" << 1)));
+        bulk.insert(BSON("a" << 4));
+        bulk.find(BSON("a" << 5)).upsert().update(BSON("$inc" << BSON("x" << 1)));
+
+        WriteResult result;
+        bulk.execute(&WriteConcern::acknowledged, &result);
+        ASSERT_EQUALS(result.upserted()[0].getIntField("index"), 0);
+        ASSERT_EQUALS(result.upserted()[1].getIntField("index"), 1);
+        ASSERT_EQUALS(result.upserted()[2].getIntField("index"), 3);
     }
 
     TEST_F(BulkOperationTest, UpsertReplaceMatchingSelector) {
@@ -294,9 +323,10 @@ namespace {
         ASSERT_EQUALS(result.nInserted(), 0);
         ASSERT_EQUALS(result.nUpserted(), 0);
         ASSERT_EQUALS(result.nMatched(), 1);
-        // TODO: test nModified is null or omitted if legacy server
-        ASSERT_EQUALS(result.nModified(), 1);
+        if (result.hasModifiedCount())
+            ASSERT_EQUALS(result.nModified(), 1);
         ASSERT_EQUALS(result.nRemoved(), 0);
+        ASSERT_TRUE(result.upserted().empty());
         ASSERT_FALSE(result.hasErrors());
 
         ASSERT_EQUALS(c.count(TEST_NS, Query("{x: 1}").obj), 1U);
@@ -317,9 +347,10 @@ namespace {
         ASSERT_EQUALS(result.nInserted(), 0);
         ASSERT_EQUALS(result.nUpserted(), 1);
         ASSERT_EQUALS(result.nMatched(), 0);
-        // TODO: test nModified is null or omitted if legacy server
-        ASSERT_EQUALS(result.nModified(), 0);
+        if (result.hasModifiedCount())
+            ASSERT_EQUALS(result.nModified(), 0);
         ASSERT_EQUALS(result.nRemoved(), 0);
+        ASSERT_EQUALS(result.upserted().size(), 1U);
         ASSERT_FALSE(result.hasErrors());
 
         ASSERT_EQUALS(result.nUpserted(), 1);
@@ -342,9 +373,10 @@ namespace {
         ASSERT_EQUALS(result.nInserted(), 0);
         ASSERT_EQUALS(result.nUpserted(), 0);
         ASSERT_EQUALS(result.nMatched(), 0);
-        // TODO: test nModified is null or omitted if legacy server
-        ASSERT_EQUALS(result.nModified(), 0);
+        if (result.hasModifiedCount())
+            ASSERT_EQUALS(result.nModified(), 0);
         ASSERT_EQUALS(result.nRemoved(), 1);
+        ASSERT_TRUE(result.upserted().empty());
         ASSERT_FALSE(result.hasErrors());
 
         ASSERT_EQUALS(c.count(TEST_NS, Query("{}").obj), 2U);
@@ -365,9 +397,10 @@ namespace {
         ASSERT_EQUALS(result.nInserted(), 0);
         ASSERT_EQUALS(result.nUpserted(), 0);
         ASSERT_EQUALS(result.nMatched(), 0);
-        // TODO: test nModified is null or omitted if legacy server
-        ASSERT_EQUALS(result.nModified(), 0);
+        if (result.hasModifiedCount())
+            ASSERT_EQUALS(result.nModified(), 0);
         ASSERT_EQUALS(result.nRemoved(), 2);
+        ASSERT_TRUE(result.upserted().empty());
         ASSERT_FALSE(result.hasErrors());
 
         ASSERT_EQUALS(c.count(TEST_NS, Query("{}").obj), 1U);
@@ -384,13 +417,15 @@ namespace {
 
         WriteResult result;
         bulk.execute(&WriteConcern::acknowledged, &result);
+        ASSERT_TRUE(result.upserted().empty());
 
         ASSERT_EQUALS(result.nInserted(), 0);
         ASSERT_EQUALS(result.nUpserted(), 0);
         ASSERT_EQUALS(result.nMatched(), 0);
-        // TODO: test nModified is null or omitted if legacy server
-        ASSERT_EQUALS(result.nModified(), 0);
+        if (result.hasModifiedCount())
+            ASSERT_EQUALS(result.nModified(), 0);
         ASSERT_EQUALS(result.nRemoved(), 3);
+        ASSERT_TRUE(result.upserted().empty());
         ASSERT_FALSE(result.hasErrors());
 
         ASSERT_EQUALS(c.count(TEST_NS, Query("{}").obj), 0U);
@@ -411,9 +446,10 @@ namespace {
         ASSERT_EQUALS(result.nInserted(), 4);
         ASSERT_EQUALS(result.nUpserted(), 0);
         ASSERT_EQUALS(result.nMatched(), 1);
-        // TODO: test nModified is null or omitted if legacy server
-        ASSERT_EQUALS(result.nModified(), 1);
+        if (result.hasModifiedCount())
+            ASSERT_EQUALS(result.nModified(), 1);
         ASSERT_EQUALS(result.nRemoved(), 1);
+        ASSERT_TRUE(result.upserted().empty());
         ASSERT_FALSE(result.hasErrors());
     }
 
@@ -433,9 +469,10 @@ namespace {
         ASSERT_EQUALS(result.nInserted(), 4);
         ASSERT_EQUALS(result.nUpserted(), 0);
         ASSERT_EQUALS(result.nMatched(), 1);
-        // TODO: test nModified is null or omitted if legacy server
-        ASSERT_EQUALS(result.nModified(), 1);
+        if (result.hasModifiedCount())
+            ASSERT_EQUALS(result.nModified(), 1);
         ASSERT_EQUALS(result.nRemoved(), 0);
+        ASSERT_TRUE(result.upserted().empty());
         ASSERT_FALSE(result.hasErrors());
     }
 
@@ -450,9 +487,10 @@ namespace {
         ASSERT_EQUALS(result.nInserted(), c.getMaxWriteBatchSize() + 1);
         ASSERT_EQUALS(result.nUpserted(), 0);
         ASSERT_EQUALS(result.nMatched(), 0);
-        // TODO: test nModified is null or omitted if legacy server
-        ASSERT_EQUALS(result.nModified(), 0);
+        if (result.hasModifiedCount())
+            ASSERT_EQUALS(result.nModified(), 0);
         ASSERT_EQUALS(result.nRemoved(), 0);
+        ASSERT_TRUE(result.upserted().empty());
         ASSERT_FALSE(result.hasErrors());
     }
 

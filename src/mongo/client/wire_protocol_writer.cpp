@@ -31,8 +31,10 @@ namespace mongo {
         const WriteConcern* wc,
         WriteResult* wr
     ) {
+        // Effectively a map of batch relative indexes to WriteOperations
+        std::vector<WriteOperation*> batchOps;
+
         BufBuilder builder;
-        std::vector<int> batchSequenceIds;
 
         std::vector<WriteOperation*>::const_iterator batch_begin = write_operations.begin();
         const std::vector<WriteOperation*>::const_iterator end = write_operations.end();
@@ -56,6 +58,9 @@ namespace mongo {
                 // Always safe to append here: either we just entered the loop, or all the
                 // below checks passed.
                 (*batch_iter)->appendSelfToRequest(&builder);
+
+                // Associate batch index with WriteOperation
+                batchOps.push_back(*batch_iter);
 
                 // If the operation we just queued isn't batchable, issue what we have.
                 if (!_batchableRequest(batchOpType))
@@ -89,8 +94,8 @@ namespace mongo {
             BSONObj batchResult = _send(batchOpType, builder, wc, ns);
 
             // Merge this batch's result into the result for all batches written.
-            wr->merge(batchOpType, batchSequenceIds, batchResult);
-            batchSequenceIds.clear();
+            wr->merge(batchOpType, batchOps, batchResult);
+            batchOps.clear();
 
             // Reset the builder so we can build the next request.
             builder.reset();
