@@ -455,47 +455,57 @@ namespace {
     }
 
     TYPED_TEST(BulkOperationTest, MultipleOrderedOperations) {
+        this->c->insert(TEST_NS, BSON("c" << 1));
+
         BulkOperationBuilder bulk(this->c, TEST_NS, true);
         bulk.insert(BSON("a" << 1));
         bulk.insert(BSON("a" << 1));
         bulk.insert(BSON("b" << 1));
         bulk.find(BSON("a" << 1)).updateOne(BSON("$set" << BSON("a" << 2)));
-        bulk.find(BSON("a" << 1)).remove();
+        bulk.find(BSON("c" << 1)).remove();
+        bulk.find(BSON("_id" << 1)).upsert().update(BSON("$set" << BSON("b" << 1)));
         bulk.insert(BSON("b" << 1));
 
         WriteResult result;
         bulk.execute(&WriteConcern::acknowledged, &result);
 
         ASSERT_EQUALS(result.nInserted(), 4);
-        ASSERT_EQUALS(result.nUpserted(), 0);
+        ASSERT_EQUALS(result.nUpserted(), 1);
         ASSERT_EQUALS(result.nMatched(), 1);
         if (result.hasModifiedCount())
             ASSERT_EQUALS(result.nModified(), 1);
         ASSERT_EQUALS(result.nRemoved(), 1);
-        ASSERT_TRUE(result.upserted().empty());
+        ASSERT_EQUALS(result.upserted().size(), 1U);
+        ASSERT_EQUALS(result.upserted().front().getIntField("index"), 5);
+        ASSERT_EQUALS(result.upserted().front().getIntField("_id"), 1);
         ASSERT_FALSE(result.hasErrors());
     }
 
     TYPED_TEST(BulkOperationTest, MultipleUnorderedOperations) {
+        this->c->insert(TEST_NS, BSON("c" << 1));
+
         BulkOperationBuilder bulk(this->c, TEST_NS, false);
         bulk.insert(BSON("a" << 1));
         bulk.insert(BSON("a" << 1));
         bulk.insert(BSON("b" << 1));
         bulk.find(BSON("a" << 1)).updateOne(BSON("$set" << BSON("a" << 2)));
-        bulk.find(BSON("a" << 1)).remove();
+        bulk.find(BSON("c" << 1)).remove();
+        bulk.find(BSON("_id" << 1)).upsert().update(BSON("$set" << BSON("b" << 1)));
         bulk.insert(BSON("b" << 1));
 
         WriteResult result;
         bulk.execute(&WriteConcern::acknowledged, &result);
 
-        // not deterministic in general for the user... subject to change
+        // this test passing depends on the current unordered optimization implementation
         ASSERT_EQUALS(result.nInserted(), 4);
-        ASSERT_EQUALS(result.nUpserted(), 0);
+        ASSERT_EQUALS(result.nUpserted(), 1);
         ASSERT_EQUALS(result.nMatched(), 1);
         if (result.hasModifiedCount())
             ASSERT_EQUALS(result.nModified(), 1);
-        ASSERT_EQUALS(result.nRemoved(), 0);
-        ASSERT_TRUE(result.upserted().empty());
+        ASSERT_EQUALS(result.nRemoved(), 1);
+        ASSERT_EQUALS(result.upserted().size(), 1U);
+        ASSERT_EQUALS(result.upserted().front().getIntField("index"), 5);
+        ASSERT_EQUALS(result.upserted().front().getIntField("_id"), 1);
         ASSERT_FALSE(result.hasErrors());
     }
 
@@ -515,6 +525,40 @@ namespace {
         ASSERT_EQUALS(result.nRemoved(), 0);
         ASSERT_TRUE(result.upserted().empty());
         ASSERT_FALSE(result.hasErrors());
+    }
+
+    TYPED_TEST(BulkOperationTest, UnorderedBatchWithErrors) {
+        BulkOperationBuilder bulk(this->c, TEST_NS, false);
+
+        bulk.insert(BSON("_id" << 1 << "a" << 1));
+
+        // one or two of these upserts fails
+        bulk.find(BSON("a" << 2)).upsert().update(BSON("$set" << BSON("_id" << 1)));
+        bulk.find(BSON("a" << 3)).upsert().update(BSON("$set" << BSON("_id" << 2)));
+        bulk.find(BSON("a" << 2)).upsert().update(BSON("$set" << BSON("_id" << 1)));
+
+        // this and / or the first insert fails:
+        bulk.insert(BSON("_id" << 1 << "a" << 1));
+
+        WriteResult result;
+        bulk.execute(&WriteConcern::acknowledged, &result);
+    }
+
+    TYPED_TEST(BulkOperationTest, OrderedBatchWithErrors) {
+        BulkOperationBuilder bulk(this->c, TEST_NS, true);
+
+        bulk.insert(BSON("_id" << 1 << "a" << 1));
+
+        // one or two of these upserts fails
+        bulk.find(BSON("a" << 2)).upsert().update(BSON("$set" << BSON("_id" << 1)));
+        bulk.find(BSON("a" << 3)).upsert().update(BSON("$set" << BSON("_id" << 2)));
+        bulk.find(BSON("a" << 2)).upsert().update(BSON("$set" << BSON("_id" << 1)));
+
+        // this and / or the first insert fails:
+        bulk.insert(BSON("_id" << 1 << "a" << 1));
+
+        WriteResult result;
+        bulk.execute(&WriteConcern::acknowledged, &result);
     }
 
 } // namespace

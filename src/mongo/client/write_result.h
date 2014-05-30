@@ -29,8 +29,8 @@ namespace mongo {
         WriteResult();
 
         bool hasErrors() const;
-        bool hasWriteError() const;
-        bool hasWriteConcernError() const;
+        bool hasWriteErrors() const;
+        bool hasWriteConcernErrors() const;
         bool hasModifiedCount() const;
 
         int nInserted() const;

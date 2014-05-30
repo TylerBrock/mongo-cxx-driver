@@ -97,6 +97,9 @@ namespace mongo {
             wr->mergeGleResult(batchOpType, batchOps, batchResult);
             batchOps.clear();
 
+            // Check if we need to raise an error
+            _checkResult(wr, ordered);
+
             // Reset the builder so we can build the next request.
             builder.reset();
 
@@ -109,7 +112,12 @@ namespace mongo {
         return (builder->len() + op->incrementalSize()) <= _client->getMaxMessageSizeBytes();
     }
 
-    BSONObj WireProtocolWriter::_send(Operations opCode, const BufBuilder& builder, const WriteConcern* wc, const StringData& ns) {
+    BSONObj WireProtocolWriter::_send(
+        Operations opCode,
+        const BufBuilder& builder,
+        const WriteConcern* wc,
+        const StringData& ns
+    ) {
         Message request;
         request.setData(opCode, builder.buf(), builder.len());
         _client->say(request);
@@ -120,14 +128,19 @@ namespace mongo {
             BSONObjBuilder bob;
             bob.append("getlasterror", true);
             bob.appendElements(wc->obj());
-            _client->runCommand(nsToDatabase(ns), bob.obj(), result);
 
-            if (!result["err"].isNull()) {
-                throw OperationException(result);
-            }
+            bool commandWorked = _client->runCommand(nsToDatabase(ns), bob.obj(), result);
+
+            if (!commandWorked) throw OperationException(result);
         }
 
         return result;
+    }
+
+    void WireProtocolWriter::_checkResult(const WriteResult* const wr, bool hardWriteConcern) {
+        if (wr->hasWriteErrors() || (hardWriteConcern && wr->hasWriteConcernErrors())) {
+            throw OperationException(BSONObj());
+        }
     }
 
     bool WireProtocolWriter::_batchableRequest(Operations opCode, const WriteResult* const wr) {

@@ -34,9 +34,16 @@ namespace mongo {
         );
 
     private:
-        BSONObj _send(Operations opCode, const BufBuilder& builder, const WriteConcern* wc, const StringData& ns);
+        BSONObj _send(
+            Operations opCode,
+            const BufBuilder& builder,
+            const WriteConcern* wc,
+            const StringData& ns
+        );
+
         bool _batchableRequest(Operations opCode, const WriteResult* const wr);
         bool _fits(BufBuilder* builder, WriteOperation* operation);
+        void _checkResult(const WriteResult* const wr, bool ordered);
 
         DBClientBase* const _client;
     };

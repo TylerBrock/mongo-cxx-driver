@@ -99,9 +99,15 @@ namespace mongo {
             wr->mergeCommandResult(batchOpType, batchOps, batchResult);
             batchOps.clear();
 
+            // Check if we need to raise an error
+            _checkResult(wr, ordered);
+
             // The next batch begins with the op after the last one in the just issued batch.
             batch_begin = ++batch_iter;
         }
+
+        // Check if we need to raise an error
+        _checkResult(wr, true);
     }
 
     bool CommandWriter::_fits(BSONArrayBuilder* builder, WriteOperation* op) {
@@ -124,15 +130,23 @@ namespace mongo {
         command->append(kOrderedKey, ordered);
     }
 
-    BSONObj CommandWriter::_send(BSONObjBuilder* command, const WriteConcern* wc, const StringData& ns) {
+    void CommandWriter::_checkResult(const WriteResult* const wr, bool hardWriteConcern) {
+        if (wr->hasWriteErrors() || (hardWriteConcern && wr->hasWriteConcernErrors())) {
+            throw OperationException(BSONObj());
+        }
+    }
+
+    BSONObj CommandWriter::_send(
+        BSONObjBuilder* command,
+        const WriteConcern* wc,
+        const StringData& ns
+    ) {
         command->append("writeConcern", wc->obj());
 
         BSONObj result;
         bool commandWorked = _client->runCommand(nsToDatabase(ns), command->obj(), result);
 
-        if (!commandWorked || result.hasField("writeErrors")) {
-            throw OperationException(result);
-        }
+        if (!commandWorked) throw OperationException(result);
 
         return result;
     }

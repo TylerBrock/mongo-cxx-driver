@@ -21,6 +21,9 @@
 
 namespace mongo {
 
+    const int kWriteConcernErrorCode = 64;
+    const int kUnknownError = 8;
+
     WriteResult::WriteResult()
         : _nInserted(0)
         , _nUpserted(0)
@@ -32,7 +35,15 @@ namespace mongo {
     {}
 
     bool WriteResult::hasErrors() const {
-        return !(_writeErrors.empty() && _writeConcernErrors.empty());
+        return hasWriteErrors() || hasWriteConcernErrors();
+    }
+
+    bool WriteResult::hasWriteErrors() const {
+        return !_writeErrors.empty();
+    }
+
+    bool WriteResult::hasWriteConcernErrors() const {
+        return !_writeConcernErrors.empty();
     }
 
     bool WriteResult::hasModifiedCount() const {
@@ -87,12 +98,12 @@ namespace mongo {
 
                     std::vector<BSONElement>::const_iterator it;
                     for (it = upsertedArray.begin(); it != upsertedArray.end(); ++it) {
-                        int batchIndex = (*it).Obj().getIntField("index");
-                        const OID id = (*it).Obj()["_id"].OID();
+                        BSONObj upsertedObj = (*it).Obj();
+                        int batchIndex = upsertedObj.getIntField("index");
 
                         BSONObjBuilder bob;
                         bob.append("index", static_cast<long long>(ops[batchIndex]->getSequenceId()));
-                        bob.append("_id", id);
+                        bob.appendAs(upsertedObj["_id"], "_id");
 
                         _upserted.push_back(bob.obj());
                     }
@@ -171,8 +182,8 @@ namespace mongo {
                 if (result.hasField("upserted")) {
                     BSONElement upserted = result.getField("upserted");
                     BSONObjBuilder bob;
-                    bob.append("index", static_cast<long long>(ops[0]->getSequenceId()));
-                    bob.append("_id", upserted.OID());
+                    bob.append("index", static_cast<long long>(ops.front()->getSequenceId()));
+                    bob.appendAs(upserted, "_id");
                     _upserted.push_back(bob.obj());
                     _nUpserted += affected;
                 } else {
@@ -191,6 +202,31 @@ namespace mongo {
 
             default:
                 uassert(0, "something really bad happened", false);
+        }
+
+        // Handle Errors
+        std::string errmsg;
+        if (result.hasField("errmsg"))
+            errmsg = result.getStringField("errmsg");
+        else if (result.hasField("err"))
+            errmsg = result.getStringField("err");
+
+        if (!errmsg.empty()) {
+            if (result.hasField("wtimeout")) {
+                BSONObjBuilder bob;
+                bob.append("errmsg", errmsg);
+                bob.append("code", kWriteConcernErrorCode);
+                _writeConcernErrors.push_back(bob.obj());
+            } else {
+                int code = result.hasField("code") ? result.getIntField("code") : kUnknownError;
+                BSONObjBuilder bob;
+                bob.append("index", static_cast<long long>(ops.front()->getSequenceId()));
+                bob.append("code", code);
+                bob.append("errmsg", errmsg);
+                bob.append("op", ops[0]);
+                // TODO: errInfo? -- maybe who cares
+                _writeErrors.push_back(bob.obj());
+            }
         }
     }
 
