@@ -541,7 +541,10 @@ namespace {
         bulk.insert(BSON("_id" << 1 << "a" << 1));
 
         WriteResult result;
-        bulk.execute(&WriteConcern::acknowledged, &result);
+        ASSERT_THROWS(
+            bulk.execute(&WriteConcern::acknowledged, &result),
+            OperationException
+        );
     }
 
     TYPED_TEST(BulkOperationTest, OrderedBatchWithErrors) {
@@ -558,7 +561,10 @@ namespace {
         bulk.insert(BSON("_id" << 1 << "a" << 1));
 
         WriteResult result;
-        bulk.execute(&WriteConcern::acknowledged, &result);
+        ASSERT_THROWS(
+            bulk.execute(&WriteConcern::acknowledged, &result),
+            OperationException
+        );
     }
 
 } // namespace
