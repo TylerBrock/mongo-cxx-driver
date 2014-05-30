@@ -94,7 +94,7 @@ namespace mongo {
             BSONObj batchResult = _send(batchOpType, builder, wc, ns);
 
             // Merge this batch's result into the result for all batches written.
-            wr->merge(batchOpType, batchOps, batchResult);
+            wr->mergeGleResult(batchOpType, batchOps, batchResult);
             batchOps.clear();
 
             // Reset the builder so we can build the next request.

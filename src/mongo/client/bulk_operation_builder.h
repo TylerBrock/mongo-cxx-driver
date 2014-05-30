@@ -108,6 +108,7 @@ namespace mongo {
         const std::string _ns;
         const bool _ordered;
         bool _executed;
+        int64_t _sequenceId;
         std::vector<WriteOperation*> _write_operations;
     };
 

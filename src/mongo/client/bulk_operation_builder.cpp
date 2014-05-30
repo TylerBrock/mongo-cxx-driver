@@ -37,6 +37,7 @@ namespace mongo {
         , _ns(ns)
         , _ordered(ordered)
         , _executed(false)
+        , _sequenceId(0)
     {}
 
     BulkOperationBuilder::~BulkOperationBuilder() {
@@ -59,11 +60,6 @@ namespace mongo {
         uassert(0, "Bulk operations cannot be executed without any operations",
             !_write_operations.empty());
 
-        std::vector<WriteOperation*>::iterator it;
-        for (it = _write_operations.begin(); it != _write_operations.end(); ++it) {
-            (*it)->setSequenceId(std::distance(_write_operations.begin(), it));
-        }
-
         if (!_ordered)
             std::sort(_write_operations.begin(), _write_operations.end(), compare);
 
@@ -73,6 +69,7 @@ namespace mongo {
     }
 
     void BulkOperationBuilder::enqueue(WriteOperation* operation) {
+        operation->setSequenceId(_sequenceId++);
         _write_operations.push_back(operation);
     }
 

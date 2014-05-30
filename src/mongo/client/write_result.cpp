@@ -62,7 +62,7 @@ namespace mongo {
         return _upserted;
     }
 
-    void WriteResult::merge(Operations opType, const std::vector<WriteOperation*>& ops, const BSONObj& result) {
+    void WriteResult::mergeCommandResult(Operations opType, const std::vector<WriteOperation*>& ops, const BSONObj& result) {
         int affected = result.hasField("n") ? result.getIntField("n") : 0;
 
         // Handle Write Batch
@@ -80,27 +80,19 @@ namespace mongo {
                     BSONElement upserted = result.getField("upserted");
                     int nUpserted = 0;
 
-                    if (upserted.isSimpleType()) {
-                        nUpserted += 1;
+                    std::vector<BSONElement> upsertedArray = upserted.Array();
+                    nUpserted = upsertedArray.size();
+
+                    std::vector<BSONElement>::const_iterator it;
+                    for (it = upsertedArray.begin(); it != upsertedArray.end(); ++it) {
+                        int batchIndex = (*it).Obj().getIntField("index");
+                        const OID id = (*it).Obj()["_id"].OID();
+
                         BSONObjBuilder bob;
-                        bob.append("index", 0);
-                        bob.append("_id", upserted.Obj()["_id"].OID());
+                        bob.append("index", static_cast<long long>(ops[batchIndex]->getSequenceId()));
+                        bob.append("_id", id);
+
                         _upserted.push_back(bob.obj());
-                    } else {
-                        std::vector<BSONElement> upsertedArray = upserted.Array();
-                        nUpserted = upsertedArray.size();
-
-                        std::vector<BSONElement>::const_iterator it;
-                        for (it = upsertedArray.begin(); it != upsertedArray.end(); ++it) {
-                            int batchIndex = (*it).Obj().getIntField("index");
-                            const OID id = (*it).Obj()["_id"].OID();
-
-                            BSONObjBuilder bob;
-                            bob.append("index", static_cast<long long>(ops[batchIndex]->getSequenceId()));
-                            bob.append("_id", id);
-
-                            _upserted.push_back(bob.obj());
-                        }
                     }
 
                     _nUpserted += nUpserted;
@@ -157,6 +149,36 @@ namespace mongo {
                 bob.append("details", writeConcernError.getObjectField("errInfo"));
 
             _writeConcernErrors.push_back(result.getObjectField("writeConcernError"));
+        }
+    }
+
+    void WriteResult::mergeGleResult(Operations opType, const std::vector<WriteOperation*>& ops, const BSONObj& result) {
+         int affected = result.hasField("n") ? result.getIntField("n") : 0;
+
+        // Handle Write Batch
+        switch(opType) {
+            case dbInsert:
+                _nInserted += 1;
+                break;
+
+            case dbDelete:
+                _nRemoved += affected;
+                break;
+
+            case dbUpdate:
+                if (result.hasField("upserted")) {
+                    BSONElement upserted = result.getField("upserted");
+                    BSONObjBuilder bob;
+                    bob.append("index", static_cast<long long>(ops[0]->getSequenceId()));
+                    bob.append("_id", upserted.OID());
+                    _upserted.push_back(bob.obj());
+                    _nUpserted += affected;
+                } else {
+                    _nMatched += affected;
+                }
+
+            default:
+                uassert(0, "something really bad happened", false);
         }
     }
 
