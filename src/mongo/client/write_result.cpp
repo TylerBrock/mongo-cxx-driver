@@ -75,6 +75,14 @@ namespace mongo {
         return _upserted;
     }
 
+    std::vector<BSONObj> WriteResult::writeErrors() const {
+        return _writeErrors;
+    }
+
+    std::vector<BSONObj> WriteResult::writeConcernErrors() const {
+        return _writeConcernErrors;
+    }
+
     void WriteResult::mergeCommandResult(Operations opType, const std::vector<WriteOperation*>& ops, const BSONObj& result) {
         int affected = result.hasField("n") ? result.getIntField("n") : 0;
 

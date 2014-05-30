@@ -41,8 +41,8 @@ namespace mongo {
 
         std::vector<BSONObj> upserted() const;
 
-        //std::vector<WriteError> writeErrors() const;
-        //std::vector<WriteConcernError> writeConcernErrors() const;
+        std::vector<BSONObj> writeErrors() const;
+        std::vector<BSONObj> writeConcernErrors() const;
 
         void mergeCommandResult(Operations opType, const std::vector<WriteOperation*>& ops, const BSONObj& result);
         void mergeGleResult(Operations opType, const std::vector<WriteOperation*>& ops, const BSONObj& result);

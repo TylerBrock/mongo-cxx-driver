@@ -131,8 +131,12 @@ namespace mongo {
     }
 
     void CommandWriter::_checkResult(const WriteResult* const wr, bool hardWriteConcern) {
-        if (wr->hasWriteErrors() || (hardWriteConcern && wr->hasWriteConcernErrors())) {
-            throw OperationException(BSONObj());
+        if (wr->hasWriteErrors()) {
+            throw OperationException(wr->writeErrors().front());
+        }
+
+        if (hardWriteConcern && wr->hasWriteConcernErrors()) {
+            throw OperationException(wr->writeConcernErrors().front());
         }
     }
 
