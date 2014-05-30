@@ -46,17 +46,22 @@ namespace mongo {
 
         void mergeCommandResult(Operations opType, const std::vector<WriteOperation*>& ops, const BSONObj& result);
         void mergeGleResult(Operations opType, const std::vector<WriteOperation*>& ops, const BSONObj& result);
+        void requireDetailedInsertResults();
+        bool requiresDetailedInsertResults() const;
 
     private:
-        bool _hasModifiedCount;
         int _nInserted;
         int _nUpserted;
         int _nMatched;
         int _nModified;
         int _nRemoved;
+
         std::vector<BSONObj> _upserted;
         std::vector<BSONObj> _writeErrors;
         std::vector<BSONObj> _writeConcernErrors;
+
+        bool _hasModifiedCount;
+        bool _requiresDetailedInsertResults;
     };
 
 } // namespace mongo

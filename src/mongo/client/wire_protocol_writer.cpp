@@ -63,7 +63,7 @@ namespace mongo {
                 batchOps.push_back(*batch_iter);
 
                 // If the operation we just queued isn't batchable, issue what we have.
-                if (!_batchableRequest(batchOpType))
+                if (!_batchableRequest(batchOpType, wr))
                     break;
 
                 // Peek at the next operation.
@@ -130,8 +130,11 @@ namespace mongo {
         return result;
     }
 
-    bool WireProtocolWriter::_batchableRequest(Operations opCode) {
-        return opCode == dbInsert;
+    bool WireProtocolWriter::_batchableRequest(Operations opCode, const WriteResult* const wr) {
+        return (
+            opCode == dbInsert &&                   // We are doing an insert
+            !(wr->requiresDetailedInsertResults())  // We must report inserts individually (bulk)
+        );
     }
 
 } // namespace mongo

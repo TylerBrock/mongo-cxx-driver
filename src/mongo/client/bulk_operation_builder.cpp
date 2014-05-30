@@ -63,6 +63,8 @@ namespace mongo {
         if (!_ordered)
             std::sort(_write_operations.begin(), _write_operations.end(), compare);
 
+        wr->requireDetailedInsertResults();
+
         _client->_write(_ns, _write_operations, _ordered, wc, wr);
 
         _executed = true;

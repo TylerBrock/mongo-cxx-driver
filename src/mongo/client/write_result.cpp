@@ -27,6 +27,8 @@ namespace mongo {
         , _nMatched(0)
         , _nModified(0)
         , _nRemoved(0)
+        , _hasModifiedCount(true)
+        , _requiresDetailedInsertResults(false)
     {}
 
     bool WriteResult::hasErrors() const {
@@ -177,9 +179,27 @@ namespace mongo {
                     _nMatched += affected;
                 }
 
+                // SERVER-13001 - mixed shared cluster could return nModified for
+                // (servers >= 2.6) or not (servers <= 2.4). If any call does not
+                // return nModified we cannot report a valid final count.
+                if (result.hasField("nModified"))
+                    _nModified += result.getIntField("nModified");
+                else
+                    _hasModifiedCount = false;
+
+                break;
+
             default:
                 uassert(0, "something really bad happened", false);
         }
+    }
+
+    void WriteResult::requireDetailedInsertResults() {
+        _requiresDetailedInsertResults = true;
+    }
+
+    bool WriteResult::requiresDetailedInsertResults() const {
+        return _requiresDetailedInsertResults;
     }
 
 } // namespace mongo

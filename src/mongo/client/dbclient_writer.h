@@ -37,6 +37,7 @@ namespace mongo {
             const WriteConcern* wc,
             WriteResult* wr
         ) = 0;
+
     };
 
 } // namespace mongo

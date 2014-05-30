@@ -1,4 +1,4 @@
-/*    Copyright 2014 MongoDB Inc.
+/*    Copyright 2014 MongoDB Inthis->c->
  *
  *    Licensed under the Apache License, Version 2.0 (the "License");
  *    you may not use this file except in compliance with the License.
@@ -15,8 +15,10 @@
 
 #include "mongo/unittest/integration_test.h"
 
+#include "mongo/client/command_writer.h"
 #include "mongo/client/dbclient.h"
 #include "mongo/client/write_result.h"
+#include "mongo/client/wire_protocol_writer.h"
 
 namespace {
 
@@ -28,18 +30,39 @@ namespace {
 
     const string TEST_NS = "test.bulk_operation";
 
+    template <typename T>
+    struct RequiredWireVersion;
+
+    template <>
+    struct RequiredWireVersion<WireProtocolWriter> {
+        static const int value = 0;
+    };
+
+    template <>
+    struct RequiredWireVersion<CommandWriter> {
+        static const int value = 2;
+    };
+
+    template <typename T>
     class BulkOperationTest : public ::testing::Test {
     public:
         BulkOperationTest() {
-            c.connect(string("localhost:") + integrationTestParams.port);
-            c.dropCollection(TEST_NS);
+            c = new DBClientConnection;
+            c->connect(string("localhost:") + integrationTestParams.port);
+            c->dropCollection(TEST_NS);
+            c->setWireVersions(RequiredWireVersion<T>::value, RequiredWireVersion<T>::value);
         }
 
-        DBClientConnection c;
+        ~BulkOperationTest() { delete c; }
+
+        DBClientConnection* c;
     };
 
-    TEST_F(BulkOperationTest, InsertOrdered) {
-        BulkOperationBuilder bulk(&c, TEST_NS, true);
+    typedef ::testing::Types<WireProtocolWriter, CommandWriter> DBClientWriters;
+    TYPED_TEST_CASE(BulkOperationTest, DBClientWriters);
+
+    TYPED_TEST(BulkOperationTest, InsertOrdered) {
+        BulkOperationBuilder bulk(this->c, TEST_NS, true);
         bulk.insert(BSON("a" << 1));
 
         WriteResult result;
@@ -54,13 +77,13 @@ namespace {
         ASSERT_TRUE(result.upserted().empty());
         ASSERT_FALSE(result.hasErrors());
 
-        BSONObj doc = c.findOne(TEST_NS, Query("{}").obj);
+        BSONObj doc = this->c->findOne(TEST_NS, Query("{}").obj);
         ASSERT_EQUALS(doc["a"].numberInt(), 1);
     }
 
 
-    TEST_F(BulkOperationTest, InsertUnordered) {
-        BulkOperationBuilder bulk(&c, TEST_NS, false);
+    TYPED_TEST(BulkOperationTest, InsertUnordered) {
+        BulkOperationBuilder bulk(this->c, TEST_NS, false);
         bulk.insert(BSON("a" << 1));
 
         WriteResult result;
@@ -75,12 +98,12 @@ namespace {
         ASSERT_TRUE(result.upserted().empty());
         ASSERT_FALSE(result.hasErrors());
 
-        BSONObj doc = c.findOne(TEST_NS, Query("{}").obj);
+        BSONObj doc = this->c->findOne(TEST_NS, Query("{}").obj);
         ASSERT_EQUALS(doc["a"].numberInt(), 1);
     }
 
-    TEST_F(BulkOperationTest, InsertBadKeyOrdered) {
-        BulkOperationBuilder bulk(&c, TEST_NS, true);
+    TYPED_TEST(BulkOperationTest, InsertBadKeyOrdered) {
+        BulkOperationBuilder bulk(this->c, TEST_NS, true);
         bulk.insert(BSON("$a" << 1));
 
         WriteResult result;
@@ -88,11 +111,11 @@ namespace {
             bulk.execute(&WriteConcern::acknowledged, &result),
             OperationException
         );
-        ASSERT_EQUALS(c.count(TEST_NS, Query("{}").obj), 0U);
+        ASSERT_EQUALS(this->c->count(TEST_NS, Query("{}").obj), 0U);
     }
 
-    TEST_F(BulkOperationTest, InsertBadKeyUnordered) {
-        BulkOperationBuilder bulk(&c, TEST_NS, false);
+    TYPED_TEST(BulkOperationTest, InsertBadKeyUnordered) {
+        BulkOperationBuilder bulk(this->c, TEST_NS, false);
         bulk.insert(BSON("$a" << 1));
 
         WriteResult result;
@@ -100,14 +123,14 @@ namespace {
             bulk.execute(&WriteConcern::acknowledged, &result),
             OperationException
         );
-        ASSERT_EQUALS(c.count(TEST_NS, Query("{}").obj), 0U);
+        ASSERT_EQUALS(this->c->count(TEST_NS, Query("{}").obj), 0U);
     }
 
-    TEST_F(BulkOperationTest, UpdateOneMatchingSelector) {
-        c.insert(TEST_NS, BSON("a" << 1));
-        c.insert(TEST_NS, BSON("a" << 1));
+    TYPED_TEST(BulkOperationTest, UpdateOneMatchingSelector) {
+        this->c->insert(TEST_NS, BSON("a" << 1));
+        this->c->insert(TEST_NS, BSON("a" << 1));
 
-        BulkOperationBuilder bulk(&c, TEST_NS, true);
+        BulkOperationBuilder bulk(this->c, TEST_NS, true);
         bulk.find(BSON("a" << 1)).updateOne(BSON("$inc" << BSON("x" << 1)));
 
         WriteResult result;
@@ -122,15 +145,15 @@ namespace {
         ASSERT_TRUE(result.upserted().empty());
         ASSERT_FALSE(result.hasErrors());
 
-        ASSERT_EQUALS(c.count(TEST_NS, Query("{x: 1}").obj), 1U);
+        ASSERT_EQUALS(this->c->count(TEST_NS, Query("{x: 1}").obj), 1U);
     }
 
-    TEST_F(BulkOperationTest, UpdateMultiMatchingSelector) {
-        c.insert(TEST_NS, BSON("a" << 1));
-        c.insert(TEST_NS, BSON("a" << 1));
-        c.insert(TEST_NS, BSON("b" << 1));
+    TYPED_TEST(BulkOperationTest, UpdateMultiMatchingSelector) {
+        this->c->insert(TEST_NS, BSON("a" << 1));
+        this->c->insert(TEST_NS, BSON("a" << 1));
+        this->c->insert(TEST_NS, BSON("b" << 1));
 
-        BulkOperationBuilder bulk(&c, TEST_NS, true);
+        BulkOperationBuilder bulk(this->c, TEST_NS, true);
         bulk.find(BSON("a" << 1)).update(BSON("$inc" << BSON("x" << 1)));
 
         WriteResult result;
@@ -145,15 +168,15 @@ namespace {
         ASSERT_TRUE(result.upserted().empty());
         ASSERT_FALSE(result.hasErrors());
 
-        ASSERT_EQUALS(c.count(TEST_NS, Query("{a: 1, x: 1}").obj), 2U);
+        ASSERT_EQUALS(this->c->count(TEST_NS, Query("{a: 1, x: 1}").obj), 2U);
     }
 
-    TEST_F(BulkOperationTest, UpdateAllDocuments) {
-        c.insert(TEST_NS, BSON("a" << 1));
-        c.insert(TEST_NS, BSON("a" << 1));
-        c.insert(TEST_NS, BSON("b" << 1));
+    TYPED_TEST(BulkOperationTest, UpdateAllDocuments) {
+        this->c->insert(TEST_NS, BSON("a" << 1));
+        this->c->insert(TEST_NS, BSON("a" << 1));
+        this->c->insert(TEST_NS, BSON("b" << 1));
 
-        BulkOperationBuilder bulk(&c, TEST_NS, true);
+        BulkOperationBuilder bulk(this->c, TEST_NS, true);
         bulk.find(fromjson("{}")).update(BSON("$inc" << BSON("x" << 1)));
 
         WriteResult result;
@@ -169,14 +192,14 @@ namespace {
         ASSERT_FALSE(result.hasErrors());
 
 
-        ASSERT_EQUALS(c.count(TEST_NS, Query("{x: 1}").obj), 3U);
+        ASSERT_EQUALS(this->c->count(TEST_NS, Query("{x: 1}").obj), 3U);
     }
 
-    TEST_F(BulkOperationTest, ReplaceEntireDocument) {
-        c.insert(TEST_NS, BSON("a" << 1));
-        c.insert(TEST_NS, BSON("b" << 1));
+    TYPED_TEST(BulkOperationTest, ReplaceEntireDocument) {
+        this->c->insert(TEST_NS, BSON("a" << 1));
+        this->c->insert(TEST_NS, BSON("b" << 1));
 
-        BulkOperationBuilder bulk(&c, TEST_NS, true);
+        BulkOperationBuilder bulk(this->c, TEST_NS, true);
         bulk.find(BSON("a" << 1)).replaceOne(BSON("x" << 1));
 
         WriteResult result;
@@ -192,16 +215,16 @@ namespace {
         ASSERT_FALSE(result.hasErrors());
 
 
-        ASSERT_EQUALS(c.count(TEST_NS, Query("{x: 1}").obj), 1U);
-        ASSERT_FALSE(c.findOne(TEST_NS, Query("{x: 1}").obj).hasField("a"));
+        ASSERT_EQUALS(this->c->count(TEST_NS, Query("{x: 1}").obj), 1U);
+        ASSERT_FALSE(this->c->findOne(TEST_NS, Query("{x: 1}").obj).hasField("a"));
     }
 
-    TEST_F(BulkOperationTest, UpsertOneMatchingSelector) {
-        c.insert(TEST_NS, BSON("a" << 1));
-        c.insert(TEST_NS, BSON("a" << 1));
-        c.insert(TEST_NS, BSON("b" << 1));
+    TYPED_TEST(BulkOperationTest, UpsertOneMatchingSelector) {
+        this->c->insert(TEST_NS, BSON("a" << 1));
+        this->c->insert(TEST_NS, BSON("a" << 1));
+        this->c->insert(TEST_NS, BSON("b" << 1));
 
-        BulkOperationBuilder bulk(&c, TEST_NS, true);
+        BulkOperationBuilder bulk(this->c, TEST_NS, true);
         bulk.find(BSON("a" << 1)).upsert().updateOne(BSON("$inc" << BSON("x" << 1)));
 
         WriteResult result;
@@ -216,15 +239,15 @@ namespace {
         ASSERT_TRUE(result.upserted().empty());
         ASSERT_FALSE(result.hasErrors());
 
-        ASSERT_EQUALS(c.count(TEST_NS, Query("{x: 1}").obj), 1U);
-        ASSERT_EQUALS(c.count(TEST_NS, Query("{}").obj), 3U);
+        ASSERT_EQUALS(this->c->count(TEST_NS, Query("{x: 1}").obj), 1U);
+        ASSERT_EQUALS(this->c->count(TEST_NS, Query("{}").obj), 3U);
     }
 
-    TEST_F(BulkOperationTest, UpsertOneNotMatchingSelector) {
-        c.insert(TEST_NS, BSON("a" << 1));
-        c.insert(TEST_NS, BSON("b" << 1));
+    TYPED_TEST(BulkOperationTest, UpsertOneNotMatchingSelector) {
+        this->c->insert(TEST_NS, BSON("a" << 1));
+        this->c->insert(TEST_NS, BSON("b" << 1));
 
-        BulkOperationBuilder bulk(&c, TEST_NS, true);
+        BulkOperationBuilder bulk(this->c, TEST_NS, true);
         bulk.find(BSON("a" << 2)).upsert().updateOne(BSON("$inc" << BSON("x" << 1)));
 
         WriteResult result;
@@ -239,17 +262,17 @@ namespace {
         ASSERT_EQUALS(result.upserted().size(), 1U);
         ASSERT_FALSE(result.hasErrors());
 
-        ASSERT_EQUALS(c.count(TEST_NS, Query("{x: 1}").obj), 1U);
-        ASSERT_TRUE(c.findOne(TEST_NS, Query("{x: 1}").obj).hasField("a"));
-        ASSERT_EQUALS(c.count(TEST_NS, Query("{}").obj), 3U);
+        ASSERT_EQUALS(this->c->count(TEST_NS, Query("{x: 1}").obj), 1U);
+        ASSERT_TRUE(this->c->findOne(TEST_NS, Query("{x: 1}").obj).hasField("a"));
+        ASSERT_EQUALS(this->c->count(TEST_NS, Query("{}").obj), 3U);
     }
 
-    TEST_F(BulkOperationTest, UpsertMultiMatchingSelector) {
-        c.insert(TEST_NS, BSON("a" << 1));
-        c.insert(TEST_NS, BSON("a" << 1));
-        c.insert(TEST_NS, BSON("b" << 1));
+    TYPED_TEST(BulkOperationTest, UpsertMultiMatchingSelector) {
+        this->c->insert(TEST_NS, BSON("a" << 1));
+        this->c->insert(TEST_NS, BSON("a" << 1));
+        this->c->insert(TEST_NS, BSON("b" << 1));
 
-        BulkOperationBuilder bulk(&c, TEST_NS, true);
+        BulkOperationBuilder bulk(this->c, TEST_NS, true);
         bulk.find(BSON("a" << 1)).upsert().update(BSON("$inc" << BSON("x" << 1)));
 
         WriteResult result;
@@ -264,15 +287,15 @@ namespace {
         ASSERT_TRUE(result.upserted().empty());
         ASSERT_FALSE(result.hasErrors());
 
-        ASSERT_EQUALS(c.count(TEST_NS, Query("{x: 1}").obj), 2U);
-        ASSERT_EQUALS(c.count(TEST_NS, Query("{}").obj), 3U);
+        ASSERT_EQUALS(this->c->count(TEST_NS, Query("{x: 1}").obj), 2U);
+        ASSERT_EQUALS(this->c->count(TEST_NS, Query("{}").obj), 3U);
     }
 
-    TEST_F(BulkOperationTest, UpsertMultiNotMatchingSelector) {
-        c.insert(TEST_NS, BSON("a" << 1));
-        c.insert(TEST_NS, BSON("a" << 1));
+    TYPED_TEST(BulkOperationTest, UpsertMultiNotMatchingSelector) {
+        this->c->insert(TEST_NS, BSON("a" << 1));
+        this->c->insert(TEST_NS, BSON("a" << 1));
 
-        BulkOperationBuilder bulk(&c, TEST_NS, true);
+        BulkOperationBuilder bulk(this->c, TEST_NS, true);
         bulk.find(BSON("a" << 2)).upsert().update(BSON("$inc" << BSON("x" << 1)));
 
         WriteResult result;
@@ -287,16 +310,16 @@ namespace {
         ASSERT_EQUALS(result.upserted().size(), 1U);
         ASSERT_FALSE(result.hasErrors());
 
-        ASSERT_EQUALS(c.count(TEST_NS, Query("{x: 1}").obj), 1U);
-        ASSERT_TRUE(c.findOne(TEST_NS, Query("{x: 1}").obj).hasField("a"));
-        ASSERT_EQUALS(c.count(TEST_NS, Query("{}").obj), 3U);
+        ASSERT_EQUALS(this->c->count(TEST_NS, Query("{x: 1}").obj), 1U);
+        ASSERT_TRUE(this->c->findOne(TEST_NS, Query("{x: 1}").obj).hasField("a"));
+        ASSERT_EQUALS(this->c->count(TEST_NS, Query("{}").obj), 3U);
     }
 
-    TEST_F(BulkOperationTest, MultipleUpsertsMixedBatchHaveCorrectSequence) {
-        c.insert(TEST_NS, BSON("a" << 1));
-        c.insert(TEST_NS, BSON("a" << 1));
+    TYPED_TEST(BulkOperationTest, MultipleUpsertsMixedBatchHaveCorrectSequence) {
+        this->c->insert(TEST_NS, BSON("a" << 1));
+        this->c->insert(TEST_NS, BSON("a" << 1));
 
-        BulkOperationBuilder bulk(&c, TEST_NS, true);
+        BulkOperationBuilder bulk(this->c, TEST_NS, true);
         bulk.find(BSON("a" << 2)).upsert().update(BSON("$inc" << BSON("x" << 1)));
         bulk.find(BSON("a" << 3)).upsert().update(BSON("$inc" << BSON("x" << 1)));
         bulk.insert(BSON("a" << 4));
@@ -309,12 +332,12 @@ namespace {
         ASSERT_EQUALS(result.upserted()[2].getIntField("index"), 3);
     }
 
-    TEST_F(BulkOperationTest, UpsertReplaceMatchingSelector) {
-        c.insert(TEST_NS, BSON("a" << 1));
-        c.insert(TEST_NS, BSON("a" << 1));
-        c.insert(TEST_NS, BSON("b" << 1));
+    TYPED_TEST(BulkOperationTest, UpsertReplaceMatchingSelector) {
+        this->c->insert(TEST_NS, BSON("a" << 1));
+        this->c->insert(TEST_NS, BSON("a" << 1));
+        this->c->insert(TEST_NS, BSON("b" << 1));
 
-        BulkOperationBuilder bulk(&c, TEST_NS, true);
+        BulkOperationBuilder bulk(this->c, TEST_NS, true);
         bulk.find(BSON("a" << 1)).upsert().replaceOne(BSON("x" << 1));
 
         WriteResult result;
@@ -329,16 +352,16 @@ namespace {
         ASSERT_TRUE(result.upserted().empty());
         ASSERT_FALSE(result.hasErrors());
 
-        ASSERT_EQUALS(c.count(TEST_NS, Query("{x: 1}").obj), 1U);
-        ASSERT_EQUALS(c.count(TEST_NS, Query("{a: 1}").obj), 1U);
-        ASSERT_EQUALS(c.count(TEST_NS, Query("{}").obj), 3U);
+        ASSERT_EQUALS(this->c->count(TEST_NS, Query("{x: 1}").obj), 1U);
+        ASSERT_EQUALS(this->c->count(TEST_NS, Query("{a: 1}").obj), 1U);
+        ASSERT_EQUALS(this->c->count(TEST_NS, Query("{}").obj), 3U);
     }
 
-    TEST_F(BulkOperationTest, UpsertReplaceNotMatchingSelector) {
-        c.insert(TEST_NS, BSON("a" << 1));
-        c.insert(TEST_NS, BSON("a" << 1));
+    TYPED_TEST(BulkOperationTest, UpsertReplaceNotMatchingSelector) {
+        this->c->insert(TEST_NS, BSON("a" << 1));
+        this->c->insert(TEST_NS, BSON("a" << 1));
 
-        BulkOperationBuilder bulk(&c, TEST_NS, true);
+        BulkOperationBuilder bulk(this->c, TEST_NS, true);
         bulk.find(BSON("a" << 2)).upsert().replaceOne(BSON("x" << 1));
 
         WriteResult result;
@@ -354,17 +377,17 @@ namespace {
         ASSERT_FALSE(result.hasErrors());
 
         ASSERT_EQUALS(result.nUpserted(), 1);
-        ASSERT_EQUALS(c.count(TEST_NS, Query("{x: 1}").obj), 1U);
-        ASSERT_FALSE(c.findOne(TEST_NS, Query("{x: 1}").obj).hasField("a"));
-        ASSERT_EQUALS(c.count(TEST_NS, Query("{}").obj), 3U);
+        ASSERT_EQUALS(this->c->count(TEST_NS, Query("{x: 1}").obj), 1U);
+        ASSERT_FALSE(this->c->findOne(TEST_NS, Query("{x: 1}").obj).hasField("a"));
+        ASSERT_EQUALS(this->c->count(TEST_NS, Query("{}").obj), 3U);
     }
 
-    TEST_F(BulkOperationTest, RemoveOneMatchingSelector) {
-        c.insert(TEST_NS, BSON("a" << 1));
-        c.insert(TEST_NS, BSON("a" << 1));
-        c.insert(TEST_NS, BSON("b" << 1));
+    TYPED_TEST(BulkOperationTest, RemoveOneMatchingSelector) {
+        this->c->insert(TEST_NS, BSON("a" << 1));
+        this->c->insert(TEST_NS, BSON("a" << 1));
+        this->c->insert(TEST_NS, BSON("b" << 1));
 
-        BulkOperationBuilder bulk(&c, TEST_NS, true);
+        BulkOperationBuilder bulk(this->c, TEST_NS, true);
         bulk.find(BSON("a" << 1)).removeOne();
 
         WriteResult result;
@@ -379,16 +402,16 @@ namespace {
         ASSERT_TRUE(result.upserted().empty());
         ASSERT_FALSE(result.hasErrors());
 
-        ASSERT_EQUALS(c.count(TEST_NS, Query("{}").obj), 2U);
-        ASSERT_EQUALS(c.count(TEST_NS, Query("{a: 1}").obj), 1U);
+        ASSERT_EQUALS(this->c->count(TEST_NS, Query("{}").obj), 2U);
+        ASSERT_EQUALS(this->c->count(TEST_NS, Query("{a: 1}").obj), 1U);
     }
 
-    TEST_F(BulkOperationTest, RemoveAllMatchingSelector) {
-        c.insert(TEST_NS, BSON("a" << 1));
-        c.insert(TEST_NS, BSON("a" << 1));
-        c.insert(TEST_NS, BSON("b" << 1));
+    TYPED_TEST(BulkOperationTest, RemoveAllMatchingSelector) {
+        this->c->insert(TEST_NS, BSON("a" << 1));
+        this->c->insert(TEST_NS, BSON("a" << 1));
+        this->c->insert(TEST_NS, BSON("b" << 1));
 
-        BulkOperationBuilder bulk(&c, TEST_NS, true);
+        BulkOperationBuilder bulk(this->c, TEST_NS, true);
         bulk.find(BSON("a" << 1)).remove();
 
         WriteResult result;
@@ -403,16 +426,16 @@ namespace {
         ASSERT_TRUE(result.upserted().empty());
         ASSERT_FALSE(result.hasErrors());
 
-        ASSERT_EQUALS(c.count(TEST_NS, Query("{}").obj), 1U);
-        ASSERT_EQUALS(c.count(TEST_NS, Query("{a: 1}").obj), 0U);
+        ASSERT_EQUALS(this->c->count(TEST_NS, Query("{}").obj), 1U);
+        ASSERT_EQUALS(this->c->count(TEST_NS, Query("{a: 1}").obj), 0U);
     }
 
-    TEST_F(BulkOperationTest, RemoveAll) {
-        c.insert(TEST_NS, BSON("a" << 1));
-        c.insert(TEST_NS, BSON("a" << 1));
-        c.insert(TEST_NS, BSON("b" << 1));
+    TYPED_TEST(BulkOperationTest, RemoveAll) {
+        this->c->insert(TEST_NS, BSON("a" << 1));
+        this->c->insert(TEST_NS, BSON("a" << 1));
+        this->c->insert(TEST_NS, BSON("b" << 1));
 
-        BulkOperationBuilder bulk(&c, TEST_NS, true);
+        BulkOperationBuilder bulk(this->c, TEST_NS, true);
         bulk.find(fromjson("{}")).remove();
 
         WriteResult result;
@@ -428,11 +451,11 @@ namespace {
         ASSERT_TRUE(result.upserted().empty());
         ASSERT_FALSE(result.hasErrors());
 
-        ASSERT_EQUALS(c.count(TEST_NS, Query("{}").obj), 0U);
+        ASSERT_EQUALS(this->c->count(TEST_NS, Query("{}").obj), 0U);
     }
 
-    TEST_F(BulkOperationTest, MultipleOrderedOperations) {
-        BulkOperationBuilder bulk(&c, TEST_NS, true);
+    TYPED_TEST(BulkOperationTest, MultipleOrderedOperations) {
+        BulkOperationBuilder bulk(this->c, TEST_NS, true);
         bulk.insert(BSON("a" << 1));
         bulk.insert(BSON("a" << 1));
         bulk.insert(BSON("b" << 1));
@@ -453,8 +476,8 @@ namespace {
         ASSERT_FALSE(result.hasErrors());
     }
 
-    TEST_F(BulkOperationTest, MultipleUnorderedOperations) {
-        BulkOperationBuilder bulk(&c, TEST_NS, false);
+    TYPED_TEST(BulkOperationTest, MultipleUnorderedOperations) {
+        BulkOperationBuilder bulk(this->c, TEST_NS, false);
         bulk.insert(BSON("a" << 1));
         bulk.insert(BSON("a" << 1));
         bulk.insert(BSON("b" << 1));
@@ -476,15 +499,15 @@ namespace {
         ASSERT_FALSE(result.hasErrors());
     }
 
-    TEST_F(BulkOperationTest, ExceedBatchSize) {
-        BulkOperationBuilder bulk(&c, TEST_NS, false);
-        for (int i=0; i < c.getMaxWriteBatchSize() + 1; ++i)
+    TYPED_TEST(BulkOperationTest, ExceedBatchSize) {
+        BulkOperationBuilder bulk(this->c, TEST_NS, false);
+        for (int i=0; i < this->c->getMaxWriteBatchSize() + 1; ++i)
             bulk.insert(BSON("a" << 1));
 
         WriteResult result;
         bulk.execute(&WriteConcern::acknowledged, &result);
 
-        ASSERT_EQUALS(result.nInserted(), c.getMaxWriteBatchSize() + 1);
+        ASSERT_EQUALS(result.nInserted(), this->c->getMaxWriteBatchSize() + 1);
         ASSERT_EQUALS(result.nUpserted(), 0);
         ASSERT_EQUALS(result.nMatched(), 0);
         if (result.hasModifiedCount())

@@ -37,12 +37,12 @@ namespace {
     struct RequiredWireVersion;
 
     template <>
-    struct RequiredWireVersion<WireProtocolWriter>{
+    struct RequiredWireVersion<WireProtocolWriter> {
         static const int value = 0;
     };
 
     template <>
-    struct RequiredWireVersion<CommandWriter>{
+    struct RequiredWireVersion<CommandWriter> {
         static const int value = 2;
     };
 
