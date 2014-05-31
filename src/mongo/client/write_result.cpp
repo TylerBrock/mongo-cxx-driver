@@ -21,8 +21,8 @@
 
 namespace mongo {
 
-    const int kWriteConcernErrorCode = 64;
     const int kUnknownError = 8;
+    const int kWriteConcernErrorCode = 64;
 
     WriteResult::WriteResult()
         : _nInserted(0)
@@ -84,7 +84,7 @@ namespace mongo {
     }
 
     void WriteResult::mergeCommandResult(Operations opType, const std::vector<WriteOperation*>& ops, const BSONObj& result) {
-        int affected = result.hasField("n") ? result.getIntField("n") : 0;
+        int64_t affected = result.hasField("n") ? result.getIntField("n") : 0;
 
         // Handle Write Batch
         switch(opType) {
@@ -174,7 +174,34 @@ namespace mongo {
     }
 
     void WriteResult::mergeGleResult(Operations opType, const std::vector<WriteOperation*>& ops, const BSONObj& result) {
-         int affected = result.hasField("n") ? result.getIntField("n") : 0;
+        int64_t affected = result.hasField("n") ? result.getIntField("n") : 0;
+
+        // Handle Errors
+        std::string errmsg;
+        if (result.hasField("errmsg"))
+            errmsg = result.getStringField("errmsg");
+        else if (result.hasField("err"))
+            errmsg = result.getStringField("err");
+
+        if (!errmsg.empty()) {
+            if (result.hasField("wtimeout")) {
+                BSONObjBuilder bob;
+                bob.append("errmsg", errmsg);
+                bob.append("code", kWriteConcernErrorCode);
+                _writeConcernErrors.push_back(bob.obj());
+            } else {
+                int code = result.hasField("code") ? result.getIntField("code") : kUnknownError;
+                BSONObjBuilder bob;
+                bob.append("index", static_cast<long long>(ops.front()->getSequenceId()));
+                bob.append("code", code);
+                bob.append("errmsg", errmsg);
+                bob.append("op", ops[0]);
+                // TODO: errInfo? -- maybe who cares
+                _writeErrors.push_back(bob.obj());
+
+                return;
+            }
+        }
 
         // Handle Write Batch
         switch(opType) {
@@ -210,31 +237,6 @@ namespace mongo {
 
             default:
                 uassert(0, "something really bad happened", false);
-        }
-
-        // Handle Errors
-        std::string errmsg;
-        if (result.hasField("errmsg"))
-            errmsg = result.getStringField("errmsg");
-        else if (result.hasField("err"))
-            errmsg = result.getStringField("err");
-
-        if (!errmsg.empty()) {
-            if (result.hasField("wtimeout")) {
-                BSONObjBuilder bob;
-                bob.append("errmsg", errmsg);
-                bob.append("code", kWriteConcernErrorCode);
-                _writeConcernErrors.push_back(bob.obj());
-            } else {
-                int code = result.hasField("code") ? result.getIntField("code") : kUnknownError;
-                BSONObjBuilder bob;
-                bob.append("index", static_cast<long long>(ops.front()->getSequenceId()));
-                bob.append("code", code);
-                bob.append("errmsg", errmsg);
-                bob.append("op", ops[0]);
-                // TODO: errInfo? -- maybe who cares
-                _writeErrors.push_back(bob.obj());
-            }
         }
     }
 

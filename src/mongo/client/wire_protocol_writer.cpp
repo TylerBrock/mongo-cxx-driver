@@ -106,6 +106,9 @@ namespace mongo {
             // The next batch begins with the op after the last one in the just issued batch.
             batch_begin = ++batch_iter;
         }
+
+        // Check if we need to raise an error
+        _checkResult(wr, true);
     }
 
     bool WireProtocolWriter::_fits(BufBuilder* builder, WriteOperation* op) {
@@ -137,13 +140,9 @@ namespace mongo {
         return result;
     }
 
-    void WireProtocolWriter::_checkResult(const WriteResult* const wr, bool hardWriteConcern) {
-        if (wr->hasWriteErrors()) {
+    void WireProtocolWriter::_checkResult(const WriteResult* const wr, bool ordered) {
+        if (ordered && wr->hasWriteErrors()) {
             throw OperationException(wr->writeErrors().front());
-        }
-
-        if (hardWriteConcern && wr->hasWriteConcernErrors()) {
-            throw OperationException(wr->writeConcernErrors().front());
         }
     }
 

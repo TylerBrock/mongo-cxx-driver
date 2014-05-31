@@ -528,43 +528,78 @@ namespace {
     }
 
     TYPED_TEST(BulkOperationTest, UnorderedBatchWithErrors) {
+        this->c->ensureIndex(TEST_NS, BSON("a" << 1), true);
+
         BulkOperationBuilder bulk(this->c, TEST_NS, false);
 
-        bulk.insert(BSON("_id" << 1 << "a" << 1));
+        bulk.insert(BSON("b" << 1 << "a" << 1));
 
-        // one or two of these upserts fails
-        bulk.find(BSON("a" << 2)).upsert().update(BSON("$set" << BSON("_id" << 1)));
-        bulk.find(BSON("a" << 3)).upsert().update(BSON("$set" << BSON("_id" << 2)));
-        bulk.find(BSON("a" << 2)).upsert().update(BSON("$set" << BSON("_id" << 1)));
+        // two of these upserts fail
+        bulk.find(BSON("b" << 2)).upsert().update(BSON("$set" << BSON("a" << 1)));
+        bulk.find(BSON("b" << 3)).upsert().update(BSON("$set" << BSON("a" << 2)));
+        bulk.find(BSON("b" << 2)).upsert().update(BSON("$set" << BSON("a" << 1)));
+        bulk.insert(BSON("b" << 4 << "a" << 3));
 
         // this and / or the first insert fails:
-        bulk.insert(BSON("_id" << 1 << "a" << 1));
+        bulk.insert(BSON("b" << 5 << "a" << 1));
 
         WriteResult result;
         ASSERT_THROWS(
             bulk.execute(&WriteConcern::acknowledged, &result),
             OperationException
         );
+
+        ASSERT_EQUALS(result.nInserted(), 2);
+        ASSERT_EQUALS(result.nUpserted(), 1);
+        ASSERT_EQUALS(result.nMatched(), 0);
+        if (result.hasModifiedCount())
+            ASSERT_EQUALS(result.nModified(), 0);
+        ASSERT_EQUALS(result.nRemoved(), 0);
+        ASSERT_EQUALS(result.upserted().size(), 1U);
+        ASSERT_EQUALS(result.upserted().front().getIntField("index"), 2);
+        ASSERT_EQUALS(result.upserted().front().getField("_id").type(), 7);
+        ASSERT_EQUALS(result.writeErrors().size(), 3U);
     }
 
     TYPED_TEST(BulkOperationTest, OrderedBatchWithErrors) {
+        this->c->ensureIndex(TEST_NS, BSON("a" << 1), true);
+
         BulkOperationBuilder bulk(this->c, TEST_NS, true);
 
-        bulk.insert(BSON("_id" << 1 << "a" << 1));
+        bulk.insert(BSON("b" << 1 << "a" << 1));
 
         // one or two of these upserts fails
-        bulk.find(BSON("a" << 2)).upsert().update(BSON("$set" << BSON("_id" << 1)));
-        bulk.find(BSON("a" << 3)).upsert().update(BSON("$set" << BSON("_id" << 2)));
-        bulk.find(BSON("a" << 2)).upsert().update(BSON("$set" << BSON("_id" << 1)));
+        bulk.find(BSON("b" << 2)).upsert().update(BSON("$set" << BSON("a" << 1)));
+        bulk.find(BSON("b" << 3)).upsert().update(BSON("$set" << BSON("a" << 2)));
+        bulk.find(BSON("b" << 2)).upsert().update(BSON("$set" << BSON("a" << 1)));
+        bulk.insert(BSON("b" << 4 << "a" << 3));
 
         // this and / or the first insert fails:
-        bulk.insert(BSON("_id" << 1 << "a" << 1));
+        bulk.insert(BSON("b" << 5 << "a" << 1));
 
         WriteResult result;
         ASSERT_THROWS(
             bulk.execute(&WriteConcern::acknowledged, &result),
             OperationException
         );
+
+        ASSERT_EQUALS(result.nInserted(), 1);
+        ASSERT_EQUALS(result.nUpserted(), 0);
+        ASSERT_EQUALS(result.nMatched(), 0);
+        if (result.hasModifiedCount())
+            ASSERT_EQUALS(result.nModified(), 0);
+        ASSERT_EQUALS(result.nRemoved(), 0);
+        ASSERT_EQUALS(result.upserted().size(), 0U);
+        ASSERT_EQUALS(result.writeErrors().size(), 1U);
+
+        BSONObj writeError = result.writeErrors().front();
+        ASSERT_EQUALS(writeError.getIntField("code"), 11000);
+        ASSERT_EQUALS(writeError.getIntField("index"), 1);
+        ASSERT_TRUE(writeError.hasField("errmsg"));
+
+        BSONObj op = writeError.getObjectField("op");
+        // TODO: TEST op?
+        //std::cout << op.toString() << std::endl;
     }
 
 } // namespace

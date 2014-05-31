@@ -130,13 +130,9 @@ namespace mongo {
         command->append(kOrderedKey, ordered);
     }
 
-    void CommandWriter::_checkResult(const WriteResult* const wr, bool hardWriteConcern) {
-        if (wr->hasWriteErrors()) {
+    void CommandWriter::_checkResult(const WriteResult* const wr, bool ordered) {
+        if (ordered && wr->hasWriteErrors()) {
             throw OperationException(wr->writeErrors().front());
-        }
-
-        if (hardWriteConcern && wr->hasWriteConcernErrors()) {
-            throw OperationException(wr->writeConcernErrors().front());
         }
     }
 
