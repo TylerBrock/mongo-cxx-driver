@@ -614,4 +614,82 @@ namespace {
         ASSERT_TRUE(op.getBoolField("upsert"));
     }
 
+    TYPED_TEST(BulkOperationTest, OrderedBatchSplitting) {
+        BulkOperationBuilder bulk(this->c, TEST_NS, true);
+
+        int fourMb = 4 * 1024 * 1024;
+
+        std::string fourMbStr;
+
+        for (int i = 0; i < fourMb; ++i)
+            fourMbStr += 'a';
+
+        for (int i = 0; i < 6; ++i)
+            bulk.insert(BSON("_id" << i << "a" << fourMbStr.c_str()));
+
+        bulk.insert(BSON("_id" << 0)); // will fail
+        bulk.insert(BSON("_id" << 100));
+
+        WriteResult result;
+        ASSERT_THROWS(
+            bulk.execute(&WriteConcern::acknowledged, &result),
+            OperationException
+        );
+
+        ASSERT_EQUALS(result.nInserted(), 6);
+        ASSERT_EQUALS(result.nUpserted(), 0);
+        ASSERT_EQUALS(result.nMatched(), 0);
+        if (result.hasModifiedCount())
+            ASSERT_EQUALS(result.nModified(), 0);
+        ASSERT_EQUALS(result.nRemoved(), 0);
+        ASSERT_EQUALS(result.upserted().size(), 0U);
+        ASSERT_EQUALS(result.writeErrors().size(), 1U);
+
+        BSONObj writeError = result.writeErrors().front();
+        ASSERT_EQUALS(writeError.getIntField("code"), 11000);
+        ASSERT_EQUALS(writeError.getIntField("index"), 6);
+        ASSERT_TRUE(writeError.hasField("errmsg"));
+
+        ASSERT_EQUALS(this->c->count(TEST_NS, Query().obj), 6U);
+    }
+
+    TYPED_TEST(BulkOperationTest, UnorderedBatchSplitting) {
+        BulkOperationBuilder bulk(this->c, TEST_NS, false);
+
+        int fourMb = 4 * 1024 * 1024;
+
+        std::string fourMbStr;
+
+        for (int i = 0; i < fourMb; ++i)
+            fourMbStr += 'a';
+
+        for (int i = 0; i < 6; ++i)
+            bulk.insert(BSON("_id" << i << "a" << fourMbStr.c_str()));
+
+        bulk.insert(BSON("_id" << 0)); // will fail
+        bulk.insert(BSON("_id" << 100));
+
+        WriteResult result;
+        ASSERT_THROWS(
+            bulk.execute(&WriteConcern::acknowledged, &result),
+            OperationException
+        );
+
+        ASSERT_EQUALS(result.nInserted(), 7);
+        ASSERT_EQUALS(result.nUpserted(), 0);
+        ASSERT_EQUALS(result.nMatched(), 0);
+        if (result.hasModifiedCount())
+            ASSERT_EQUALS(result.nModified(), 0);
+        ASSERT_EQUALS(result.nRemoved(), 0);
+        ASSERT_EQUALS(result.upserted().size(), 0U);
+        ASSERT_EQUALS(result.writeErrors().size(), 1U);
+
+        BSONObj writeError = result.writeErrors().front();
+        ASSERT_EQUALS(writeError.getIntField("code"), 11000);
+        ASSERT_EQUALS(writeError.getIntField("index"), 6);
+        ASSERT_TRUE(writeError.hasField("errmsg"));
+
+        ASSERT_EQUALS(this->c->count(TEST_NS, Query().obj), 7U);
+    }
+
 } // namespace
