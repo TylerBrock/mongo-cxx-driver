@@ -71,15 +71,15 @@ namespace mongo {
         return _nRemoved;
     }
 
-    std::vector<BSONObj> WriteResult::upserted() const {
+    std::vector<const BSONObj> WriteResult::upserted() const {
         return _upserted;
     }
 
-    std::vector<BSONObj> WriteResult::writeErrors() const {
+    std::vector<const BSONObj> WriteResult::writeErrors() const {
         return _writeErrors;
     }
 
-    std::vector<BSONObj> WriteResult::writeConcernErrors() const {
+    std::vector<const BSONObj> WriteResult::writeConcernErrors() const {
         return _writeConcernErrors;
     }
 
@@ -134,7 +134,7 @@ namespace mongo {
                 break;
 
             default:
-                uassert(0, "something really bad happened", false);
+                uassert(0, "Cannot make WriteResult non write opType", false);
         }
 
         // Handle Write Errors
@@ -150,6 +150,10 @@ namespace mongo {
                 bob.append("index", static_cast<long long>(ops[batchIndex]->getSequenceId()));
                 bob.append("code", writeError.getIntField("code"));
                 bob.append("errmsg", writeError.getStringField("errmsg"));
+
+                BSONObjBuilder builder;
+                ops[batchIndex]->appendSelfToBSONObj(&builder);
+                bob.append("op", builder.obj());
 
                 if (writeError.hasField("errInfo"))
                     bob.append("details", writeError.getObjectField("errInfo"));
@@ -195,8 +199,11 @@ namespace mongo {
                 bob.append("index", static_cast<long long>(ops.front()->getSequenceId()));
                 bob.append("code", code);
                 bob.append("errmsg", errmsg);
-                bob.append("op", ops[0]);
-                // TODO: errInfo? -- maybe who cares
+
+                BSONObjBuilder builder;
+                ops.front()->appendSelfToBSONObj(&builder);
+                bob.append("op", builder.obj());
+
                 _writeErrors.push_back(bob.obj());
 
                 return;
@@ -236,7 +243,7 @@ namespace mongo {
                 break;
 
             default:
-                uassert(0, "something really bad happened", false);
+                uassert(0, "Cannot make WriteResult non write opType", false);
         }
     }
 

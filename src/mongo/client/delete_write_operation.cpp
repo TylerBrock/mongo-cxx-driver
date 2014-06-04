@@ -61,9 +61,13 @@ namespace mongo {
 
     void DeleteWriteOperation::appendSelfToCommand(BSONArrayBuilder* batch) const {
         BSONObjBuilder updateBuilder;
-        updateBuilder.append(kSelectorKey, _selector);
-        updateBuilder.append(kLimitKey, _flags & RemoveOption_JustOne);
+        appendSelfToBSONObj(&updateBuilder);
         batch->append(updateBuilder.obj());
+    }
+
+    void DeleteWriteOperation::appendSelfToBSONObj(BSONObjBuilder* obj) const {
+        obj->append(kSelectorKey, _selector);
+        obj->append(kLimitKey, _flags & RemoveOption_JustOne);
     }
 
 } // namespace mongo

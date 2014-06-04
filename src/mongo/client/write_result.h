@@ -39,10 +39,10 @@ namespace mongo {
         int nModified() const;
         int nRemoved() const;
 
-        std::vector<BSONObj> upserted() const;
+        std::vector<const BSONObj> upserted() const;
 
-        std::vector<BSONObj> writeErrors() const;
-        std::vector<BSONObj> writeConcernErrors() const;
+        std::vector<const BSONObj> writeErrors() const;
+        std::vector<const BSONObj> writeConcernErrors() const;
 
         void mergeCommandResult(Operations opType, const std::vector<WriteOperation*>& ops, const BSONObj& result);
         void mergeGleResult(Operations opType, const std::vector<WriteOperation*>& ops, const BSONObj& result);
@@ -56,9 +56,9 @@ namespace mongo {
         int _nModified;
         int _nRemoved;
 
-        std::vector<BSONObj> _upserted;
-        std::vector<BSONObj> _writeErrors;
-        std::vector<BSONObj> _writeConcernErrors;
+        std::vector<const BSONObj> _upserted;
+        std::vector<const BSONObj> _writeErrors;
+        std::vector<const BSONObj> _writeConcernErrors;
 
         bool _hasModifiedCount;
         bool _requiresDetailedInsertResults;

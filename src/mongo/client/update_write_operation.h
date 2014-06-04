@@ -33,6 +33,8 @@ namespace mongo {
         virtual void startCommand(const std::string& ns, BSONObjBuilder* command) const;
         virtual void appendSelfToCommand(BSONArrayBuilder* batch) const;
 
+        virtual void appendSelfToBSONObj(BSONObjBuilder* obj) const;
+
     private:
         const BSONObj _selector;
         const BSONObj _update;

@@ -59,4 +59,8 @@ namespace mongo {
         batch->append(_doc);
     }
 
+    void InsertWriteOperation::appendSelfToBSONObj(BSONObjBuilder* obj) const {
+        obj->appendElements(_doc);
+    }
+
 } // namespace mongo

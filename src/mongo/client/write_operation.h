@@ -96,6 +96,14 @@ namespace mongo {
          */
         virtual void appendSelfToCommand(BSONArrayBuilder* batch) const = 0;
 
+        /**
+         * Helper for appendSelfToCommand that injects the data represented by an
+         * instance of this class into a BSONObj.
+         *
+         * Broken out as a helper so that WriteResults can include the raw op.
+         */
+        virtual void appendSelfToBSONObj(BSONObjBuilder* obj) const = 0;
+
         virtual void setSequenceId(int64_t index) = 0;
         virtual int64_t getSequenceId() const = 0;
     };

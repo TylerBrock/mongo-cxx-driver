@@ -28,6 +28,8 @@ namespace {
     using namespace mongo;
     using namespace mongo::unittest;
 
+    const string TEST_DB = "test";
+    const string TEST_COLL = "bulk_operation";
     const string TEST_NS = "test.bulk_operation";
 
     template <typename T>
@@ -559,6 +561,13 @@ namespace {
         ASSERT_EQUALS(result.upserted().front().getIntField("index"), 2);
         ASSERT_EQUALS(result.upserted().front().getField("_id").type(), 7);
         ASSERT_EQUALS(result.writeErrors().size(), 3U);
+
+        BSONObj distinct_result;
+        this->c->runCommand(TEST_DB, BSON("distinct" << TEST_COLL << "key" << "a"), distinct_result);
+        std::vector<BSONElement> distinct_a = distinct_result.getField("values").Array();
+        ASSERT_EQUALS(distinct_a[0].Int(), 1);
+        ASSERT_EQUALS(distinct_a[1].Int(), 2);
+        ASSERT_EQUALS(distinct_a[2].Int(), 3);
     }
 
     TYPED_TEST(BulkOperationTest, OrderedBatchWithErrors) {
@@ -597,9 +606,12 @@ namespace {
         ASSERT_EQUALS(writeError.getIntField("index"), 1);
         ASSERT_TRUE(writeError.hasField("errmsg"));
 
+        // { q: { b: 2 }, u: { $set: { a: 1 } }, multi: true, upsert: true }
         BSONObj op = writeError.getObjectField("op");
-        // TODO: TEST op?
-        //std::cout << op.toString() << std::endl;
+        ASSERT_EQUALS(op.getFieldDotted("q.b").Int(), 2);
+        ASSERT_EQUALS(op.getFieldDotted("u.$set.a").Int(), 1);
+        ASSERT_TRUE(op.getBoolField("multi"));
+        ASSERT_TRUE(op.getBoolField("upsert"));
     }
 
 } // namespace
