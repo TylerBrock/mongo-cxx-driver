@@ -15,9 +15,10 @@
 
 #include "mongo/platform/basic.h"
 
+#include "mongo/client/write_result.h"
+
 #include "mongo/db/jsobj.h"
 #include "mongo/client/write_operation.h"
-#include "mongo/client/write_result.h"
 
 namespace mongo {
 

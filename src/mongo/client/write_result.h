@@ -45,7 +45,7 @@ namespace mongo {
 
         std::vector<BSONObj> upserted() const;
 
-        /* Errors */
+        /* Errors Data */
         std::vector<BSONObj> writeErrors() const;
         std::vector<BSONObj> writeConcernErrors() const;
 
