@@ -133,14 +133,14 @@ namespace mongo {
         int64_t affected = result.hasField("n") ? result.getIntField("n") : 0;
 
         // Handle Errors
-        std::string errmsg;
+        std::string err;
 
         if (result.hasField("errmsg"))
-            errmsg = result.getStringField("errmsg");
+            err = result.getStringField("errmsg");
         else if (result.hasField("err"))
-            errmsg = result.getStringField("err");
+            err = result.getStringField("err");
 
-        if (!errmsg.empty()) {
+        if (!err.empty()) {
             result.hasField("wtimeout")
                 ? _createWriteConcernError(result)
                 : _createWriteError(result, ops);
