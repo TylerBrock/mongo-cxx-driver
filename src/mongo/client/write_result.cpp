@@ -145,7 +145,7 @@ namespace mongo {
                 ? _createWriteConcernError(result)
                 : _createWriteError(result, ops);
 
-                return;
+            return;
         }
 
         // Handle Write Batch
