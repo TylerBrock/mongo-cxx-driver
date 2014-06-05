@@ -108,7 +108,7 @@ namespace mongo {
                     _nMatched += affected;
                 }
 
-                _checkModified(result);
+                _setModified(result);
 
                 break;
         }
@@ -166,7 +166,7 @@ namespace mongo {
                     _nMatched += affected;
                 }
 
-                _checkModified(result);
+                _setModified(result);
 
                 break;
         }
@@ -180,7 +180,7 @@ namespace mongo {
         return _requiresDetailedInsertResults;
     }
 
-    void WriteResult::_checkModified(const BSONObj& result) {
+    void WriteResult::_setModified(const BSONObj& result) {
         // SERVER-13001 - mixed shared cluster could return nModified for
         // (servers >= 2.6) or not (servers <= 2.4). If any call does not
         // return nModified we cannot report a valid final count.

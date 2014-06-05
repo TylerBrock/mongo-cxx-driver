@@ -59,7 +59,7 @@ namespace mongo {
 
     private:
         /* Helper Memeber Functions */
-        void _checkModified(const BSONObj& result);
+        void _setModified(const BSONObj& result);
         int _getIntOrDefault(const BSONObj& obj, const char* field, const int defaultValue = 0);
         int _createUpserts(const BSONElement& upsert, const std::vector<WriteOperation*>& ops);
         void _createUpsert(const BSONElement& upsert, const std::vector<WriteOperation*>& ops);
