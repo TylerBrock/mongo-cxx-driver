@@ -71,15 +71,15 @@ namespace mongo {
         return _nRemoved;
     }
 
-    std::vector<const BSONObj> WriteResult::upserted() const {
+    std::vector<BSONObj> WriteResult::upserted() const {
         return _upserted;
     }
 
-    std::vector<const BSONObj> WriteResult::writeErrors() const {
+    std::vector<BSONObj> WriteResult::writeErrors() const {
         return _writeErrors;
     }
 
-    std::vector<const BSONObj> WriteResult::writeConcernErrors() const {
+    std::vector<BSONObj> WriteResult::writeConcernErrors() const {
         return _writeConcernErrors;
     }
 
