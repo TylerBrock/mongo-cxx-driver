@@ -692,4 +692,58 @@ namespace {
         ASSERT_EQUALS(this->c->count(TEST_NS, Query().obj), 7U);
     }
 
+    TYPED_TEST(BulkOperationTest, EmptyBatch) {
+        BulkOperationBuilder bulk(this->c, TEST_NS, true);
+
+        WriteResult result;
+
+        ASSERT_THROWS(
+            bulk.execute(&WriteConcern::acknowledged, &result),
+            std::exception
+        );
+    }
+
+    TYPED_TEST(BulkOperationTest, ExecuteBatchTwice) {
+        BulkOperationBuilder bulk(this->c, TEST_NS, true);
+
+        bulk.insert(BSONObj());
+        WriteResult result;
+
+        // First time is ok
+        ASSERT_NO_THROW(
+            bulk.execute(&WriteConcern::acknowledged, &result)
+        );
+
+        // Second time throws
+        ASSERT_THROWS(
+            bulk.execute(&WriteConcern::acknowledged, &result),
+            std::exception
+        );
+    }
+
+    TYPED_TEST(BulkOperationTest, W2WithOneNode) {
+        BulkOperationBuilder bulk(this->c, TEST_NS, true);
+
+        bulk.insert(BSONObj());
+        WriteResult result;
+
+        ASSERT_THROWS(
+            bulk.execute(&WriteConcern::replicated, &result),
+            std::exception
+        );
+    }
+
+    TYPED_TEST(BulkOperationTest, WZeroWithWriteError) {
+        BulkOperationBuilder bulk(this->c, TEST_NS, true);
+
+        bulk.insert(BSON("_id" << 1));
+        bulk.insert(BSON("_id" << 1));
+
+        WriteResult result;
+
+        ASSERT_NO_THROW(
+            bulk.execute(&WriteConcern::unacknowledged, &result)
+        );
+    }
+
 } // namespace
