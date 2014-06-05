@@ -36,8 +36,8 @@ namespace mongo {
         , _flags(flags)
     {}
 
-    Operations UpdateWriteOperation::operationType() const {
-        return dbUpdate;
+    WriteOpType UpdateWriteOperation::operationType() const {
+        return dbWriteUpdate;
     }
 
     const char* UpdateWriteOperation::batchName() const {

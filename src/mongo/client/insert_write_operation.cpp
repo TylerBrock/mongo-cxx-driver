@@ -30,8 +30,8 @@ namespace mongo {
         : _doc(doc)
     {}
 
-    Operations InsertWriteOperation::operationType() const {
-        return dbInsert;
+    WriteOpType InsertWriteOperation::operationType() const {
+        return dbWriteInsert;
     }
 
     const char* InsertWriteOperation::batchName() const {

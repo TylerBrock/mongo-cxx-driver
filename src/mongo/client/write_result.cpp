@@ -83,11 +83,14 @@ namespace mongo {
         return _writeConcernErrors;
     }
 
-    void WriteResult::mergeCommandResult(Operations opType, const std::vector<WriteOperation*>& ops, const BSONObj& result) {
-        int64_t affected = result.hasField("n") ? result.getIntField("n") : 0;
+    void WriteResult::mergeCommandResult(
+        const std::vector<WriteOperation*>& ops,
+        const BSONObj& result
+    ) {
+        int affected = _getIntOrDefault(result, "n");
 
         // Handle Write Batch
-        switch(opType) {
+        switch(ops.front()->operationType()) {
             case dbInsert:
                 _nInserted += affected;
                 break;
@@ -98,43 +101,16 @@ namespace mongo {
 
             case dbUpdate:
                 if (result.hasField("upserted")) {
-                    BSONElement upserted = result.getField("upserted");
-                    int nUpserted = 0;
-
-                    std::vector<BSONElement> upsertedArray = upserted.Array();
-                    nUpserted = upsertedArray.size();
-
-                    std::vector<BSONElement>::const_iterator it;
-                    for (it = upsertedArray.begin(); it != upsertedArray.end(); ++it) {
-                        BSONObj upsertedObj = (*it).Obj();
-                        int batchIndex = upsertedObj.getIntField("index");
-
-                        BSONObjBuilder bob;
-                        bob.append("index", static_cast<long long>(ops[batchIndex]->getSequenceId()));
-                        bob.appendAs(upsertedObj["_id"], "_id");
-
-                        _upserted.push_back(bob.obj());
-                    }
-
+                    int nUpserted = _createUpserts(result.getField("upserted"), ops);
                     _nUpserted += nUpserted;
                     _nMatched += (affected - nUpserted);
-
                 } else {
                     _nMatched += affected;
                 }
 
-                // SERVER-13001 - mixed shared cluster could return nModified for
-                // (servers >= 2.6) or not (servers <= 2.4). If any call does not
-                // return nModified we cannot report a valid final count.
-                if (result.hasField("nModified"))
-                    _nModified += result.getIntField("nModified");
-                else
-                    _hasModifiedCount = false;
+                _checkModified(result);
 
                 break;
-
-            default:
-                uassert(0, "Cannot make WriteResult non write opType", false);
         }
 
         // Handle Write Errors
@@ -142,76 +118,38 @@ namespace mongo {
             std::vector<BSONElement> writeErrors = result.getField("writeErrors").Array();
             std::vector<BSONElement>::const_iterator it;
 
-            for (it = writeErrors.begin(); it != writeErrors.end(); ++it) {
-                BSONObj writeError = (*it).Obj();
-                int batchIndex = writeError.getIntField("index");
-
-                BSONObjBuilder bob;
-                bob.append("index", static_cast<long long>(ops[batchIndex]->getSequenceId()));
-                bob.append("code", writeError.getIntField("code"));
-                bob.append("errmsg", writeError.getStringField("errmsg"));
-
-                BSONObjBuilder builder;
-                ops[batchIndex]->appendSelfToBSONObj(&builder);
-                bob.append("op", builder.obj());
-
-                if (writeError.hasField("errInfo"))
-                    bob.append("details", writeError.getObjectField("errInfo"));
-
-                _writeErrors.push_back(bob.obj());
-            }
+            for (it = writeErrors.begin(); it != writeErrors.end(); ++it)
+                _createWriteError((*it).Obj(), ops);
         }
 
         // Handle Write Concern Errors
         if (result.hasField("writeConcernError")) {
             BSONObj writeConcernError = result.getObjectField("writeConcernError");
-            BSONObjBuilder bob;
-
-            bob.append("code", writeConcernError.getIntField("code"));
-            bob.append("errmsg", writeConcernError.getStringField("errmsg"));
-
-            if (writeConcernError.hasField("errInfo"))
-                bob.append("details", writeConcernError.getObjectField("errInfo"));
-
-            _writeConcernErrors.push_back(result.getObjectField("writeConcernError"));
+            _createWriteConcernError(writeConcernError);
         }
     }
 
-    void WriteResult::mergeGleResult(Operations opType, const std::vector<WriteOperation*>& ops, const BSONObj& result) {
+    void WriteResult::mergeGleResult(const std::vector<WriteOperation*>& ops, const BSONObj& result) {
         int64_t affected = result.hasField("n") ? result.getIntField("n") : 0;
 
         // Handle Errors
         std::string errmsg;
+
         if (result.hasField("errmsg"))
             errmsg = result.getStringField("errmsg");
         else if (result.hasField("err"))
             errmsg = result.getStringField("err");
 
         if (!errmsg.empty()) {
-            if (result.hasField("wtimeout")) {
-                BSONObjBuilder bob;
-                bob.append("errmsg", errmsg);
-                bob.append("code", kWriteConcernErrorCode);
-                _writeConcernErrors.push_back(bob.obj());
-            } else {
-                int code = result.hasField("code") ? result.getIntField("code") : kUnknownError;
-                BSONObjBuilder bob;
-                bob.append("index", static_cast<long long>(ops.front()->getSequenceId()));
-                bob.append("code", code);
-                bob.append("errmsg", errmsg);
-
-                BSONObjBuilder builder;
-                ops.front()->appendSelfToBSONObj(&builder);
-                bob.append("op", builder.obj());
-
-                _writeErrors.push_back(bob.obj());
+            result.hasField("wtimeout")
+                ? _createWriteConcernError(result)
+                : _createWriteError(result, ops);
 
                 return;
-            }
         }
 
         // Handle Write Batch
-        switch(opType) {
+        switch(ops.front()->operationType()) {
             case dbInsert:
                 _nInserted += 1;
                 break;
@@ -222,28 +160,15 @@ namespace mongo {
 
             case dbUpdate:
                 if (result.hasField("upserted")) {
-                    BSONElement upserted = result.getField("upserted");
-                    BSONObjBuilder bob;
-                    bob.append("index", static_cast<long long>(ops.front()->getSequenceId()));
-                    bob.appendAs(upserted, "_id");
-                    _upserted.push_back(bob.obj());
+                    _createUpsert(result.getField("upserted"), ops);
                     _nUpserted += affected;
                 } else {
                     _nMatched += affected;
                 }
 
-                // SERVER-13001 - mixed shared cluster could return nModified for
-                // (servers >= 2.6) or not (servers <= 2.4). If any call does not
-                // return nModified we cannot report a valid final count.
-                if (result.hasField("nModified"))
-                    _nModified += result.getIntField("nModified");
-                else
-                    _hasModifiedCount = false;
+                _checkModified(result);
 
                 break;
-
-            default:
-                uassert(0, "Cannot make WriteResult non write opType", false);
         }
     }
 
@@ -253,6 +178,84 @@ namespace mongo {
 
     bool WriteResult::requiresDetailedInsertResults() const {
         return _requiresDetailedInsertResults;
+    }
+
+    void WriteResult::_checkModified(const BSONObj& result) {
+        // SERVER-13001 - mixed shared cluster could return nModified for
+        // (servers >= 2.6) or not (servers <= 2.4). If any call does not
+        // return nModified we cannot report a valid final count.
+        if (result.hasField("nModified"))
+            _nModified += result.getIntField("nModified");
+        else
+            _hasModifiedCount = false;
+    }
+
+    int WriteResult::_getIntOrDefault(const BSONObj& obj, const char* field, const int defaultValue) {
+        return obj.hasField(field) ? obj.getIntField(field) : defaultValue;
+    }
+
+    int WriteResult::_createUpserts(const BSONElement& upserted, const std::vector<WriteOperation*>& ops) {
+        int nUpserted = 0;
+
+        std::vector<BSONElement> upsertedArray = upserted.Array();
+        nUpserted = upsertedArray.size();
+
+        std::vector<BSONElement>::const_iterator it;
+
+        for (it = upsertedArray.begin(); it != upsertedArray.end(); ++it)
+            _createUpsert(*it, ops);
+
+        return nUpserted;
+    }
+
+    void WriteResult::_createUpsert(const BSONElement& upsert, const std::vector<WriteOperation*>& ops) {
+        int batchIndex = 0;
+        BSONElement id;
+
+        if (upsert.isABSONObj()) {
+            batchIndex = _getIntOrDefault(upsert.Obj(), "index");
+            id = upsert["_id"];
+        } else {
+            id = upsert;
+        }
+
+        BSONObjBuilder bob;
+        bob.append("index", static_cast<long long>(ops[batchIndex]->getSequenceId()));
+        bob.appendAs(id, "_id");
+
+        _upserted.push_back(bob.obj());
+    }
+
+    void WriteResult::_createWriteError(const BSONObj& error, const std::vector<WriteOperation*>& ops) {
+        int batchIndex = _getIntOrDefault(error, "index");
+        int code = _getIntOrDefault(error, "code", kUnknownError);
+
+        BSONObjBuilder bob;
+        bob.append("index", static_cast<long long>(ops[batchIndex]->getSequenceId()));
+        bob.append("code", code);
+        bob.append("errmsg", error.getStringField("errmsg"));
+
+        BSONObjBuilder builder;
+        ops[batchIndex]->appendSelfToBSONObj(&builder);
+        bob.append("op", builder.obj());
+
+        if (error.hasField("errInfo"))
+            bob.append("details", error.getObjectField("errInfo"));
+
+        _writeErrors.push_back(bob.obj());
+    }
+
+    void WriteResult::_createWriteConcernError(const BSONObj& error) {
+        BSONObjBuilder bob;
+        int code = _getIntOrDefault(error, "code", kWriteConcernErrorCode);
+
+        bob.append("code", code);
+        bob.append("errmsg", error.getStringField("errmsg"));
+
+        if (error.hasField("errInfo"))
+            bob.append("details", error.getObjectField("errInfo"));
+
+        _writeConcernErrors.push_back(bob.obj());
     }
 
 } // namespace mongo

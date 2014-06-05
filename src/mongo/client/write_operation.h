@@ -36,7 +36,7 @@ namespace mongo {
          * Returns the MongoDB wire protocol operation type represented
          * by an instance of this particular write operation.
          */
-        virtual Operations operationType() const = 0;
+        virtual WriteOpType operationType() const = 0;
 
         /**
          * Returns the name for a batch of this type of write operation.

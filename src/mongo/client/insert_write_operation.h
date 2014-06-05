@@ -23,7 +23,7 @@ namespace mongo {
     public:
         InsertWriteOperation(const BSONObj& doc);
 
-        virtual Operations operationType() const;
+        virtual WriteOpType operationType() const;
         virtual const char* batchName() const;
         virtual int incrementalSize() const;
 

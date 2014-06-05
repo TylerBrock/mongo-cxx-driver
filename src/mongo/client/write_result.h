@@ -17,6 +17,8 @@
 
 #include <vector>
 
+#include "mongo/client/write_error.h"
+#include "mongo/client/write_concern_error.h"
 #include "mongo/util/net/operation.h"
 
 namespace mongo {
@@ -28,11 +30,13 @@ namespace mongo {
     public:
         WriteResult();
 
+        /* Introspection */
         bool hasErrors() const;
         bool hasWriteErrors() const;
         bool hasWriteConcernErrors() const;
         bool hasModifiedCount() const;
 
+        /* Data */
         int nInserted() const;
         int nUpserted() const;
         int nMatched() const;
@@ -41,15 +45,28 @@ namespace mongo {
 
         std::vector<BSONObj> upserted() const;
 
+        /* Errors */
         std::vector<BSONObj> writeErrors() const;
         std::vector<BSONObj> writeConcernErrors() const;
 
-        void mergeCommandResult(Operations opType, const std::vector<WriteOperation*>& ops, const BSONObj& result);
-        void mergeGleResult(Operations opType, const std::vector<WriteOperation*>& ops, const BSONObj& result);
+        /* Functional */
+        void mergeCommandResult(const std::vector<WriteOperation*>& ops, const BSONObj& result);
+        void mergeGleResult(const std::vector<WriteOperation*>& ops, const BSONObj& result);
+
+        /* Modifiers */
         void requireDetailedInsertResults();
         bool requiresDetailedInsertResults() const;
 
     private:
+        /* Helper Memeber Functions */
+        void _checkModified(const BSONObj& result);
+        int _getIntOrDefault(const BSONObj& obj, const char* field, const int defaultValue = 0);
+        int _createUpserts(const BSONElement& upsert, const std::vector<WriteOperation*>& ops);
+        void _createUpsert(const BSONElement& upsert, const std::vector<WriteOperation*>& ops);
+        void _createWriteError(const BSONObj& error, const std::vector<WriteOperation*>& ops);
+        void _createWriteConcernError(const BSONObj& error);
+
+        /* Member Variables */
         int _nInserted;
         int _nUpserted;
         int _nMatched;

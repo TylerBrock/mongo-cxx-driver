@@ -23,7 +23,7 @@ namespace mongo {
     public:
         DeleteWriteOperation(const BSONObj& selector, int flags);
 
-        virtual Operations operationType() const;
+        virtual WriteOpType operationType() const;
         virtual const char* batchName() const;
         virtual int incrementalSize() const;
 

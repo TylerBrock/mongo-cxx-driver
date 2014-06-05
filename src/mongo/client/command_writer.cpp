@@ -51,7 +51,7 @@ namespace mongo {
             invariant(_fits(batch.get(), *batch_iter));
 
             // Get and store the current operation type for this batch
-            Operations batchOpType = (*batch_iter)->operationType();
+            WriteOpType batchOpType = (*batch_iter)->operationType();
 
             // Begin the command for this batch.
             (*batch_iter)->startCommand(ns.toString(), command.get());
@@ -96,7 +96,7 @@ namespace mongo {
             BSONObj batchResult = _send(command.get(), wc, ns);
 
             // Merge this batch's result into the result for all batches written.
-            wr->mergeCommandResult(batchOpType, batchOps, batchResult);
+            wr->mergeCommandResult(batchOps, batchResult);
             batchOps.clear();
 
             // Check if we need to raise an error

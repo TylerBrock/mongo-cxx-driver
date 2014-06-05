@@ -33,8 +33,8 @@ namespace mongo {
         , _flags(flags)
     {}
 
-    Operations DeleteWriteOperation::operationType() const {
-        return dbDelete;
+    WriteOpType DeleteWriteOperation::operationType() const {
+        return dbWriteDelete;
     }
 
     int DeleteWriteOperation::incrementalSize() const {

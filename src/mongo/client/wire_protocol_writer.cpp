@@ -48,7 +48,7 @@ namespace mongo {
             invariant(_fits(&builder, *batch_iter));
 
             // Get and store the current operation type for this batch
-            Operations batchOpType = (*batch_iter)->operationType();
+            WriteOpType batchOpType = (*batch_iter)->operationType();
 
             // Begin the command for this batch.
             (*batch_iter)->startRequest(ns.toString(), ordered, &builder);
@@ -94,7 +94,7 @@ namespace mongo {
             BSONObj batchResult = _send(batchOpType, builder, wc, ns);
 
             // Merge this batch's result into the result for all batches written.
-            wr->mergeGleResult(batchOpType, batchOps, batchResult);
+            wr->mergeGleResult(batchOps, batchResult);
             batchOps.clear();
 
             // Check if we need to raise an error
@@ -116,7 +116,7 @@ namespace mongo {
     }
 
     BSONObj WireProtocolWriter::_send(
-        Operations opCode,
+        WriteOpType opCode,
         const BufBuilder& builder,
         const WriteConcern* wc,
         const StringData& ns
@@ -146,9 +146,9 @@ namespace mongo {
         }
     }
 
-    bool WireProtocolWriter::_batchableRequest(Operations opCode, const WriteResult* const wr) {
+    bool WireProtocolWriter::_batchableRequest(WriteOpType opCode, const WriteResult* const wr) {
         return (
-            opCode == dbInsert &&                   // We are doing an insert
+            opCode == dbWriteInsert &&                   // We are doing an insert
             !(wr->requiresDetailedInsertResults())  // We must report inserts individually (bulk)
         );
     }
