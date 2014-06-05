@@ -21,11 +21,12 @@
 
 namespace mongo {
 
-    class SequencedWriteOperation : public WriteOperation {
+    class WriteOperationBase : public WriteOperation {
     public:
-        SequencedWriteOperation();
+        WriteOperationBase();
         virtual void setSequenceId(int64_t index);
         virtual int64_t getSequenceId() const;
+
     private:
         int64_t _originalIndex;
     };

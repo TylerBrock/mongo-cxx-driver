@@ -13,4 +13,26 @@
  *    limitations under the License.
  */
 
+#include "mongo/client/write_concern_error.h"
 
+namespace mongo {
+
+    WriteConcernError::WriteConcernError(int32_t code, std::string message, BSONObj details)
+        : _code(code)
+        , _message(message)
+        , _details(details)
+    {}
+
+    int32_t WriteConcernError::code() const {
+        return _code;
+    }
+
+    std::string WriteConcernError::message() const {
+        return _message;
+    }
+
+    const BSONObj& WriteConcernError::details() const {
+        return _details;
+    }
+
+} // namespace mongo

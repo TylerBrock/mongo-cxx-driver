@@ -13,18 +13,18 @@
  *    limitations under the License.
  */
 
-#include "mongo/client/sequenced_write_operation.h"
+#include "mongo/client/write_operation_base.h"
 
 namespace mongo {
 
-    SequencedWriteOperation::SequencedWriteOperation() : _originalIndex(0) {
+    WriteOperationBase::WriteOperationBase() : _originalIndex(0) {
     }
 
-    void SequencedWriteOperation::setSequenceId(int64_t index) {
+    void WriteOperationBase::setSequenceId(int64_t index) {
         _originalIndex = index;
     }
 
-    int64_t SequencedWriteOperation::getSequenceId() const {
+    int64_t WriteOperationBase::getSequenceId() const {
         return _originalIndex;
     }
 

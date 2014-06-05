@@ -13,4 +13,25 @@
  *    limitations under the License.
  */
 
+#pragma once
 
+#include <string>
+
+#include "mongo/bson/bsonobj.h"
+
+namespace mongo {
+
+    class WriteConcernError {
+    public:
+        WriteConcernError(int32_t code, std::string message, BSONObj details);
+        int32_t code() const;
+        std::string message() const;
+        const BSONObj& details() const;
+
+    private:
+        int32_t _code;
+        std::string _message;
+        BSONObj _details;
+    };
+
+} // namespace mongo

@@ -12,3 +12,37 @@
  *    See the License for the specific language governing permissions and
  *    limitations under the License.
  */
+
+#include "mongo/client/write_error.h"
+
+namespace mongo {
+
+    WriteError::WriteError(int64_t index, int32_t code, std::string message, BSONObj op, BSONObj details)
+        : _index(index)
+        , _code(code)
+        , _message(message)
+        , _op(op)
+        , _details(details)
+    {}
+
+    int64_t WriteError::index() const {
+        return _index;
+    }
+
+    int32_t WriteError::code() const {
+        return _code;
+    }
+
+    std::string WriteError::message() const {
+        return _message;
+    }
+
+    const BSONObj& WriteError::op() const {
+        return _op;
+    }
+
+    const BSONObj& WriteError::details() const {
+        return _details;
+    }
+
+} // namespace mongo

@@ -15,14 +15,27 @@
 
 #pragma once
 
+#include <string>
+
+#include "mongo/bson/bsonobj.h"
+
 namespace mongo {
 
     class WriteError {
     public:
-        //WriteError(int64_t index, int32_t code, std::string message, BSONObj details);
-    private:
-        //int64_t _index;
+        WriteError(int64_t index, int32_t code, std::string message, BSONObj op, BSONObj details);
+        int64_t index() const;
+        int32_t code() const;
+        std::string message() const;
+        const BSONObj& op() const;
+        const BSONObj& details() const;
 
+    private:
+        int64_t _index;
+        int32_t _code;
+        std::string _message;
+        BSONObj _op;
+        BSONObj _details;
     };
 
 } // namespace mongo
