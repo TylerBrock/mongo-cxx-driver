@@ -1,5 +1,7 @@
 # -*- mode: python -*-
 
+#TODO: See if we can delete or re-use this, mostly server specific
+
 error_code("OK", 0)
 error_code("InternalError", 1)
 error_code("BadValue", 2)

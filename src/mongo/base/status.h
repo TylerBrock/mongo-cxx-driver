@@ -142,6 +142,7 @@ namespace mongo {
     // Convenience method for unittest code. Please use accessors otherwise.
     //
 
+    //TODO: Do we need to export these?
     MONGO_CLIENT_API std::ostream& MONGO_CLIENT_FUNC operator<<(std::ostream& os, const Status& status);
     MONGO_CLIENT_API std::ostream& MONGO_CLIENT_FUNC operator<<(std::ostream& os, ErrorCodes::Error);
 
