@@ -24,6 +24,8 @@
 
 namespace mongo {
 
+    //TODO: export this?
+
     /**
      * @param buf - bson data
      * @param maxLength - maxLength of buffer

@@ -26,6 +26,8 @@
 
 namespace mongo {
 
+    // TODO: delete?
+
     struct ClockSkewException : public DBException {
         ClockSkewException() : DBException( "clock skew exception" , 20001 ) {}
     };

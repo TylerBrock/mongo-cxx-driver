@@ -144,6 +144,7 @@ dodouble:
     /* wo = "well ordered" 
        note: (mongodb related) : this can only change in behavior when index version # changes
     */
+    // TODO: delete? server only
     inline int BSONElement::woCompare( const BSONElement &e,
                                 bool considerFieldName ) const {
         int lt = (int) canonicalType();

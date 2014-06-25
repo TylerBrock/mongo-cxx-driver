@@ -23,6 +23,7 @@
 namespace mongo {
 
     // todo: ideally move to db/ instead of bson/, but elim any dependencies first
+    // TODO: delete?
 
     /** A precomputation of a BSON index or sort key pattern.  That is something like: 
            { a : 1, b : -1 }

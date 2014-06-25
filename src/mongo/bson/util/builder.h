@@ -29,6 +29,9 @@
 #include "mongo/util/assert_util.h"
 
 namespace mongo {
+
+    // TODO: Export things in this file to client?
+
     /* Accessing unaligned doubles on ARM generates an alignment trap and aborts with SIGBUS on Linux.
        Wrapping the double in a packed struct forces gcc to generate code that works with unaligned values too.
        The generated code for other architectures (which already allow unaligned accesses) is the same as if

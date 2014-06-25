@@ -570,13 +570,16 @@ namespace mongo {
         Status _okForStorage(bool root, bool deep) const;
     };
 
+    // TODO: export?
     std::ostream& operator<<( std::ostream &s, const BSONObj &o );
     std::ostream& operator<<( std::ostream &s, const BSONElement &e );
 
+    // TODO: export?
     StringBuilder& operator<<( StringBuilder &s, const BSONObj &o );
     StringBuilder& operator<<( StringBuilder &s, const BSONElement &e );
 
 
+    // TODO: export?
     struct BSONArray : BSONObj {
         // Don't add anything other than forwarding constructors!!!
         BSONArray(): BSONObj() {}

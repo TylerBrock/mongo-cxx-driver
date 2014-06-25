@@ -701,6 +701,7 @@ namespace mongo {
         static bool numStrsReady; // for static init safety. see comments in db/jsobj.cpp
     };
 
+    // TODO: export?
     class BSONArrayBuilder : boost::noncopyable {
     public:
         BSONArrayBuilder() : _i(0), _b() {}

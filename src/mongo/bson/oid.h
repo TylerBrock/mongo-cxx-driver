@@ -151,6 +151,7 @@ namespace mongo {
         See <http://dochub.mongodb.org/core/mongodbextendedjson>
         for details.
     */
+    // TODO: export?
     enum JsonStringFormat {
         /** strict RFC format */
         Strict,

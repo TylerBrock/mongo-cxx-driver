@@ -32,6 +32,8 @@
 
 namespace mongo {
 
+    // TODO: delete this file
+
     /**
     Timestamps are a special BSON datatype that is used internally for replication.
     Append a timestamp element to the object being ebuilt.

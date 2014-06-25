@@ -26,12 +26,14 @@ namespace mongo {
 
     int getGtLtOp(const BSONElement& e);
 
+    // TODO: delete?
     struct BSONElementCmpWithoutField {
         bool operator()( const BSONElement &l, const BSONElement &r ) const {
             return l.woCompare( r, false ) < 0;
         }
     };
 
+    // TODO: delete?
     class BSONObjCmp {
     public:
         BSONObjCmp( const BSONObj &order = BSONObj() ) : _order( order ) {}
@@ -43,8 +45,10 @@ namespace mongo {
         BSONObj _order;
     };
 
+    // TODO: delete?
     typedef std::set<BSONObj,BSONObjCmp> BSONObjSet;
 
+    // TODO: delete?
     enum FieldCompareResult {
         LEFT_SUBFIELD = -2,
         LEFT_BEFORE = -1,
@@ -53,6 +57,7 @@ namespace mongo {
         RIGHT_SUBFIELD = 2
     };
 
+    // TODO: delete?
     class LexNumCmp;
     FieldCompareResult compareDottedFieldNames( const std::string& l , const std::string& r ,
                                                const LexNumCmp& cmp );
@@ -70,6 +75,7 @@ namespace mongo {
         BSON( "a" << GT << 23.4 << NE << 30 << "b" << 2 ) produces the object
         { a: { \$gt: 23.4, \$ne: 30 }, b: 2 }.
     */
+    // TODO: are these exported?
 #define BSON(x) (( ::mongo::BSONObjBuilder(64) << x ).obj())
 
     /** Use BSON_ARRAY macro like BSON macro, but without keys
@@ -77,6 +83,7 @@ namespace mongo {
         BSONArray arr = BSON_ARRAY( "hello" << 1 << BSON( "foo" << BSON_ARRAY( "bar" << "baz" << "qux" ) ) );
 
      */
+    // TODO: are these exported?
 #define BSON_ARRAY(x) (( ::mongo::BSONArrayBuilder() << x ).arr())
 
     /* Utility class to auto assign object IDs.
@@ -139,18 +146,21 @@ namespace mongo {
     };
 
     // Utility class to allow adding a string to BSON as a Symbol
+    // TODO: export?
     struct BSONSymbol {
         explicit BSONSymbol(const StringData& sym) :symbol(sym) {}
         StringData symbol;
     };
 
     // Utility class to allow adding a string to BSON as Code
+    // TODO: export?
     struct BSONCode {
         explicit BSONCode(const StringData& str) :code(str) {}
         StringData code;
     };
 
     // Utility class to allow adding CodeWScope to BSON
+    // TODO: export?
     struct BSONCodeWScope {
         explicit BSONCodeWScope(const StringData& str, const BSONObj& obj) :code(str), scope(obj) {}
         StringData code;
@@ -158,6 +168,7 @@ namespace mongo {
     };
 
     // Utility class to allow adding a RegEx to BSON
+    // TODO: export?
     struct BSONRegEx {
         explicit BSONRegEx(const StringData& pat, const StringData& f="") :pattern(pat), flags(f) {}
         StringData pattern;
@@ -165,6 +176,7 @@ namespace mongo {
     };
 
     // Utility class to allow adding binary data to BSON
+    // TODO: export?
     struct BSONBinData {
         BSONBinData(const void* d, int l, BinDataType t) :data(d), length(l), type(t) {}
         const void* data;
@@ -173,6 +185,7 @@ namespace mongo {
     };
 
     // Utility class to allow adding deprecated DBRef type to BSON
+    // TODO: export?
     struct BSONDBRef {
         BSONDBRef(const StringData& nameSpace, const OID& o) :ns(nameSpace), oid(o) {}
         StringData ns;
@@ -190,6 +203,7 @@ namespace mongo {
 
     // $or helper: OR(BSON("x" << GT << 7), BSON("y" << LT << 6));
     // becomes   : {$or: [{x: {$gt: 7}}, {y: {$lt: 6}}]}
+    // TODO: export?
     inline BSONObj OR(const BSONObj& a, const BSONObj& b);
     inline BSONObj OR(const BSONObj& a, const BSONObj& b, const BSONObj& c);
     inline BSONObj OR(const BSONObj& a, const BSONObj& b, const BSONObj& c, const BSONObj& d);
@@ -241,6 +255,7 @@ namespace mongo {
     /**
        used in conjuction with BSONObjBuilder, allows for proper buffer size to prevent crazy memory usage
      */
+    // TODO: export?
     class BSONSizeTracker {
     public:
         BSONSizeTracker() {
@@ -276,5 +291,6 @@ namespace mongo {
     };
 
     // considers order
+    // TODO: export?
     bool fieldsMatch(const BSONObj& lhs, const BSONObj& rhs);
 }

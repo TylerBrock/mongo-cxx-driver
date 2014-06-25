@@ -40,6 +40,7 @@ namespace mongo {
         the complete list of valid BSON types
         see also bsonspec.org
     */
+    // TODO: export?
     enum BSONType {
         /** smaller than all other types */
         MinKey=-1,

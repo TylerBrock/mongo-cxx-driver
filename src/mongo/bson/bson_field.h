@@ -58,6 +58,7 @@ namespace mongo {
      */
 
     template<typename T>
+    // TODO: export this as part of the client API?
     class BSONFieldValue {
     public:
         BSONFieldValue(const std::string& name, const T& t)
@@ -72,6 +73,7 @@ namespace mongo {
     };
 
     template<typename T>
+    // TODO: export this as part of the client API?
     class BSONField {
     public:
         BSONField(const std::string& name)

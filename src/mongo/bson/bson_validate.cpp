@@ -26,6 +26,8 @@ namespace mongo {
 
     namespace {
 
+        // TODO: does it make sense to export these for external use?
+
         /**
          * Creates a status with InvalidBSON code and adds information about _id if available.
          * WARNING: only pass in a non-EOO idElem if it has been fully validated already!

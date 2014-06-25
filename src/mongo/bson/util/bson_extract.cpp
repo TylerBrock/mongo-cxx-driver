@@ -20,6 +20,8 @@
 
 namespace mongo {
 
+    //TODO: export these to client?
+
     Status bsonExtractField(const BSONObj& object,
                             const StringData& fieldName,
                             BSONElement* outElement) {
