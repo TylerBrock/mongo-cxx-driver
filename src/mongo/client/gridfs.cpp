@@ -44,6 +44,7 @@ namespace mongo {
     using std::ostream;
     using std::string;
 
+    // TODO: MONGO_CLIENT_API?
     const unsigned DEFAULT_CHUNK_SIZE = 255 * 1024;
 
     GridFSChunk::GridFSChunk( BSONObj o ) {

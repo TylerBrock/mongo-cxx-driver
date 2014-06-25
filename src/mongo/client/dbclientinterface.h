@@ -497,6 +497,7 @@ namespace mongo {
     /**
        interface that handles communication with the db
      */
+    // TODO: remove MONGO_CLIENT_API ?
     class MONGO_CLIENT_API DBConnector {
     public:
         virtual ~DBConnector() {}
@@ -818,6 +819,7 @@ namespace mongo {
            to enable.  Profiling information is then written to the system.profile collection, which one can
            then query.
         */
+        // TODO add MONGO_CLIENT_API?
         enum ProfilingLevel {
             ProfileOff = 0,
             ProfileSlow = 1, // log very slow (>100ms) operations
@@ -831,6 +833,7 @@ namespace mongo {
         /** This implicitly converts from char*, string, and BSONObj to be an argument to mapreduce
             You shouldn't need to explicitly construct this
          */
+        // TODO: add MONGO_CLIENT_API?
         struct MROutput {
             MROutput(const char* collection) : out(BSON("replace" << collection)) {}
             MROutput(const std::string& collection) : out(BSON("replace" << collection)) {}
@@ -1517,11 +1520,17 @@ namespace mongo {
 
         std::string getServerAddress() const { return _serverString; }
 
+        // TODO: Make protected
         virtual void killCursor( long long cursorID );
+        // TODO: Make protected
         virtual bool callRead( Message& toSend , Message& response ) { return call( toSend , response ); }
+        // TODO: Make protected
         virtual void say( Message &toSend, bool isRetry = false , std::string * actualServer = 0 );
+        // TODO: Make protected
         virtual bool recv( Message& m );
+        // TODO: Make protected
         virtual void checkResponse( const char *data, int nReturned, bool* retry = NULL, std::string* host = NULL );
+        // TODO: Make protected
         virtual bool call( Message &toSend, Message &response, bool assertOk = true , std::string * actualServer = 0 );
         virtual ConnectionString::ConnectionType type() const { return ConnectionString::MASTER; }
         void setSoTimeout(double timeout);

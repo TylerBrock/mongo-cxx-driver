@@ -32,6 +32,7 @@ namespace client {
         // Defaults for non-boolean or std::string parameters that are not defaulted to the
         // empty string. These are useful in case you which to set a parameter to a scale
         // factor or mutation of the default.
+        // TODO: add MONGO_CLIENT_API?
         static const int kDefaultAutoShutdownGracePeriodMillis = 250;
         static const int kDefaultDefaultLocalThresholdMillis = 15;
 

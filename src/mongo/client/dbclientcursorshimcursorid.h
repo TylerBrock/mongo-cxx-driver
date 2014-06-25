@@ -26,6 +26,7 @@ namespace mongo  {
      * reply document, rather than the traditional OP_REPLY.  It additionally
      * handles a possible initial firstBatch which is part of the 2.6 aggregate
      * command api. */
+    //TODO:  MONGO_API or internal only?
     class DBClientCursorShimCursorID : public DBClientCursorShim {
     public:
         DBClientCursorShimCursorID(DBClientCursor& c);

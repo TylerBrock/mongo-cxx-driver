@@ -25,6 +25,7 @@ namespace mongo  {
     /** DBClientCursorShimArray implements the shim interface over an array of
      * bson obj's.  This is useful for providing a cursor when we receive only
      * a single batch, as in the 2.4 aggregate command reply */
+    //TODO:  MONGO_API or internal only?
     class DBClientCursorShimArray : public DBClientCursorShim {
     public:
         DBClientCursorShimArray(DBClientCursor& c);

@@ -42,6 +42,7 @@ namespace mongo {
          * to the majority of a replica set. This allows you to avoid hard coding
          * assumptions about the size of your replica set into your application.
          */
+        //TODO: add MONGO_CLIENT_API?
         static const char kMajority[];
 
         //
@@ -50,18 +51,23 @@ namespace mongo {
         //
 
         /** Fire and forget */
+        //TODO: add MONGO_CLIENT_API?
         static const WriteConcern unacknowledged;
 
         /** A single node acknowledges the write, equivalent to default constructor */
+        //TODO: add MONGO_CLIENT_API?
         static const WriteConcern acknowledged;
 
         /** A single node acknowledges the write operation was committed to journal */
+        //TODO: add MONGO_CLIENT_API?
         static const WriteConcern journaled;
 
         /** Two nodes have acknowledged receipt of the write operation */
+        //TODO: add MONGO_CLIENT_API?
         static const WriteConcern replicated;
 
         /** A majority of nodes acknowledges (replica set) */
+        //TODO: add MONGO_CLIENT_API?
         static const WriteConcern majority;
 
         /**

@@ -85,6 +85,7 @@ namespace mongo {
         virtual void killCursor( long long cursorID );
 
         // ---- access raw connections ----
+        //TODO: lets not expose these
 
         /**
          * WARNING: this method is very dangerous - this object can decide to free the
@@ -105,6 +106,7 @@ namespace mongo {
 
         // ---- callback pieces -------
 
+        //TODO: lets not expose these
         virtual void say( Message &toSend, bool isRetry = false , std::string* actualServer = 0);
         virtual bool recv( Message &toRecv );
         virtual void checkResponse( const char* data, int nReturned, bool* retry = NULL, std::string* targetHost = NULL );
@@ -135,6 +137,7 @@ namespace mongo {
 
         // ---- low level ------
 
+        //TODO: lets not expose these
         virtual bool call( Message &toSend, Message &response, bool assertOk=true , std::string * actualServer = 0 );
         virtual bool callRead( Message& toSend , Message& response ) { return checkMaster()->callRead( toSend , response ); }
 

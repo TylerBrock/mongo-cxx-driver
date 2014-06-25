@@ -213,6 +213,7 @@ namespace mongo {
     /**
      * class which allow to build GridFiles in a stream fashion way
      */
+    // TODO: add MONGO_CLIENT_API
     class GridFileBuilder {
     public:
         /**

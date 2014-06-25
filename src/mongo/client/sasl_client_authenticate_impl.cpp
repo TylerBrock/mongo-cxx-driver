@@ -43,8 +43,10 @@ namespace mongo {
 namespace {
 
     // Default log level on the client for SASL log messages.
+    // TODO: MONGO_CLIENT_API?
     const int defaultSaslClientLogLevel = 4;
 
+    // TODO: MONGO_CLIENT_API?
     const char* const saslClientLogFieldName = "clientLogLevel";
 
     int getSaslClientLogLevel(const BSONObj& saslParameters) {

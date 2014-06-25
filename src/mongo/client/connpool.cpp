@@ -179,6 +179,7 @@ namespace mongo {
 
     // ------ DBConnectionPool ------
 
+    // TODO: add MONGO_API?
     DBConnectionPool pool;
 
     const int PoolForHost::kPoolSizeUnlimited(-1);

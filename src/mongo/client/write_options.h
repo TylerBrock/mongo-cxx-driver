@@ -17,6 +17,7 @@
 
 namespace mongo {
 
+    //TODO: add MONGO_CLIENT_API?
     enum UpdateOptions {
         /** Upsert - that is, insert the item if no matching item is found. */
         UpdateOption_Upsert = 1 << 0,
@@ -29,6 +30,7 @@ namespace mongo {
         UpdateOption_Broadcast = 1 << 2
     };
 
+    //TODO: add MONGO_CLIENT_API?
     enum RemoveOptions {
         /** only delete one option */
         RemoveOption_JustOne = 1 << 0,
@@ -40,6 +42,7 @@ namespace mongo {
     /**
      * need to put in DbMesssage::ReservedOptions as well
      */
+    //TODO: add MONGO_CLIENT_API?
     enum InsertOptions {
         /** With muli-insert keep processing inserts if one fails */
         InsertOption_ContinueOnError = 1 << 0

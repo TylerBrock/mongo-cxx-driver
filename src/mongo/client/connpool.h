@@ -128,6 +128,7 @@ namespace mongo {
         int _maxPoolSize;
     };
 
+    // TODO: delete?
     class DBConnectionHook {
     public:
         virtual ~DBConnectionHook() {}

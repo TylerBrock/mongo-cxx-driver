@@ -58,6 +58,8 @@ namespace mongo {
 
     const char* const saslCommandUserSourceFieldName = "userSource";
 
+    // TODO: this exists in src/mongo/bson/util/builder.h as well
+    // TODO: should these be exported?
     const int defaultMaxBsonObjectSize = 16 * 1024 * 1024;
     const int defaultMaxMessageSizeBytes = defaultMaxBsonObjectSize * 2;
     const int defaultMaxWriteBatchSize = 1000;

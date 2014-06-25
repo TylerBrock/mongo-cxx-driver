@@ -72,6 +72,7 @@ namespace mongo {
 
     // Constants
 
+    // TODO: do any of these need to be part of the API? this seems like implementation detail
     /// String name of the saslStart command.
     extern MONGO_CLIENT_API const char* const saslStartCommandName;
 

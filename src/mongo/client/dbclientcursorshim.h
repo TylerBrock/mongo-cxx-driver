@@ -24,6 +24,7 @@ namespace mongo {
      * shim intercepts next() and more() calls.  These methods may call through
      * to the underlying cursor object via rawNext() and rawMore(), or handle
      * them entirely themselves. */
+    //TODO:  MONGO_API or internal only?
     class DBClientCursorShim {
     public:
         virtual BSONObj next() = 0;

@@ -24,6 +24,7 @@
 namespace mongo {
 
     // For backwards compatibility. See MongoDB src/mongo/base/error_codes.err
+    // TODO: export these?
     namespace {
         const int kUnknownError = 8;
         const int kWriteConcernErrorCode = 64;
