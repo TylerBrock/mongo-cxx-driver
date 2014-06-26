@@ -26,6 +26,7 @@
 
 namespace mongo {
 namespace client {
+    // TODO: mongo client api?
 
     const unsigned int kVersionMajor = MONGOCLIENT_VERSION_MAJOR;
     const unsigned int kVersionMinor = MONGOCLIENT_VERSION_MINOR;
