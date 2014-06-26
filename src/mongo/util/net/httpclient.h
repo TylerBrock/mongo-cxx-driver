@@ -26,6 +26,8 @@
 
 namespace mongo {
 
+    // TODO: remove MONGO_CLIENT_API and this entire class
+
     class MONGO_CLIENT_API HttpClient : boost::noncopyable {
     public:
 

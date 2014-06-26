@@ -142,6 +142,7 @@ namespace mongo {
         virtual void appendPrefix( std::stringstream& ss ) const;
     };
 
+    // TODO: do we need to export these? they seem internal
     MONGO_CLIENT_API MONGO_COMPILER_NORETURN void MONGO_CLIENT_FUNC verifyFailed(const char *msg, const char *file, unsigned line);
     MONGO_CLIENT_API MONGO_COMPILER_NORETURN void MONGO_CLIENT_FUNC invariantFailed(const char *msg, const char *file, unsigned line);
     MONGO_CLIENT_API void MONGO_CLIENT_FUNC wasserted(const char *msg, const char *file, unsigned line);

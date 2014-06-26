@@ -28,6 +28,8 @@
 
 namespace mongoutils {
 
+    // TODO: delete
+
     namespace html {
 
         inline std::string _end() { return "</body></html>"; }

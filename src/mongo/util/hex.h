@@ -57,6 +57,7 @@ namespace mongo {
         return out.str();
     }
 
+    // TODO: should we remove MONGO_CLIENT_API?
     template <typename T> MONGO_CLIENT_API std::string MONGO_CLIENT_FUNC integerToHex(T val);
 
     inline std::string toHexLower(const void* inRaw, int len) {

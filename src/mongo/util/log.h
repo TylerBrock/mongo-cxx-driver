@@ -36,6 +36,7 @@ namespace logger {
     using logger::LabeledLevel;
     using logger::Tee;
 
+    // TODO: do these need MONGO_CLIENT_API? might not be inlined for whatever reason
     /**
      * Returns a LogstreamBuilder for logging a message with LogSeverity::Severe().
      */
