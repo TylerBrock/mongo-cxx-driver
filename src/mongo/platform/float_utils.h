@@ -17,6 +17,7 @@
 #pragma once
 
 namespace mongo {
+    //TODO: move to json or bson related file?
 
     inline bool isNaN(double d) { 
         return d != d;

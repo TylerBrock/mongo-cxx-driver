@@ -15,6 +15,8 @@
 
 #pragma once
 
+//TODO: DELETE?
+
 // We need to drag in a C++ header so we can examine __GXX_EXPERIMENTAL_CXX0X__ or
 // _LIBCPP_VERSION meaningfully. The <new> header is pretty lightweight, mostly unavoidable,
 // and almost certain to bring in the standard library configuration macros.
