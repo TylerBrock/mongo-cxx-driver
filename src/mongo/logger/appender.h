@@ -28,6 +28,7 @@ namespace logger {
      * RotatableFileAppender<E>.
      */
     template <typename E>
+    // TODO: MONGO_CLIENT_API?
     class Appender {
     public:
         typedef E Event;
