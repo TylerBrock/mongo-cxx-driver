@@ -32,6 +32,8 @@
 
 #include <string>
 
+//TODO: delete this file... there is only one use of this in mock_replica_set.cpp
+
 namespace mongo {
 namespace repl {
 

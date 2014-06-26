@@ -25,6 +25,8 @@
 
 namespace mongo {
 
+    // TODO: Delete this and inl.h
+
     /* in the mongo source code, "client" means "database". */
 
     const size_t MaxDatabaseNameLen = 128; // max str len for the db name, including null char
