@@ -248,6 +248,7 @@ namespace mongo {
         // the correct servers.
         //
 
+        //TODO: remove?
         class ConnectionHook {
         public:
             virtual ~ConnectionHook(){}
@@ -401,6 +402,8 @@ namespace mongo {
          * @return true if this query has an orderby, hint, or some other field
          */
         bool isComplex( bool * hasDollar = 0 ) const;
+
+        // TODO: remove export
         static bool MONGO_CLIENT_FUNC isComplex(const BSONObj& obj, bool* hasDollar = 0);
 
         BSONObj getFilter() const;
@@ -431,6 +434,7 @@ namespace mongo {
      * Represents a full query description, including all options required for the query to be passed on
      * to other hosts
      */
+    // TODO: remove MONGO_CLIENT_API
     class MONGO_CLIENT_API QuerySpec {
 
         std::string _ns;
@@ -488,6 +492,7 @@ namespace mongo {
 #define QUERY(x) ::mongo::Query( BSON(x) )
 
     // Useful utilities for namespaces
+    // TODO: use mongo/db/namespace_string instead?
     /** @return the database name portion of an ns string */
     MONGO_CLIENT_API std::string MONGO_CLIENT_FUNC nsGetDB( const std::string &ns );
 
@@ -548,6 +553,7 @@ namespace mongo {
         /** query N objects from the database into an array.  makes sense mostly when you want a small number of results.  if a huge number, use
             query() and iterate the cursor.
         */
+        // TODO: make me virtual?
         void findN(std::vector<BSONObj>& out, const std::string&ns, Query query, int nToReturn, int nToSkip = 0, const BSONObj *fieldsToReturn = 0, int queryOptions = 0, int batchSize = 0);
 
         /**
@@ -561,6 +567,7 @@ namespace mongo {
          * @param toSave The document to save.
          * @param wc The write concern for this operation.
          */
+        // TODO: make me virtual?
         void save(const StringData& ns, const BSONObj& toSave, const WriteConcern* wc = NULL);
 
         virtual std::string getServerAddress() const = 0;
@@ -630,6 +637,7 @@ namespace mongo {
          * ErrorCodes::AuthenticationFailed if authentication is rejected.  All other exceptions are
          * tantamount to authentication failure, but may also indicate more serious problems.
          */
+        // TODO: make me virtual?
         void auth(const BSONObj& params);
 
         /** Authorize access to a particular database.
@@ -641,6 +649,7 @@ namespace mongo {
             @param[out] authLevel       level of authentication for the given user
             @return true if successful
         */
+        // TODO: make me virtual?
         bool auth(const std::string &dbname, const std::string &username, const std::string &pwd, std::string& errmsg, bool digestPassword = true);
 
         /**
@@ -685,6 +694,7 @@ namespace mongo {
 
            @return true if successful.
         */
+        // TODO: make me virtual?
         bool createCollection(
             const std::string &ns,
             long long size = 0,
@@ -709,6 +719,7 @@ namespace mongo {
          * @see http://docs.mongodb.org/manual/reference/command/create/#dbcmd.create for available
          * options.
          */
+        // TODO: make me virtual?
         bool createCollectionWithOptions(
             const std::string &ns,
             long long size = 0,
@@ -790,6 +801,7 @@ namespace mongo {
         /** Perform a repair and compaction of the specified database.  May take a long time to run.  Disk space
            must be available equal to the size of the database while repairing.
         */
+        // TODO: make me virtual?
         bool repairDatabase(const std::string &dbname, BSONObj *info = 0) {
             return simpleCommand(dbname, info, "repairDatabase");
         }
@@ -813,6 +825,7 @@ namespace mongo {
 
            returns true if successful
         */
+        // TODO: make me virtual?
         bool copyDatabase(const std::string &fromdb, const std::string &todb, const std::string &fromhost = "", BSONObj *info = 0);
 
         /** The Mongo database provides built-in performance profiling capabilities.  Uset setDbProfilingLevel()
@@ -826,7 +839,9 @@ namespace mongo {
             ProfileAll = 2
 
         };
+        // TODO: make me virtual?
         bool setDbProfilingLevel(const std::string &dbname, ProfilingLevel level, BSONObj *info = 0);
+        // TODO: make me virtual?
         bool getDbProfilingLevel(const std::string &dbname, ProfilingLevel& level, BSONObj *info = 0);
 
 
@@ -866,6 +881,7 @@ namespace mongo {
                result.getField("ok").trueValue()
              on the result to check if ok.
         */
+        // TODO: make me virtual?
         BSONObj mapreduce(const std::string &ns, const std::string &jsmapf, const std::string &jsreducef, BSONObj query = BSONObj(), MROutput output = MRInline);
 
         /**
@@ -888,6 +904,7 @@ namespace mongo {
          * @param finalize Optional function that runs for each item in the result set before
          * returning the final values in the output vector.
          */
+        // TODO: make me virtual?
         void group(
             const StringData& ns,
             const StringData& jsreduce,
@@ -905,6 +922,7 @@ namespace mongo {
          *
          * @see DBClientWithCommands::group
          */
+        // TODO: make me virtual?
         void groupWithKeyFunction(
             const StringData& ns,
             const StringData& jsreduce,
@@ -925,6 +943,7 @@ namespace mongo {
          * @param query Optional query that specifies a filter for documents from which to retrieve
          * distinct values.
          */
+        // TODO: make me virtual?
         BSONObj distinct(
             const StringData& ns,
             const StringData& field,
@@ -944,6 +963,7 @@ namespace mongo {
          * @param new Return the updated rather than original object.
          * @param fields Fields to return. Specifies inclusion with 1, "{<field1>: 1, ...}"
          */
+        // TODO: make me virtual?
         BSONObj findAndModify(
             const StringData& ns,
             const BSONObj& query,
@@ -964,6 +984,7 @@ namespace mongo {
          * @param sort Sort for the filter.
          * @param fields Fields to return. Specifies inclusion with 1, "{<field1>: 1, ...}"
          */
+        // TODO: make me virtual?
         BSONObj findAndRemove(
             const StringData& ns,
             const BSONObj& query,
@@ -986,11 +1007,13 @@ namespace mongo {
 
            See testDbEval() in dbclient.cpp for an example of usage.
         */
+        // TODO: make me virtual?
         bool eval(const std::string &dbname, const std::string &jscode, BSONObj& info, BSONElement& retValue, BSONObj *args = 0);
 
         /** validate a collection, checking for errors and reporting back statistics.
             this operation is slow and blocking.
          */
+        // TODO: make me virtual?
         bool validate( const std::string &ns , bool scandata=true ) {
             BSONObj cmd = BSON( "validate" << nsGetCollection( ns ) << "scandata" << scandata );
             BSONObj info;
@@ -1000,6 +1023,7 @@ namespace mongo {
         /* The following helpers are simply more convenient forms of eval() for certain common cases */
 
         /* invocation with no return value of interest -- with or without one simple parameter */
+        // TODO: make me virtual?
         bool eval(const std::string &dbname, const std::string &jscode);
         template< class T >
         bool eval(const std::string &dbname, const std::string &jscode, T parm1) {
@@ -1030,13 +1054,16 @@ namespace mongo {
            uses the { listDatabases : 1 } command.
            throws on error
          */
+        // TODO: make me virtual?
         std::list<std::string> getDatabaseNames();
 
         /**
            get a list of all the current collections in db
          */
+        // TODO: make me virtual?
         std::list<std::string> getCollectionNames( const std::string& db );
 
+        // TODO: make me virtual?
         bool exists( const std::string& ns );
 
         /** Create an index if it does not already exist.
@@ -1078,6 +1105,7 @@ namespace mongo {
 
         virtual void reIndex( const std::string& ns );
 
+        // TODO: remove?
         std::string genIndexName( const BSONObj& keys );
 
         /** Erase / drop an entire database */
@@ -1387,8 +1415,10 @@ namespace mongo {
          */
         virtual bool isStillConnected() = 0;
 
+        // TODO remove/make protected
         virtual void killCursor( long long cursorID ) = 0;
 
+        // TODO remove/make protected
         virtual bool callRead( Message& toSend , Message& response ) = 0;
         // virtual bool callWrite( Message& toSend , Message& response ) = 0; // TODO: add this if needed
 
@@ -1396,6 +1426,7 @@ namespace mongo {
 
         virtual double getSoTimeout() const = 0;
 
+        // TODO make protected
         virtual uint64_t getSockCreationMicroSec() const {
             return INVALID_SOCK_CREATION_TIME;
         }
@@ -1404,6 +1435,7 @@ namespace mongo {
 
     class DBClientReplicaSet;
 
+    // TODO: move me to src/mongo/client/exceptions?
     class MONGO_CLIENT_API ConnectException : public UserException {
     public:
         ConnectException(std::string msg) : UserException(9000,msg) { }
@@ -1413,6 +1445,7 @@ namespace mongo {
         A basic connection to the database.
         This is the main entry point for talking to a simple Mongo setup
     */
+    // TODO: move me to src/mongo/client/exceptions?
     class MONGO_CLIENT_API DBClientConnection : public DBClientBase {
     public:
         using DBClientBase::query;
@@ -1468,6 +1501,7 @@ namespace mongo {
 
            @param serverHostname host to connect to.  can include port number ( 127.0.0.1 , 127.0.0.1:5555 )
         */
+        // TODO: virtual me?
         void connect(const std::string& serverHostname) {
             std::string errmsg;
             if( !connect(HostAndPort(serverHostname), errmsg) )
@@ -1538,6 +1572,7 @@ namespace mongo {
 
         virtual bool lazySupported() const { return true; }
 
+        // TODO: why are we exporting this?
         static int MONGO_CLIENT_FUNC getNumConnections() {
             return _numConnections.load();
         }
