@@ -26,7 +26,7 @@
 
 namespace mongo {
 
-    // TODO: delete?
+    // TODO: Check with replication team to see if this can go
 
     struct ClockSkewException : public DBException {
         ClockSkewException() : DBException( "clock skew exception" , 20001 ) {}

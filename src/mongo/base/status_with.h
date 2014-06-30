@@ -21,8 +21,6 @@
 
 namespace mongo {
 
-    //TODO: are we using this enough to keep it?
-
     /*
      * StatusWith is used to return an error or a value
      * this is designed to make exception code free cleaner by not needing as many out paramters

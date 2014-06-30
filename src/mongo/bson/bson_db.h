@@ -32,7 +32,7 @@
 
 namespace mongo {
 
-    // TODO: delete this file
+    // TODO: Check with replication team if this can go
 
     /**
     Timestamps are a special BSON datatype that is used internally for replication.

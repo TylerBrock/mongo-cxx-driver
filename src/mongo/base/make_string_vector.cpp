@@ -19,8 +19,6 @@
 #include <iostream>
 #include <stdarg.h>
 
-//TODO: Can we delete this?
-
 namespace mongo {
 
     std::vector<std::string> _makeStringVector(int ignored, ...) {

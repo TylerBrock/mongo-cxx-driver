@@ -40,8 +40,6 @@ namespace mongo {
      *  + Because string data can be used to pass a substring around, one should never assume a
      *    rawData() terminates with a null.
      */
-    // TODO: move to util?
-    // TODO: do we need to export this?
     class MONGO_CLIENT_API StringData {
     public:
 
@@ -181,7 +179,6 @@ namespace mongo {
         return lhs.compare(rhs) >= 0;
     }
 
-    // TODO: do we need to export this?
     MONGO_CLIENT_API std::ostream& MONGO_CLIENT_FUNC operator<<(std::ostream& stream, const StringData& value);
 
 } // namespace mongo

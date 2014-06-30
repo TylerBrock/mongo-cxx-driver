@@ -42,7 +42,6 @@ namespace mongo {
      *
      * See parse_number.cpp for the available instantiations, and add any new instantiations there.
      */
-    // TODO: remove this from Client API? Move to util?
 
     template <typename NumberType>
     MONGO_CLIENT_API Status MONGO_CLIENT_FUNC parseNumberFromStringWithBase(const StringData& stringValue, int base, NumberType* result);

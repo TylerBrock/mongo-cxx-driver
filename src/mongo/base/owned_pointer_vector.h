@@ -22,8 +22,6 @@
 
 namespace mongo {
 
-    //TODO: Move this to util?
-
     /**
      * An std::vector wrapper that deletes pointers within a vector on destruction.  The objects
      * referenced by the vector's pointers are 'owned' by an object of this class.

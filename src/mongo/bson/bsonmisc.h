@@ -24,44 +24,6 @@
 
 namespace mongo {
 
-    int getGtLtOp(const BSONElement& e);
-
-    // TODO: delete?
-    struct BSONElementCmpWithoutField {
-        bool operator()( const BSONElement &l, const BSONElement &r ) const {
-            return l.woCompare( r, false ) < 0;
-        }
-    };
-
-    // TODO: delete?
-    class BSONObjCmp {
-    public:
-        BSONObjCmp( const BSONObj &order = BSONObj() ) : _order( order ) {}
-        bool operator()( const BSONObj &l, const BSONObj &r ) const {
-            return l.woCompare( r, _order ) < 0;
-        }
-        BSONObj order() const { return _order; }
-    private:
-        BSONObj _order;
-    };
-
-    // TODO: delete?
-    typedef std::set<BSONObj,BSONObjCmp> BSONObjSet;
-
-    // TODO: delete?
-    enum FieldCompareResult {
-        LEFT_SUBFIELD = -2,
-        LEFT_BEFORE = -1,
-        SAME = 0,
-        RIGHT_BEFORE = 1 ,
-        RIGHT_SUBFIELD = 2
-    };
-
-    // TODO: delete?
-    class LexNumCmp;
-    FieldCompareResult compareDottedFieldNames( const std::string& l , const std::string& r ,
-                                               const LexNumCmp& cmp );
-
     /** Use BSON macro to build a BSONObj from a stream
 
         e.g.,
@@ -75,7 +37,6 @@ namespace mongo {
         BSON( "a" << GT << 23.4 << NE << 30 << "b" << 2 ) produces the object
         { a: { \$gt: 23.4, \$ne: 30 }, b: 2 }.
     */
-    // TODO: are these exported?
 #define BSON(x) (( ::mongo::BSONObjBuilder(64) << x ).obj())
 
     /** Use BSON_ARRAY macro like BSON macro, but without keys
@@ -83,7 +44,6 @@ namespace mongo {
         BSONArray arr = BSON_ARRAY( "hello" << 1 << BSON( "foo" << BSON_ARRAY( "bar" << "baz" << "qux" ) ) );
 
      */
-    // TODO: are these exported?
 #define BSON_ARRAY(x) (( ::mongo::BSONArrayBuilder() << x ).arr())
 
     /* Utility class to auto assign object IDs.
@@ -124,6 +84,7 @@ namespace mongo {
     extern MONGO_CLIENT_API MaxKeyLabeler MAXKEY;
 
     // Utility class to implement GT, GTE, etc as described above.
+    // TODO: export?
     class Labeler {
     public:
         struct Label {
@@ -203,7 +164,6 @@ namespace mongo {
 
     // $or helper: OR(BSON("x" << GT << 7), BSON("y" << LT << 6));
     // becomes   : {$or: [{x: {$gt: 7}}, {y: {$lt: 6}}]}
-    // TODO: export?
     inline BSONObj OR(const BSONObj& a, const BSONObj& b);
     inline BSONObj OR(const BSONObj& a, const BSONObj& b, const BSONObj& c);
     inline BSONObj OR(const BSONObj& a, const BSONObj& b, const BSONObj& c, const BSONObj& d);

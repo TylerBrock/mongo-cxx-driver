@@ -34,8 +34,7 @@ namespace mongo {
      * edges to the graph.  Then, one executes the process, causing each initialization operation to
      * execute in an order that respects the programmer-established prerequistes.
      */
-    // TODO: Does this need to be part of the public API?
-    class MONGO_CLIENT_API Initializer {
+    class Initializer {
         MONGO_DISALLOW_COPYING(Initializer);
     public:
         Initializer();
@@ -69,21 +68,16 @@ namespace mongo {
      * This means that the few initializers that might want to terminate the program by failing
      * should probably arrange to terminate the process themselves.
      */
-    // TODO: Does this need to be part of the public API?
-    MONGO_CLIENT_API Status MONGO_CLIENT_FUNC runGlobalInitializers(
+    Status runGlobalInitializers(
         const InitializerContext::ArgumentVector& args,
         const InitializerContext::EnvironmentMap& env);
 
-    // TODO: Does this need to be part of the public API?
-    MONGO_CLIENT_API Status MONGO_CLIENT_FUNC runGlobalInitializers(
-            int argc, const char* const* argv, const char* const* envp);
+    Status runGlobalInitializers(int argc, const char* const* argv, const char* const* envp);
 
     /**
      * Same as runGlobalInitializers(), except prints a brief message to std::cerr
      * and terminates the process on failure.
      */
-    // TODO: Does this need to be part of the public API?
-    MONGO_CLIENT_API void MONGO_CLIENT_FUNC runGlobalInitializersOrDie(
-            int argc, const char* const* argv, const char* const* envp);
+    void runGlobalInitializersOrDie(int argc, const char* const* argv, const char* const* envp);
 
 }  // namespace mongo

@@ -34,8 +34,7 @@ namespace mongo {
        todo: we may want to make a more stl-like iterator interface for this
              with things like begin() and end()
     */
-    // TODO: export?
-    class BSONObjIterator {
+    class MONGO_CLIENT_API BSONObjIterator {
     public:
         /** Create an iterator for a BSON object.
         */
@@ -97,7 +96,7 @@ namespace mongo {
     };
 
     /** Base class implementing ordered iteration through BSONElements. */
-    class BSONIteratorSorted {
+    class MONGO_CLIENT_API BSONIteratorSorted {
         MONGO_DISALLOW_COPYING(BSONIteratorSorted);
     public:
         ~BSONIteratorSorted() {
@@ -128,8 +127,7 @@ namespace mongo {
     };
 
     /** Provides iteration of a BSONObj's BSONElements in lexical field order. */
-    // TODO: export?
-    class BSONObjIteratorSorted : public BSONIteratorSorted {
+    class MONGO_CLIENT_API BSONObjIteratorSorted : public BSONIteratorSorted {
     public:
         BSONObjIteratorSorted( const BSONObj &object );
     };
@@ -139,8 +137,7 @@ namespace mongo {
      * The elements of a bson array should always be numerically ordered by field name, but this
      * implementation re-sorts them anyway.
      */
-    // TODO: export?
-    class BSONArrayIteratorSorted : public BSONIteratorSorted {
+    class MONGO_CLIENT_API BSONArrayIteratorSorted : public BSONIteratorSorted {
     public:
         BSONArrayIteratorSorted( const BSONArray &array );
     };

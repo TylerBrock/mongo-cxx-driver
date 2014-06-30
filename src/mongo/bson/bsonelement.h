@@ -500,8 +500,6 @@ namespace mongo {
         }
     };
 
-    // TODO: why isn't everything below here in bson-inl.h?
-
     inline bool BSONElement::trueValue() const {
         // NOTE Behavior changes must be replicated in Value::coerceToBool().
         switch( type() ) {

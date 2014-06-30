@@ -27,8 +27,6 @@
  */
 #define MONGO_MAKE_STRING_VECTOR(...) ::mongo::_makeStringVector(0, __VA_ARGS__, NULL)
 
-//TODO: Can we delete this?
-
 namespace mongo {
 
     /**
