@@ -23,6 +23,7 @@
 #include <vector>
 
 #include "mongo/stdx/functional.h"
+#include "mongo/orchestration/orchestration.h"
 #include "mongo/unittest/integration_test.h"
 #include "mongo/util/fail_point_service.h"
 #include "mongo/util/log.h"
@@ -57,7 +58,7 @@ namespace {
         int _count;
     };
 
-    class DBClientTest : public ::testing::Test {
+    class DBClientTest : public mongo::orchestration::Standalone {
     public:
         DBClientTest() {
             c.connect(string("localhost:") + integrationTestParams.port);
