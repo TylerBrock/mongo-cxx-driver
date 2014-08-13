@@ -15,7 +15,7 @@
 
 #include "mongo/platform/basic.h"
 
-#include "mongo/unittest/integration_test.h"
+#include "mongo/integration/integration_test.h"
 #include "mongo/client/dbclient.h"
 
 using namespace mongo;
