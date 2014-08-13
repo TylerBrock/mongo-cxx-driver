@@ -60,9 +60,6 @@ install:
 
     # Install MongoDB Enterprise and let smoke drive
     - sudo apt-get install mongodb-enterprise-server
-    - sudo stop mongod
-    - mkdir data
-    - mongod ${MONGOD_OPTS}
 
 before_script:
     # Set SCONS_FLAGS based on new $CXX and $CC
