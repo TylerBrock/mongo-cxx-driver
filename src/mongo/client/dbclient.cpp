@@ -623,7 +623,6 @@ namespace mongo {
             BSONObjBuilder cmdObj;
             cmdObj.appendElements(cmd);
             _runCommandHook(&cmdObj);
-            
             info = findOne(ns, cmdObj.done(), 0 , options);
         }
         else {
