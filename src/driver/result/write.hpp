@@ -16,6 +16,8 @@
 
 #pragma once
 
+#include "driver/config/prelude.hpp"
+
 #include <iostream>
 
 #include "bson/document.hpp"
@@ -24,28 +26,7 @@ namespace mongo {
 namespace driver {
 namespace result {
 
-class write {
-   public:
-    write(const bson::document::view& view);
-    write(bson::document::value value);
-    ~write();
-    write(write&& rhs);
-    write& operator=(write&& rhs);
-
-    /* TODO replace this: */
-    write();
-
-    friend std::ostream& operator<<(std::ostream& out, const write& doc) {
-        out << doc._value;
-        return out;
-    }
-
-   private:
-    write(const write& rhs) = delete;
-    write& operator=(const write& rhs) = delete;
-
-    bson::document::value _value;
-};
+class MONGOCXX_EXPORT write {};
 
 }  // namespace result
 }  // namespace driver

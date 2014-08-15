@@ -16,6 +16,9 @@
 
 #pragma once
 
+#include "driver/config/prelude.hpp"
+#include "driver/util/unique_ptr_void.hpp"
+
 #include "mongoc.h"
 
 #include "bson/document.hpp"
@@ -25,49 +28,43 @@ namespace driver {
 
 class collection;
 
-class cursor {
+class MONGOCXX_EXPORT cursor {
 
     friend class collection;
 
    public:
-    class iterator : public std::iterator<std::forward_iterator_tag, const bson::document::view&,
-                                          std::ptrdiff_t, const bson::document::view*,
-                                          const bson::document::view&> {
-
-        friend class cursor;
-
-       public:
-        const bson::document::view& operator*() const;
-        const bson::document::view* operator->() const;
-
-        iterator& operator++();
-
-        bool operator==(const iterator& rhs) const;
-        bool operator!=(const iterator& rhs) const;
-
-       private:
-        iterator(mongoc_cursor_t* cursor);
-
-        mongoc_cursor_t* _cursor;
-        bson::document::view _doc;
-        bool _at_end;
-    };  // class iterator
+    class iterator;
 
     iterator begin();
     iterator end();
 
-    cursor(cursor&& rhs);
-    cursor& operator=(cursor&& rhs);
-    ~cursor();
+   private:
+    cursor(void* cursor);
+
+    util::unique_ptr_void _cursor;
+};
+
+class cursor::iterator
+    : public std::iterator<std::forward_iterator_tag, const bson::document::view&, std::ptrdiff_t,
+                           const bson::document::view*, const bson::document::view&> {
+    friend class cursor;
+
+   public:
+    const bson::document::view& operator*() const;
+    const bson::document::view* operator->() const;
+
+    iterator& operator++();
+
+    bool operator==(const iterator& rhs) const;
+    bool operator!=(const iterator& rhs) const;
 
    private:
-    cursor(mongoc_cursor_t* cursor);
+    iterator(cursor* cursor);
 
-    cursor(const cursor& cursor) = delete;
-    cursor& operator=(const cursor& cursor) = delete;
-
-    mongoc_cursor_t* _cursor;
-};
+    cursor* _cursor;
+    bson::document::view _doc;
+    bool _at_end;
+};  // class iterator
 
 }  // namespace driver
 }  // namespace mongo

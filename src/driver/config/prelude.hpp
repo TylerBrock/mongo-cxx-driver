@@ -14,16 +14,4 @@
  * limitations under the License.
  */
 
-#pragma once
-
-#include "driver/config/prelude.hpp"
-
-namespace mongo {
-namespace driver {
-namespace result {
-
-class MONGOCXX_EXPORT explain {};
-
-}  // namespace result
-}  // namespace driver
-}  // namespace mongo
+#include "mongocxx_export.h"

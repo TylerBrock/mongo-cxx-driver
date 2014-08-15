@@ -16,11 +16,13 @@
 
 #pragma once
 
+#include "driver/config/prelude.hpp"
+
 namespace mongo {
 namespace driver {
 namespace result {
 
-class distinct {};
+class MONGOCXX_EXPORT distinct {};
 
 }  // namespace result
 }  // namespace driver

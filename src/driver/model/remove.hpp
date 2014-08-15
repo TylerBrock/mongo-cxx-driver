@@ -16,6 +16,8 @@
 
 #pragma once
 
+#include "driver/config/prelude.hpp"
+
 #include "bson/document.hpp"
 #include "driver/model/write.hpp"
 #include "driver/util/optional.hpp"
@@ -24,7 +26,7 @@ namespace mongo {
 namespace driver {
 namespace model {
 
-class remove : write<remove> {
+class MONGOCXX_EXPORT remove : write<remove> {
 
    public:
     remove(const bson::document::view& filter);

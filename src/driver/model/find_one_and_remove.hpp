@@ -16,6 +16,8 @@
 
 #pragma once
 
+#include "driver/config/prelude.hpp"
+
 #include "bson/document.hpp"
 #include "driver/model/write.hpp"
 #include "driver/util/optional.hpp"
@@ -24,7 +26,7 @@ namespace mongo {
 namespace driver {
 namespace model {
 
-class find_one_and_remove : public write<find_one_and_remove> {
+class MONGOCXX_EXPORT find_one_and_remove : public write<find_one_and_remove> {
 
    public:
     find_one_and_remove(bson::document::view filter);

@@ -16,6 +16,8 @@
 
 #pragma once
 
+#include "driver/config/prelude.hpp"
+
 #include <string>
 
 namespace mongo {
@@ -26,13 +28,13 @@ namespace driver {
  *
  * @param mongodb_uri The MongoDB uri to extract options from.
  */
-class options {
+class MONGOCXX_EXPORT options {
     friend class client;
 
    public:
     options();
-    options(std::string mongodb_uri);
-    options(const char* mongodb_uri);
+    explicit options(std::string mongodb_uri);
+    explicit options(const char* mongodb_uri);
 
    private:
     std::string _mongodb_uri;

@@ -16,12 +16,12 @@
 
 #pragma once
 
+#include "driver/config/prelude.hpp"
+
 #include <cstdint>
 #include <memory>
 #include <set>
 #include <string>
-
-#include "mongoc.h"
 
 #include "bson/document.hpp"
 
@@ -29,6 +29,7 @@
 #include "driver/result/distinct.hpp"
 #include "driver/result/explain.hpp"
 #include "driver/result/write.hpp"
+#include "driver/util/unique_ptr_void.hpp"
 
 namespace mongo {
 namespace driver {
@@ -69,16 +70,11 @@ class findable;
 class aggregatable;
 }  // namespace fluent
 
-class collection {
+class MONGOCXX_EXPORT collection {
 
     friend class database;
 
    public:
-    collection(collection&& client);
-    ~collection();
-
-    collection& operator=(collection&& client);
-
     cursor find(const model::find& model) const;
     cursor aggregate(const model::aggregate& model) const;
 
@@ -97,21 +93,16 @@ class collection {
     bson::document::value explain(const model::explain& model) const;
     result::distinct distinct(const model::distinct& model) const;
 
-    int64_t count(const model::count& model) const;
+    std::int64_t count(const model::count& model) const;
 
     void drop();
 
    private:
-    collection(client* client, database* database, std::string name);
-
-    collection(const collection& client) = delete;
-    collection& operator=(const collection& client) = delete;
+    collection(client* client, database* database, const std::string& collection_name);
 
     client* _client;
     database* _database;
-
-    std::string _name;
-    mongoc_collection_t* _collection;
+    util::unique_ptr_void _collection;
 };
 
 }  // namespace driver

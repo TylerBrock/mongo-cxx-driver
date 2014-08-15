@@ -16,6 +16,8 @@
 
 #pragma once
 
+#include "driver/config/prelude.hpp"
+
 #include <cstdint>
 #include <string>
 #include <vector>
@@ -27,17 +29,17 @@ namespace driver {
 
 class explain_result;
 
-class pipeline {
+class MONGOCXX_EXPORT pipeline {
    public:
     pipeline& geoNear(/*something*/);
-    pipeline& group(const bson::document::view& group);
-    pipeline& limit(int32_t limit);
-    pipeline& match(const bson::document::view& filter);
+    pipeline& group(bson::document::view group);
+    pipeline& limit(std::int32_t limit);
+    pipeline& match(bson::document::view filter);
     pipeline& out(const std::string& collection_name);
-    pipeline& project(const bson::document::view& projection);
-    pipeline& redact(const bson::document::view& restrictions);
-    pipeline& skip(int32_t skip);
-    pipeline& sort(const bson::document::view& ordering);
+    pipeline& project(bson::document::view projection);
+    pipeline& redact(bson::document::view restrictions);
+    pipeline& skip(std::int32_t skip);
+    pipeline& sort(bson::document::view sort);
     pipeline& unwind(const std::string& field_name);
 
     bson::document::view operator[](int index) const;

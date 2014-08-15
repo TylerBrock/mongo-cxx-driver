@@ -16,6 +16,8 @@
 
 #pragma once
 
+#include "driver/config/prelude.hpp"
+
 #include "bson/document.hpp"
 #include "driver/model/write.hpp"
 
@@ -23,7 +25,7 @@ namespace mongo {
 namespace driver {
 namespace model {
 
-class replace : write<replace> {
+class MONGOCXX_EXPORT replace : write<replace> {
 
    public:
     replace(bson::document::view filter, bson::document::view replacement);

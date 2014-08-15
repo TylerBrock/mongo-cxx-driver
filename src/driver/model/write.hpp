@@ -16,6 +16,8 @@
 
 #pragma once
 
+#include "driver/config/prelude.hpp"
+
 #include <cstdint>
 #include "driver/util/optional.hpp"
 
@@ -26,7 +28,7 @@ namespace model {
 class write_concern;
 
 template <class derived>
-class write {
+class MONGOCXX_EXPORT write {
 
    public:
     derived& write_concern(const write_concern* write_concern) {

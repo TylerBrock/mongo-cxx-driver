@@ -16,6 +16,8 @@
 
 #pragma once
 
+#include "driver/config/prelude.hpp"
+
 #include <cstdint>
 
 #include "driver/util/optional.hpp"
@@ -27,15 +29,15 @@ namespace model {
 class read_preference;
 
 template <class Derived>
-class read {
+class MONGOCXX_EXPORT read {
 
    public:
-    Derived& max_time_ms(uint64_t max_time_ms) {
+    Derived& max_time_ms(std::uint64_t max_time_ms) {
         _max_time_ms = max_time_ms;
         return *this;
     }
 
-    optional<uint64_t> max_time_ms() const { return _max_time_ms; }
+    optional<std::uint64_t> max_time_ms() const { return _max_time_ms; }
 
     Derived& read_preference(read_preference* read_preference) {
         _read_preference = read_preference;
@@ -44,7 +46,7 @@ class read {
     optional<class read_preference*> read_preference() const { return _read_preference; }
 
    protected:
-    optional<uint64_t> _max_time_ms;
+    optional<std::uint64_t> _max_time_ms;
     optional<class read_preference*> _read_preference;
 };
 

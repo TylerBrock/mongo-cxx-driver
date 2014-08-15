@@ -16,6 +16,8 @@
 
 #pragma once
 
+#include "driver/config/prelude.hpp"
+
 #include <cstdint>
 #include <string>
 
@@ -27,24 +29,24 @@ namespace mongo {
 namespace driver {
 namespace model {
 
-class distinct : public read<distinct> {
+class MONGOCXX_EXPORT distinct : public read<distinct> {
 
    public:
     distinct(std::string field_name);
 
     distinct& filter(bson::document::view filter);
-    distinct& max_time_ms(int64_t max_time_ms);
+    distinct& max_time_ms(std::int64_t max_time_ms);
 
     bson::document::view field_name() const;
 
     optional<bson::document::view> filter() const;
-    optional<int64_t> max_time_ms() const;
+    optional<std::int64_t> max_time_ms() const;
 
    private:
     bson::document::view _field_name;
 
     optional<bson::document::view> _filter;
-    optional<int64_t> _max_time_ms;
+    optional<std::int64_t> _max_time_ms;
 };
 
 }  // namespace model

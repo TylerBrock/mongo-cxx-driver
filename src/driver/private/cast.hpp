@@ -14,35 +14,17 @@
  * limitations under the License.
  */
 
-#pragma once
-
-#include "driver/config/prelude.hpp"
-
-#include <exception>
-
-/**
- * MongoDB C++ Driver exception hierarchy
- *
- * std::exception
- *     L mongo::driver::Exception
- *         L mongo::driver::OperationException
- *             L mongo::driver::QueryException
- *             L mongo::driver::WriteException
- *         L mongo::driver::SocketException
- */
+#include "driver/util/unique_ptr_void.hpp"
 
 namespace mongo {
 namespace driver {
+namespace util {
 
-class exception : public std::exception {};
+template <typename T>
+T* cast(const unique_ptr_void& ptr) {
+    return reinterpret_cast<T*>(ptr.get());
+}
 
-class operation_exception : public exception {};
-
-class query_exception : public operation_exception {};
-
-class write_exception : public operation_exception {};
-
-class authentication_exception : public operation_exception {};
-
+}  // namespace util
 }  // namespace driver
 }  // namespace mongo
