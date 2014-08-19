@@ -1,26 +1,22 @@
-/**
- * Copyright 2014 MongoDB Inc.
- *
- * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
- *
- * http://www.apache.org/licenses/LICENSE-2.0
- *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
- */
+// Copyright 2014 MongoDB Inc.
+//
+// Licensed under the Apache License, Version 2.0 (the "License");
+// you may not use this file except in compliance with the License.
+// You may obtain a copy of the License at
+//
+// http://www.apache.org/licenses/LICENSE-2.0
+//
+// Unless required by applicable law or agreed to in writing, software
+// distributed under the License is distributed on an "AS IS" BASIS,
+// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+// See the License for the specific language governing permissions and
+// limitations under the License.
 
 #pragma once
 
 #include "driver/config/prelude.hpp"
 
 #include <cstdint>
-#include <memory>
-#include <set>
 #include <string>
 
 #include "bson/document.hpp"
@@ -70,7 +66,7 @@ class findable;
 class aggregatable;
 }  // namespace fluent
 
-class MONGOCXX_EXPORT collection {
+class LIBMONGOCXX_EXPORT collection {
 
     friend class database;
 
@@ -98,12 +94,12 @@ class MONGOCXX_EXPORT collection {
     void drop();
 
    private:
-    collection(client* client, database* database, const std::string& collection_name);
+    collection(const database& database, const std::string& collection_name);
 
-    client* _client;
-    database* _database;
     util::unique_ptr_void _collection;
 };
 
 }  // namespace driver
 }  // namespace mongo
+
+#include "driver/config/postlude.hpp"

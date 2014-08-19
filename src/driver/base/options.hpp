@@ -1,18 +1,16 @@
-/**
- * Copyright 2014 MongoDB Inc.
- *
- * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
- *
- * http://www.apache.org/licenses/LICENSE-2.0
- *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
- */
+// Copyright 2014 MongoDB Inc.
+//
+// Licensed under the Apache License, Version 2.0 (the "License");
+// you may not use this file except in compliance with the License.
+// You may obtain a copy of the License at
+//
+// http://www.apache.org/licenses/LICENSE-2.0
+//
+// Unless required by applicable law or agreed to in writing, software
+// distributed under the License is distributed on an "AS IS" BASIS,
+// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+// See the License for the specific language governing permissions and
+// limitations under the License.
 
 #pragma once
 
@@ -23,18 +21,13 @@
 namespace mongo {
 namespace driver {
 
-/**
- * The options class represents a set of options for the MongoDB driver client.
- *
- * @param mongodb_uri The MongoDB uri to extract options from.
- */
-class MONGOCXX_EXPORT options {
+/// The options class represents a set of options for the MongoDB driver client.
+class LIBMONGOCXX_EXPORT options {
     friend class client;
 
    public:
     options();
     explicit options(std::string mongodb_uri);
-    explicit options(const char* mongodb_uri);
 
    private:
     std::string _mongodb_uri;
@@ -42,3 +35,5 @@ class MONGOCXX_EXPORT options {
 
 }  // namespace driver
 }  // namespace mongo
+
+#include "driver/config/postlude.hpp"
