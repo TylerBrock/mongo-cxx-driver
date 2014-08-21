@@ -14,14 +14,16 @@
  */
 
 #include <iostream>
+#include <memory>
 
 #include "mongo/integration/integration_test.h"
 #include "mongo/client/init.h"
 
 namespace mongo {
     namespace integration {
-        mongo::orchestration::API* orchestration_api = NULL;
-        std::string Standalone::_uri = "";
+        mongo::orchestration::API* orchestration = NULL;
+        mongo::orchestration::Host* Standalone::standalone = NULL;
+        std::string Standalone::_uri;
     } // namespace integration
 } // namespace mongo
 
@@ -31,8 +33,7 @@ int main(int argc, char **argv) {
     if (!status.isOK())
         ::abort();
 
-    mongo::integration::orchestration_api = new mongo::orchestration::API("localhost:8889");
-
+    ::testing::AddGlobalTestEnvironment(new mongo::integration::Environment("localhost:8889"));
     ::testing::InitGoogleTest(&argc, argv);
 
     return RUN_ALL_TESTS();

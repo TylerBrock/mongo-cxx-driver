@@ -60,9 +60,8 @@ namespace orchestration {
     class Hosts : public Resource {
     public:
         Hosts(string url);
-        Host create(string process_type = "mongod");
-        Host operator[](string host_id);
-        void destroy(Host h);
+        Host* create(string process_type = "mongod");
+        Host* ensure(string id);
     };
 
     class Host : public Resource {
@@ -71,7 +70,8 @@ namespace orchestration {
         void start();
         void stop();
         void restart();
-        std::string uri();
+        void destroy();
+        string uri();
 
     private:
         RestClient::response status();

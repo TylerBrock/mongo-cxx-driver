@@ -953,7 +953,7 @@ namespace {
         pool.appendInfo(b);
         BSONObj info = b.done();
         BSONObj hosts = info["hosts"].Obj();
-        ASSERT_EQUALS(hosts["localhost:27999::0"]["available"].Int(), 0);
+        ASSERT_EQUALS(hosts[_uri + "::0"]["available"].Int(), 0);
 
         {
             string host_str = _uri;
@@ -965,7 +965,7 @@ namespace {
         pool.appendInfo(b2);
         BSONObj info2 = b2.done();
         hosts = info2["hosts"].Obj();
-        ASSERT_EQUALS(hosts["localhost:27999::0"]["available"].Int(), 1);
+        ASSERT_EQUALS(hosts[_uri + "::0"]["available"].Int(), 1);
     }
 
     TEST_F(DBClientTest, ClearStaleConnections) {

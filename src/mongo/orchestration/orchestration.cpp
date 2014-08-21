@@ -62,23 +62,25 @@ namespace orchestration {
 
     Hosts::Hosts(string url) : Resource(url) {}
 
-    Host Hosts::create(string process_type) {
+    Host* Hosts::create(string process_type) {
         Document doc;
         StringBuffer sb;
         Writer<StringBuffer> writer(sb);
         writer.StartObject();
         writer.String("name");
         writer.String(process_type.c_str());
+        writer.String("procParams");
+        writer.StartObject();
+        writer.String("setParameter");
+        writer.String("enableTestCommands=1");
+        writer.EndObject();
         writer.EndObject();
         RestClient::response result = post("", sb.GetString());
 
         Document host_doc;
         host_doc.Parse(result.body.c_str());
 
-        return Host(_url + "/" + host_doc["id"].GetString());
-    }
-
-    void Hosts::destroy(Host h) {
+        return new Host(_url + "/" + host_doc["id"].GetString());
     }
 
     Host::Host(std::string url) : Resource(url) {}
@@ -94,6 +96,10 @@ namespace orchestration {
 
     void Host::restart() {
         put("restart");
+    }
+
+    void Host::destroy() {
+        del();
     }
 
     string Host::uri() {

@@ -27,20 +27,36 @@
 
 namespace mongo {
     namespace integration {
-        extern mongo::orchestration::API* orchestration_api;
+
+        extern mongo::orchestration::API* orchestration;
+
+        class Environment : public ::testing::Environment {
+        public:
+            Environment(std::string uri) : _uri(uri) {}
+            virtual ~Environment() {}
+            virtual void SetUp() { orchestration = new mongo::orchestration::API(_uri); }
+            virtual void TearDown() { delete orchestration; }
+        private:
+            std::string _uri;
+        };
 
         class Standalone : public ::testing::Test {
         public:
             static void SetUpTestCase() {
-                orchestration::Hosts hosts = mongo::integration::orchestration_api->hosts();
-                orchestration::Host host = hosts.create();
-                _uri = host.uri();
+                standalone = orchestration->hosts().create();
+                _uri = standalone->uri();
             }
 
             static void TearDownTestCase() {
+                standalone->destroy();
+                delete standalone;
+                standalone = NULL;
+                _uri.clear();
             }
 
+            static mongo::orchestration::Host* standalone;
             static std::string _uri;
+
         };
 
     } // namespace integration
