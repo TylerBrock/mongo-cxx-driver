@@ -61,7 +61,6 @@ namespace orchestration {
     public:
         Hosts(string url);
         Host* create(string process_type = "mongod");
-        Host* ensure(string id);
     };
 
     class Host : public Resource {
