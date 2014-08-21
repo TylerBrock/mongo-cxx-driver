@@ -16,13 +16,19 @@
 
 #include "orchestration.h"
 
-#include "rapidjson/document.h"
-#include "rapidjson/reader.h"
-#include "rapidjson/stringbuffer.h"
-#include "rapidjson/writer.h"
+#include "third_party/rapidjson/document.h"
+#include "third_party/rapidjson/reader.h"
+#include "third_party/rapidjson/stringbuffer.h"
+#include "third_party/rapidjson/writer.h"
 
 namespace mongo {
 namespace orchestration {
+
+    namespace {
+        const int kStatusOK = 200;
+        const int kStatusFail = 400;
+        const int kStatusNotFound = 404;
+    }
 
     using namespace rapidjson;
 
@@ -78,7 +84,8 @@ namespace orchestration {
     Host::Host(std::string url) : Resource(url) {}
 
     void Host::start() {
-        put("start");
+        RestClient::response response = put("start");
+        //if (response.code == kStatusOK)
     }
 
     void Host::stop() {
@@ -87,6 +94,16 @@ namespace orchestration {
 
     void Host::restart() {
         put("restart");
+    }
+
+    string Host::uri() {
+        Document doc;
+        doc.Parse(status().body.c_str());
+        return doc["uri"].GetString();
+    }
+
+    RestClient::response Host::status() {
+        return get();
     }
 
 } // namespace orchestration

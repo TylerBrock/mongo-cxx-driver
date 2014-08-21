@@ -26,10 +26,15 @@ libClientTestMain = staticClientEnv.StaticLibrary(
     ],
 )
 
+conf = Configure(env)
+conf.CheckLibWithHeader('curl', 'curl/curl.h', 'c')
+
 libIntegrationTestMain = staticClientEnv.StaticLibrary(
     target='integration_test_main',
     source=[
-        'unittest/integration_test_main.cpp'
+        '../third_party/restclient/restclient.cpp',
+        'integration/integration_test_main.cpp',
+        'orchestration/orchestration.cpp'
     ],
 )
 
@@ -94,17 +99,19 @@ integration_tests = [
     'gridfs_test',
     'sasl_test'
 ]
+
 integrationTestEnv = gtestEnv.Clone()
 integrationTestEnv.PrependUnique(
     LIBS=[
         libIntegrationTestMain,
         libMock,
+        'curl'
     ])
 
 for integration_test in integration_tests:
     integrationTestEnv.IntegrationTest(
         target=integration_test,
         source=[
-            'unittest/' + integration_test + '.cpp'
+            'integration/' + integration_test + '.cpp'
         ]
     )

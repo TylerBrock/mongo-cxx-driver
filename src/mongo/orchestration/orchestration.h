@@ -19,7 +19,7 @@
 #include <iostream>
 #include <string>
 
-#include "restclient/restclient.h"
+#include "third_party/restclient/restclient.h"
 
 namespace mongo {
 namespace orchestration {
@@ -61,6 +61,7 @@ namespace orchestration {
     public:
         Hosts(string url);
         Host create(string process_type = "mongod");
+        Host operator[](string host_id);
         void destroy(Host h);
     };
 
@@ -70,6 +71,23 @@ namespace orchestration {
         void start();
         void stop();
         void restart();
+        std::string uri();
+
+    private:
+        RestClient::response status();
+    };
+
+
+    class ReplicaSets {
+    };
+
+    class ReplicaSet {
+    };
+
+    class Clusters{
+    };
+
+    class Cluster{
     };
 
 } // namespace orchestration

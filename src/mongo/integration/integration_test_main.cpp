@@ -13,22 +13,27 @@
  *    limitations under the License.
  */
 
-#pragma once
+#include <iostream>
 
-#include <string>
-
-#include "mongo/unittest/unittest.h"
-
-// Act like we are using the driver externally
-#ifdef MONGO_EXPOSE_MACROS
-#undef MONGO_EXPOSE_MACROS
-#endif
+#include "mongo/integration/integration_test.h"
+#include "mongo/client/init.h"
 
 namespace mongo {
-    namespace unittest {
-        struct IntegrationTestParams {
-            std::string port;
-        };
-        extern IntegrationTestParams integrationTestParams;
-    } // namespace unittest
+    namespace integration {
+        mongo::orchestration::API* orchestration_api = NULL;
+        std::string Standalone::_uri = "";
+    } // namespace integration
 } // namespace mongo
+
+int main(int argc, char **argv) {
+    mongo::Status status = mongo::client::initialize();
+
+    if (!status.isOK())
+        ::abort();
+
+    mongo::integration::orchestration_api = new mongo::orchestration::API("localhost:8889");
+
+    ::testing::InitGoogleTest(&argc, argv);
+
+    return RUN_ALL_TESTS();
+}
