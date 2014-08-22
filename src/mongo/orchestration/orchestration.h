@@ -18,75 +18,101 @@
 
 #include <iostream>
 #include <string>
+#include <vector>
 
 #include "third_party/restclient/restclient.h"
+#include "third_party/rapidjson/document.h"
 
 namespace mongo {
 namespace orchestration {
 
     using namespace std;
+    using namespace rapidjson;
 
     class Resource {
     public:
         Resource(string base_url);
 
     protected:
-        RestClient::response get(string relative_path="");
+        RestClient::response get(string relative_path="") const;
         RestClient::response put(string relative_path="", string payload="{}");
         RestClient::response post(string relative_path="", string payload="{}");
         RestClient::response del(string relative_path="");
 
-        string make_url(string relative_path);
+        string make_url(string relative_path) const;
 
         static const char _content_type[];
         string _url;
     };
 
-    class Hosts;
-    class ReplicaSets;
-    class Clusters;
+    class Host;
+    class ReplicaSet;
+    class Cluster;
 
     class API : public Resource {
+
     public:
         API(string url);
-        Hosts hosts();
-        ReplicaSets replica_sets();
-        Clusters clusters();
+        vector<Host> hosts() const;
+        vector<ReplicaSet> replica_sets() const;
+        vector<Cluster> clusters() const;
+
+        string createMongod(string id = "");
+        string createMongos(Document params);
+        string createReplicaSet(Document params);
+        string createCluster(Document params);
+
+        Host host(string id) const;
+        ReplicaSet replica_set(string id) const;
+        Cluster cluster(string id) const;
     private:
     };
 
-    class Host;
-
-    class Hosts : public Resource {
-    public:
-        Hosts(string url);
-        Host* create(string process_type = "mongod");
-    };
-
     class Host : public Resource {
+
+        friend class API;
+        friend class ReplicaSet;
+        friend class Cluster;
+
     public:
-        Host(string url);
         void start();
         void stop();
         void restart();
         void destroy();
-        string uri();
+        string uri() const;
 
     private:
-        RestClient::response status();
+        Host(string url);
+        RestClient::response status() const;
     };
 
+    class ReplicaSet : public Resource {
 
-    class ReplicaSets {
+        friend class API;
+        friend class Cluster;
+
+    public:
+        Host primary() const;
+        vector<Host> secondaries() const;
+        vector<Host> arbiters() const;
+        vector<Host> hidden() const;
+        vector<Host> members() const;
+
+    private:
+        ReplicaSet(string url);
     };
 
-    class ReplicaSet {
-    };
+    class Cluster : public Resource {
 
-    class Clusters{
-    };
+        friend class API;
 
-    class Cluster{
+    public:
+        vector<Host> members() const;
+        vector<Host> configs() const;
+        vector<Host> routers() const;
+
+    private:
+        Cluster(string url);
     };
 
 } // namespace orchestration

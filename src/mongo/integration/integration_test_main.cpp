@@ -21,19 +21,23 @@
 
 namespace mongo {
     namespace integration {
-        mongo::orchestration::API* orchestration = NULL;
-        mongo::orchestration::Host* Standalone::standalone = NULL;
-        std::string Standalone::_uri;
+        mongo::orchestration::API* Environment::_api = NULL;
+        std::string mongo::integration::Standalone::_uri;
     } // namespace integration
 } // namespace mongo
 
 int main(int argc, char **argv) {
+
+    if (argc != 2) {
+        std::cout << "usage: " << argv[0] << " MONGO_ORCHESTRATION_URL" << std::endl;
+    }
+
     mongo::Status status = mongo::client::initialize();
 
     if (!status.isOK())
         ::abort();
 
-    ::testing::AddGlobalTestEnvironment(new mongo::integration::Environment("localhost:8889"));
+    ::testing::AddGlobalTestEnvironment(new mongo::integration::Environment(argv[1]));
     ::testing::InitGoogleTest(&argc, argv);
 
     return RUN_ALL_TESTS();

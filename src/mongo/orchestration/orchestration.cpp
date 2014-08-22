@@ -36,7 +36,7 @@ namespace orchestration {
 
     Resource::Resource(string _url) : _url(_url) {}
 
-    RestClient::response Resource::get(string relative_path) {
+    RestClient::response Resource::get(string relative_path) const {
         return RestClient::get(make_url(relative_path));
     }
 
@@ -52,38 +52,70 @@ namespace orchestration {
         return RestClient::del(make_url(relative_path));
     }
 
-    string Resource::make_url(string relative_path) {
+    string Resource::make_url(string relative_path) const {
         return relative_path.empty() ? _url : _url + "/" + relative_path;
     }
 
     API::API(string url) : Resource(url) {}
 
-    Hosts API::hosts() { return Hosts(_url + "/hosts"); }
+    vector<Host> API::hosts() const {
+        vector<Host> hosts;
 
-    Hosts::Hosts(string url) : Resource(url) {}
+        RestClient::response result = get("/hosts");
+        Document hosts_doc;
+        hosts_doc.Parse(result.body.c_str());
+        // TODO: make hosts from info here
+        return hosts;
+    }
 
-    Host* Hosts::create(string process_type) {
+    vector<ReplicaSet> API::replica_sets() const {
+        vector<ReplicaSet> replica_sets;
+        RestClient::response result = get("/hosts");
+        Document sets_doc;
+        sets_doc.Parse(result.body.c_str());
+        return replica_sets;
+    }
+
+    Host API::host(string id) const {
+        return Host(_url + "/hosts/" + id);
+    }
+
+    ReplicaSet API::replica_set(string id) const {
+        return ReplicaSet(_url + "/rs/" + id);
+    }
+
+    string API::createMongod(string id) {
         Document doc;
         StringBuffer sb;
         Writer<StringBuffer> writer(sb);
         writer.StartObject();
+
+        // Host ID
+        if (!id.empty()) {
+            writer.String("id");
+            writer.String(id.c_str());
+        }
+
+        // Process Name
         writer.String("name");
-        writer.String(process_type.c_str());
+        writer.String("mongod");
+
+        // Process Parameters
         writer.String("procParams");
         writer.StartObject();
         writer.String("setParameter");
         writer.String("enableTestCommands=1");
         writer.EndObject();
+
         writer.EndObject();
-        RestClient::response result = post("", sb.GetString());
 
-        Document host_doc;
-        host_doc.Parse(result.body.c_str());
-
-        return new Host(_url + "/" + host_doc["id"].GetString());
+        RestClient::response result = post("hosts", sb.GetString());
+        Document result_doc;
+        result_doc.Parse(result.body.c_str());
+        return result_doc["id"].GetString();
     }
 
-    Host::Host(std::string url) : Resource(url) {}
+    Host::Host(string url) : Resource(url) {}
 
     void Host::start() {
         RestClient::response response = put("start");
@@ -102,13 +134,15 @@ namespace orchestration {
         del();
     }
 
-    string Host::uri() {
+    string Host::uri() const {
         Document doc;
         doc.Parse(status().body.c_str());
         return doc["uri"].GetString();
     }
 
-    RestClient::response Host::status() {
+    ReplicaSet::ReplicaSet(string url) : Resource(url) {}
+
+    RestClient::response Host::status() const {
         return get();
     }
 
