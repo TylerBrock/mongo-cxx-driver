@@ -22,6 +22,7 @@
 namespace mongo {
     namespace integration {
         mongo::orchestration::API* Environment::_api = NULL;
+        std::string mongo::integration::Standalone::_id;
         std::string mongo::integration::Standalone::_uri;
     } // namespace integration
 } // namespace mongo

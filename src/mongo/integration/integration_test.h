@@ -16,6 +16,7 @@
 #pragma once
 
 #include <string>
+#include <map>
 
 #include "mongo/orchestration/orchestration.h"
 #include "mongo/unittest/unittest.h"
@@ -43,14 +44,15 @@ namespace mongo {
         class Standalone : public ::testing::Test {
         public:
             static void SetUpTestCase() {
-                Environment::Orchestration()->createMongod("standalone");
-                _uri = Environment::Orchestration()->host("standalone").uri();
+                _id = Environment::Orchestration()->createMongod();
+                _uri = Environment::Orchestration()->host(_id).uri();
             }
 
             static void TearDownTestCase() {
-                Environment::Orchestration()->host("standalone").destroy();
+                Environment::Orchestration()->host(_id).destroy();
             }
 
+            static std::string _id;
             static std::string _uri;
         };
 
