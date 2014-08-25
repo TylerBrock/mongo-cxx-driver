@@ -17,11 +17,35 @@
 
 #include "mongo/integration/integration_test.h"
 
+#include "mongo/client/dbclient.h"
+
 using namespace mongo;
 using namespace mongo::integration;
 
 namespace {
     TEST_F(ReplicaSetTest, FirstTest) {
-        // TODO: write a test
+        std::string errmsg;
+
+        std::cout << "The uri we got was: " << _uri << std::endl;
+
+        ConnectionString cs = ConnectionString::parse(_uri, errmsg);
+
+        if (!cs.isValid()) {
+            std::cout << "errr:" <<  errmsg <<std::endl;
+        } else {
+            std::cout << "good:" << cs.getServers()[0] << std::endl;
+            std::cout << "good2:" << cs.getSetName() << std::endl;
+        }
+
+        DBClientReplicaSet * conn = static_cast<DBClientReplicaSet*>(cs.connect(errmsg));
+        if (!conn) {
+            std::cout << "error connecting: " << errmsg << std::endl;
+        }
+
+        std::cout << "inserting" << std::endl;
+        conn->insert("test.test", BSON("a" << 1));
+        std::cout << "finding" << std::endl;
+        std::cout << conn->findOne("test.test", Query()) << std::endl;
+
     }
 } // namespace

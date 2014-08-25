@@ -15,6 +15,7 @@
  */
 
 #include <cassert>
+#include <stdexcept>
 
 #include "orchestration.h"
 
@@ -29,8 +30,9 @@ namespace orchestration {
     namespace Status {
         const int OK = 200;
         const int NoContent = 204;
-        const int Fail = 400;
+        const int BadRequest = 400;
         const int NotFound = 404;
+        const int InternalServerError = 500;
     }
 
     const char Resource::_content_type[] = "text/json";
@@ -62,7 +64,7 @@ namespace orchestration {
         if (response.code == Status::OK) {
             doc_ptr->Parse(response.body.c_str());
         } else if (response.code != Status::NoContent) {
-            throw response.body.c_str();
+            throw std::runtime_error("Failed to parse response: " + response.body);
         }
         return doc_ptr;
     }
@@ -121,6 +123,8 @@ namespace orchestration {
     }
 
     string API::createReplicaSet(const string& id) {
+        auto_ptr<Document> result_doc = handle_response(post("rs", "{\"members\": [{},{},{}]}"));
+        return (*result_doc)["id"].GetString();
     }
 
     Host::Host(const string& url) : Resource(url) {}
@@ -151,8 +155,24 @@ namespace orchestration {
 
     ReplicaSet::ReplicaSet(const string& url) : Resource(url) {}
 
+    string ReplicaSet::uri() const {
+        Document doc;
+        doc.Parse(status().body.c_str());
+        assert(doc.IsObject());
+        assert(doc.HasMember("uri"));
+        return string("mongodb://") + doc["uri"].GetString();
+    }
+
+    RestClient::response ReplicaSet::status() const {
+        return get();
+    }
+
     RestClient::response Host::status() const {
         return get();
+    }
+
+    void ReplicaSet::destroy() {
+        del();
     }
 
     Cluster::Cluster(const string& url) : Resource(url) {}

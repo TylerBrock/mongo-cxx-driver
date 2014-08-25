@@ -60,12 +60,13 @@ namespace mongo {
         public:
             static void SetUpTestCase() {
                 _id = Environment::Orchestration()->createReplicaSet();
-                _uri = Environment::Orchestration()->host(_id).uri();
+                std::cout << "created a replica set!!" << _uri << std::endl;
+                _uri = Environment::Orchestration()->replica_set(_id).uri();
                 std::cout << "created a replica set: " << _uri << std::endl;
             }
 
             static void TearDownTestCase() {
-                Environment::Orchestration()->host(_id).destroy();
+                Environment::Orchestration()->replica_set(_id).destroy();
             }
 
             static std::string _id;

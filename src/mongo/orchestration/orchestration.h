@@ -117,6 +117,9 @@ namespace orchestration {
 
     public:
         Host primary() const;
+        void destroy();
+        string uri() const;
+        RestClient::response status() const;
         vector<Host> secondaries() const;
         vector<Host> arbiters() const;
         vector<Host> hidden() const;
