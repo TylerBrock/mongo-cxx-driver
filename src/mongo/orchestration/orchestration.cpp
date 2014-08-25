@@ -120,6 +120,9 @@ namespace orchestration {
         return result_doc["id"].GetString();
     }
 
+    string API::createReplicaSet(const string& id) {
+    }
+
     Host::Host(const string& url) : Resource(url) {}
 
     void Host::start() {

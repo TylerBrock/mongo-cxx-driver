@@ -59,8 +59,9 @@ namespace mongo {
         class ReplicaSetTest : public ::testing::Test {
         public:
             static void SetUpTestCase() {
-                _id = Environment::Orchestration()->createMongod();
+                _id = Environment::Orchestration()->createReplicaSet();
                 _uri = Environment::Orchestration()->host(_id).uri();
+                std::cout << "created a replica set: " << _uri << std::endl;
             }
 
             static void TearDownTestCase() {

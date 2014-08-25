@@ -24,6 +24,8 @@ namespace mongo {
         mongo::orchestration::API* Environment::_api = NULL;
         std::string mongo::integration::StandaloneTest::_id;
         std::string mongo::integration::StandaloneTest::_uri;
+        std::string mongo::integration::ReplicaSetTest::_id;
+        std::string mongo::integration::ReplicaSetTest::_uri;
     } // namespace integration
 } // namespace mongo
 

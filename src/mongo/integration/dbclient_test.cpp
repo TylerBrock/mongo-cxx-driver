@@ -15,10 +15,10 @@
 
 #include "mongo/platform/basic.h"
 
-#include <boost/scoped_ptr.hpp>
 #include <algorithm>
 #include <functional>
 #include <list>
+#include <memory>
 #include <string>
 #include <vector>
 
@@ -38,8 +38,8 @@ using std::list;
 using std::string;
 using std::vector;
 
-using namespace mongo::integration;
 using namespace mongo;
+using namespace mongo::integration;
 
 namespace {
     const string TEST_NS = "test.dbclient";
