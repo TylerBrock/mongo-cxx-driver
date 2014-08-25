@@ -49,7 +49,7 @@ namespace {
     };
 
     template <typename T>
-    class DBClientWriterTest : public Standalone {
+    class DBClientWriterTest : public StandaloneTest {
     public:
         DBClientWriterTest() {
             c.connect(_uri);

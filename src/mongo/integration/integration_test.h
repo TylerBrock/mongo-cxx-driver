@@ -41,7 +41,22 @@ namespace mongo {
             std::string _uri;
         };
 
-        class Standalone : public ::testing::Test {
+        class StandaloneTest : public ::testing::Test {
+        public:
+            static void SetUpTestCase() {
+                _id = Environment::Orchestration()->createMongod();
+                _uri = Environment::Orchestration()->host(_id).uri();
+            }
+
+            static void TearDownTestCase() {
+                Environment::Orchestration()->host(_id).destroy();
+            }
+
+            static std::string _id;
+            static std::string _uri;
+        };
+
+        class ReplicaSetTest : public ::testing::Test {
         public:
             static void SetUpTestCase() {
                 _id = Environment::Orchestration()->createMongod();

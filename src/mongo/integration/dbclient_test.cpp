@@ -57,7 +57,7 @@ namespace {
         int _count;
     };
 
-    class DBClientTest : public Standalone {
+    class DBClientTest : public StandaloneTest {
     public:
         DBClientTest() {
             c.connect(_uri);

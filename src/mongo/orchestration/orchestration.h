@@ -16,10 +16,13 @@
 
 #pragma once
 
+#include <cassert>
 #include <iostream>
+#include <memory>
 #include <string>
 #include <vector>
 
+#include "boost/scoped_ptr.hpp"
 #include "third_party/restclient/restclient.h"
 #include "third_party/rapidjson/document.h"
 
@@ -27,6 +30,7 @@ namespace mongo {
 namespace orchestration {
 
     using namespace std;
+    using namespace boost;
     using namespace rapidjson;
 
     class Resource {
@@ -40,7 +44,7 @@ namespace orchestration {
         RestClient::response del(string relative_path="");
 
         string make_url(string relative_path) const;
-        void handle_response(RestClient::response response) const;
+        auto_ptr<Document> handle_response(RestClient::response response) const;
 
         static const char _content_type[];
         string _url;
@@ -66,7 +70,26 @@ namespace orchestration {
         Host host(const string& id) const;
         ReplicaSet replica_set(const string& id) const;
         Cluster cluster(const string& id) const;
+
     private:
+        template <typename T>
+        vector<T> get_plural_resource(const string& resource_name) const {
+            vector<T> resources;
+
+            RestClient::response result = get(resource_name);
+            Document result_array;
+            result_array.Parse(result.body.c_str());
+            assert(result_array.IsArray());
+
+            Value::ConstValueIterator resource_iter = result_array.Begin();
+            while (resource_iter != result_array.End()) {
+                T temp(make_url(resource_name + "/" + resource_iter->GetString()));
+                resources.push_back(temp);
+                ++resource_iter;
+            }
+
+            return resources;
+        }
     };
 
     class Host : public Resource {

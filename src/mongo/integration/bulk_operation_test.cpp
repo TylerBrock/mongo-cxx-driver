@@ -50,7 +50,7 @@ namespace {
     };
 
     template <typename T>
-    class BulkOperationTest : public Standalone {
+    class BulkOperationTest : public StandaloneTest {
     public:
         BulkOperationTest() {
             c = new DBClientConnection;

@@ -48,7 +48,7 @@ namespace {
     const int OTHER_LEN = UOTHER_LEN;
     const char DATA_LOC[] = "./src/mongo/integration/data";
 
-    class GridFSTest : public Standalone {
+    class GridFSTest : public StandaloneTest {
     public:
         GridFSTest() : _conn(new DBClientConnection()) {
             _conn->connect(_uri);

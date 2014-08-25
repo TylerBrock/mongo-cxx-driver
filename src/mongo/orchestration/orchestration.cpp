@@ -33,8 +33,6 @@ namespace orchestration {
         const int kStatusNotFound = 404;
     }
 
-    using namespace rapidjson;
-
     const char Resource::_content_type[] = "text/json";
 
     Resource::Resource(string _url) : _url(_url) {}
@@ -59,34 +57,28 @@ namespace orchestration {
         return relative_path.empty() ? _url : _url + "/" + relative_path;
     }
 
-    void Resource::handle_response(RestClient::response response) const {
-        Document doc;
+    auto_ptr<Document> Resource::handle_response(RestClient::response response) const {
+        auto_ptr<Document> doc_ptr(new Document);
         if (response.code == kStatusOK) {
-            doc.Parse(response.body.c_str());
+            doc_ptr->Parse(response.body.c_str());
         } else if (response.code != kNoContent) {
-            // TODO: throw
+            throw response.body.c_str();;
         }
+        return doc_ptr;
     }
 
     API::API(string url) : Resource(url) {}
 
     vector<Host> API::hosts() const {
-        vector<Host> hosts;
-
-        RestClient::response result = get("hosts");
-        Document host_list;
-        host_list.Parse(result.body.c_str());
-        for (Value::ConstValueIterator itr = host_list.Begin(); itr != host_list.End(); ++itr)
-            hosts.push_back(Host(_url + "/hosts/" + itr->GetString()));
-        return hosts;
+        return get_plural_resource<Host>("hosts");
     }
 
     vector<ReplicaSet> API::replica_sets() const {
-        vector<ReplicaSet> replica_sets;
-        RestClient::response result = get("rs");
-        Document sets_doc;
-        sets_doc.Parse(result.body.c_str());
-        return replica_sets;
+        return get_plural_resource<ReplicaSet>("rs");
+    }
+
+    vector<Cluster> API::clusters() const {
+        return get_plural_resource<Cluster>("sh");
     }
 
     Host API::host(const string& id) const {
@@ -159,6 +151,8 @@ namespace orchestration {
     RestClient::response Host::status() const {
         return get();
     }
+
+    Cluster::Cluster(const string& url) : Resource(url) {}
 
 } // namespace orchestration
 } // namespace mongo
