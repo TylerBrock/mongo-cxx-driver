@@ -26,11 +26,11 @@
 namespace mongo {
 namespace orchestration {
 
-    namespace {
-        const int kStatusOK = 200;
-        const int kNoContent = 204;
-        const int kStatusFail = 400;
-        const int kStatusNotFound = 404;
+    namespace Status {
+        const int OK = 200;
+        const int NoContent = 204;
+        const int Fail = 400;
+        const int NotFound = 404;
     }
 
     const char Resource::_content_type[] = "text/json";
@@ -59,10 +59,10 @@ namespace orchestration {
 
     auto_ptr<Document> Resource::handle_response(RestClient::response response) const {
         auto_ptr<Document> doc_ptr(new Document);
-        if (response.code == kStatusOK) {
+        if (response.code == Status::OK) {
             doc_ptr->Parse(response.body.c_str());
-        } else if (response.code != kNoContent) {
-            throw response.body.c_str();;
+        } else if (response.code != Status::NoContent) {
+            throw response.body.c_str();
         }
         return doc_ptr;
     }
