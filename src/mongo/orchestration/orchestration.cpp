@@ -14,6 +14,8 @@
  * limitations under the License.
  */
 
+#include <cassert>
+
 #include "orchestration.h"
 
 #include "third_party/rapidjson/document.h"
@@ -26,6 +28,7 @@ namespace orchestration {
 
     namespace {
         const int kStatusOK = 200;
+        const int kNoContent = 204;
         const int kStatusFail = 400;
         const int kStatusNotFound = 404;
     }
@@ -56,35 +59,45 @@ namespace orchestration {
         return relative_path.empty() ? _url : _url + "/" + relative_path;
     }
 
+    void Resource::handle_response(RestClient::response response) const {
+        Document doc;
+        if (response.code == kStatusOK) {
+            doc.Parse(response.body.c_str());
+        } else if (response.code != kNoContent) {
+            // TODO: throw
+        }
+    }
+
     API::API(string url) : Resource(url) {}
 
     vector<Host> API::hosts() const {
         vector<Host> hosts;
 
-        RestClient::response result = get("/hosts");
-        Document hosts_doc;
-        hosts_doc.Parse(result.body.c_str());
-        // TODO: make hosts from info here
+        RestClient::response result = get("hosts");
+        Document host_list;
+        host_list.Parse(result.body.c_str());
+        for (Value::ConstValueIterator itr = host_list.Begin(); itr != host_list.End(); ++itr)
+            hosts.push_back(Host(_url + "/hosts/" + itr->GetString()));
         return hosts;
     }
 
     vector<ReplicaSet> API::replica_sets() const {
         vector<ReplicaSet> replica_sets;
-        RestClient::response result = get("/hosts");
+        RestClient::response result = get("rs");
         Document sets_doc;
         sets_doc.Parse(result.body.c_str());
         return replica_sets;
     }
 
-    Host API::host(string id) const {
+    Host API::host(const string& id) const {
         return Host(_url + "/hosts/" + id);
     }
 
-    ReplicaSet API::replica_set(string id) const {
+    ReplicaSet API::replica_set(const string& id) const {
         return ReplicaSet(_url + "/rs/" + id);
     }
 
-    string API::createMongod(string id) {
+    string API::createMongod(const string& id) {
         Document doc;
         StringBuffer sb;
         Writer<StringBuffer> writer(sb);
@@ -115,11 +128,10 @@ namespace orchestration {
         return result_doc["id"].GetString();
     }
 
-    Host::Host(string url) : Resource(url) {}
+    Host::Host(const string& url) : Resource(url) {}
 
     void Host::start() {
-        RestClient::response response = put("start");
-        //if (response.code == kStatusOK)
+        put("start");
     }
 
     void Host::stop() {
@@ -137,10 +149,12 @@ namespace orchestration {
     string Host::uri() const {
         Document doc;
         doc.Parse(status().body.c_str());
+        assert(doc.IsObject());
+        assert(doc.HasMember("uri"));
         return doc["uri"].GetString();
     }
 
-    ReplicaSet::ReplicaSet(string url) : Resource(url) {}
+    ReplicaSet::ReplicaSet(const string& url) : Resource(url) {}
 
     RestClient::response Host::status() const {
         return get();

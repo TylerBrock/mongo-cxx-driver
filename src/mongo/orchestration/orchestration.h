@@ -40,6 +40,7 @@ namespace orchestration {
         RestClient::response del(string relative_path="");
 
         string make_url(string relative_path) const;
+        void handle_response(RestClient::response response) const;
 
         static const char _content_type[];
         string _url;
@@ -57,14 +58,14 @@ namespace orchestration {
         vector<ReplicaSet> replica_sets() const;
         vector<Cluster> clusters() const;
 
-        string createMongod(string id = "");
-        string createMongos(Document params);
-        string createReplicaSet(Document params);
+        string createMongod(const string& id = "");
+        string createMongos(const string& id = "");
+        string createReplicaSet(const string& id = "");
         string createCluster(Document params);
 
-        Host host(string id) const;
-        ReplicaSet replica_set(string id) const;
-        Cluster cluster(string id) const;
+        Host host(const string& id) const;
+        ReplicaSet replica_set(const string& id) const;
+        Cluster cluster(const string& id) const;
     private:
     };
 
@@ -82,7 +83,7 @@ namespace orchestration {
         string uri() const;
 
     private:
-        Host(string url);
+        Host(const string& url);
         RestClient::response status() const;
     };
 
@@ -99,7 +100,7 @@ namespace orchestration {
         vector<Host> members() const;
 
     private:
-        ReplicaSet(string url);
+        ReplicaSet(const string& url);
     };
 
     class Cluster : public Resource {
@@ -112,7 +113,7 @@ namespace orchestration {
         vector<Host> routers() const;
 
     private:
-        Cluster(string url);
+        Cluster(const string& url);
     };
 
 } // namespace orchestration
