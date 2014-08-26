@@ -63,7 +63,7 @@ namespace orchestration {
         auto_ptr<Document> doc_ptr(new Document);
         if (response.code == Status::OK) {
             doc_ptr->Parse(response.body.c_str());
-            if ( !(doc_ptr->IsObject()) && !(doc_ptr->IsArray()) )
+            if (doc_ptr->HasParseError())
                 throw std::runtime_error("Failed to parse response: " + response.body);
         } else if (response.code != Status::NoContent) {
             throw std::runtime_error("Failed got a bad response: " + response.body);
@@ -93,43 +93,37 @@ namespace orchestration {
         return ReplicaSet(_url + "/rs/" + id);
     }
 
-    string API::createMongod(const string& id) {
+    string API::createMongod(const Document& params) {
         Document doc;
-        StringBuffer sb;
-        Writer<StringBuffer> writer(sb);
-        writer.StartObject();
+        Document::AllocatorType& alloc = doc.GetAllocator();
+        doc.SetObject();
 
-        // Host ID
-        if (!id.empty()) {
-            writer.String("id");
-            writer.String(id.c_str());
-        }
+        // Copy params over
+        if (params.IsObject())
+            doc.CopyFrom(params, alloc);
 
         // Process Name
-        writer.String("name");
-        writer.String("mongod");
+        doc.AddMember("name", "mongod", alloc);
+
+        Value set_params(kObjectType);
+        set_params.AddMember("enableTestCommands", 1, alloc);
+
+        Value proc_params(kObjectType);
+        proc_params.AddMember("setParameter", set_params, alloc);
 
         // Process Parameters
-        writer.String("procParams");
-        writer.StartObject();
+        doc.AddMember("procParams", proc_params, alloc);
 
-        writer.String("setParameter");
-        writer.StartObject();
-
-        writer.String("enableTestCommands");
-        writer.Int(1);
-        writer.EndObject(); // end enableTestCommands
-
-        writer.EndObject(); // end setParameter
-
-        writer.EndObject(); // end Object
+        StringBuffer sb;
+        Writer<StringBuffer> writer(sb);
+        doc.Accept(writer);
 
         RestClient::response result = post("hosts", sb.GetString());
         auto_ptr<Document> result_doc = handle_response(result);
         return (*result_doc)["id"].GetString();
     }
 
-    string API::createReplicaSet(const string& id) {
+    string API::createReplicaSet(const Document& params) {
         auto_ptr<Document> result_doc = handle_response(post("rs", "{\"members\": [{},{},{}]}"));
         return (*result_doc)["id"].GetString();
     }

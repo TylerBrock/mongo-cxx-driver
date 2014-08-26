@@ -62,10 +62,10 @@ namespace orchestration {
         vector<ReplicaSet> replica_sets() const;
         vector<Cluster> clusters() const;
 
-        string createMongod(const string& id = "");
-        string createMongos(const string& id = "");
-        string createReplicaSet(const string& id = "");
-        string createCluster(Document params);
+        string createMongod(const Document& params = Document());
+        string createMongos(const Document& params = Document());
+        string createReplicaSet(const Document& params = Document());
+        string createCluster(const Document& params = Document());
 
         Host host(const string& id) const;
         ReplicaSet replica_set(const string& id) const;

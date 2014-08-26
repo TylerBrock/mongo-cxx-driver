@@ -20,6 +20,7 @@
 
 #include "mongo/orchestration/orchestration.h"
 #include "mongo/unittest/unittest.h"
+#include "third_party/rapidjson/document.h"
 
 // Act like we are using the driver externally
 #ifdef MONGO_EXPOSE_MACROS
