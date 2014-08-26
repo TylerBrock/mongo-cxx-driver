@@ -33,6 +33,7 @@ libIntegrationTestMain = staticClientEnv.StaticLibrary(
     target='integration_test_main',
     source=[
         '../third_party/restclient/restclient.cpp',
+        '../third_party/jsoncpp/jsoncpp.cpp',
         'integration/integration_test_main.cpp',
         'orchestration/orchestration.cpp'
     ],

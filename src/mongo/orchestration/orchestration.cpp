@@ -19,10 +19,7 @@
 
 #include "orchestration.h"
 
-#include "third_party/rapidjson/document.h"
-#include "third_party/rapidjson/reader.h"
-#include "third_party/rapidjson/stringbuffer.h"
-#include "third_party/rapidjson/writer.h"
+#include "third_party/jsoncpp/json.h"
 
 namespace mongo {
 namespace orchestration {
@@ -59,11 +56,12 @@ namespace orchestration {
         return relative_path.empty() ? _url : _url + "/" + relative_path;
     }
 
-    auto_ptr<Document> Resource::handle_response(RestClient::response response) const {
-        auto_ptr<Document> doc_ptr(new Document);
+    auto_ptr<Json::Value> Resource::handle_response(RestClient::response response) const {
+        auto_ptr<Json::Value> doc_ptr(new Json::Value);
         if (response.code == Status::OK) {
-            doc_ptr->Parse(response.body.c_str());
-            if (doc_ptr->HasParseError())
+            Json::Reader reader;
+            bool parseSuccessful = reader.parse(response.body.c_str(), *doc_ptr);
+            if (!parseSuccessful)
                 throw std::runtime_error("Failed to parse response: " + response.body);
         } else if (response.code != Status::NoContent) {
             throw std::runtime_error("Failed got a bad response: " + response.body);
@@ -93,39 +91,22 @@ namespace orchestration {
         return ReplicaSet(_url + "/rs/" + id);
     }
 
-    string API::createMongod(const Document& params) {
-        Document doc;
-        Document::AllocatorType& alloc = doc.GetAllocator();
-        doc.SetObject();
+    string API::createMongod(const Json::Value& params) {
+        Json::Value doc(params);
 
-        // Copy params over
-        if (params.IsObject())
-            doc.CopyFrom(params, alloc);
+        doc["name"] = "mongod";
+        doc["procParams"]["setParameter"]["enableTestCommands"] = 1;
 
-        // Process Name
-        doc.AddMember("name", "mongod", alloc);
+        Json::FastWriter writer;
 
-        Value set_params(kObjectType);
-        set_params.AddMember("enableTestCommands", 1, alloc);
-
-        Value proc_params(kObjectType);
-        proc_params.AddMember("setParameter", set_params, alloc);
-
-        // Process Parameters
-        doc.AddMember("procParams", proc_params, alloc);
-
-        StringBuffer sb;
-        Writer<StringBuffer> writer(sb);
-        doc.Accept(writer);
-
-        RestClient::response result = post("hosts", sb.GetString());
-        auto_ptr<Document> result_doc = handle_response(result);
-        return (*result_doc)["id"].GetString();
+        RestClient::response result = post("hosts", writer.write(doc));
+        auto_ptr<Json::Value> result_doc = handle_response(result);
+        return (*result_doc)["id"].asString();
     }
 
-    string API::createReplicaSet(const Document& params) {
-        auto_ptr<Document> result_doc = handle_response(post("rs", "{\"members\": [{},{},{}]}"));
-        return (*result_doc)["id"].GetString();
+    string API::createReplicaSet(const Json::Value& params) {
+        auto_ptr<Json::Value> result_doc = handle_response(post("rs", "{\"members\": [{},{},{}]}"));
+        return (*result_doc)["id"].asString();
     }
 
     Host::Host(const string& url) : Resource(url) {}
@@ -147,21 +128,23 @@ namespace orchestration {
     }
 
     string Host::uri() const {
-        Document doc;
-        doc.Parse(status().body.c_str());
-        assert(doc.IsObject());
-        assert(doc.HasMember("uri"));
-        return doc["uri"].GetString();
+        Json::Value doc;
+        Json::Reader reader;
+        reader.parse(status().body.c_str(), doc);
+        assert(doc.isObject());
+        assert(doc.isMember("uri"));
+        return doc["uri"].asString();
     }
 
     ReplicaSet::ReplicaSet(const string& url) : Resource(url) {}
 
     string ReplicaSet::uri() const {
-        Document doc;
-        doc.Parse(status().body.c_str());
-        assert(doc.IsObject());
-        assert(doc.HasMember("uri"));
-        return string("mongodb://") + doc["uri"].GetString();
+        Json::Value doc;
+        Json::Reader reader;
+        reader.parse(status().body.c_str(), doc);
+        assert(doc.isObject());
+        assert(doc.isMember("uri"));
+        return string("mongodb://") + doc["uri"].asString();
     }
 
     RestClient::response ReplicaSet::status() const {

@@ -22,16 +22,13 @@
 #include <string>
 #include <vector>
 
-#include "boost/scoped_ptr.hpp"
 #include "third_party/restclient/restclient.h"
-#include "third_party/rapidjson/document.h"
+#include "third_party/jsoncpp/json.h"
 
 namespace mongo {
 namespace orchestration {
 
     using namespace std;
-    using namespace boost;
-    using namespace rapidjson;
 
     class Resource {
     public:
@@ -44,7 +41,7 @@ namespace orchestration {
         RestClient::response del(string relative_path="");
 
         string make_url(string relative_path) const;
-        auto_ptr<Document> handle_response(RestClient::response response) const;
+        auto_ptr<Json::Value> handle_response(RestClient::response response) const;
 
         static const char _content_type[];
         string _url;
@@ -62,10 +59,10 @@ namespace orchestration {
         vector<ReplicaSet> replica_sets() const;
         vector<Cluster> clusters() const;
 
-        string createMongod(const Document& params = Document());
-        string createMongos(const Document& params = Document());
-        string createReplicaSet(const Document& params = Document());
-        string createCluster(const Document& params = Document());
+        string createMongod(const Json::Value& params = Json::Value());
+        string createMongos(const Json::Value& params = Json::Value());
+        string createReplicaSet(const Json::Value& params = Json::Value());
+        string createCluster(const Json::Value& params = Json::Value());
 
         Host host(const string& id) const;
         ReplicaSet replica_set(const string& id) const;
@@ -76,16 +73,14 @@ namespace orchestration {
         vector<T> get_plural_resource(const string& resource_name) const {
             vector<T> resources;
 
-            RestClient::response result = get(resource_name);
-            Document result_array;
-            result_array.Parse(result.body.c_str());
-            assert(result_array.IsArray());
+            RestClient::response response = get(resource_name);
+            Json::Value result_array;
+            Json::Reader reader;
+            reader.parse(response.body.c_str(), result_array);
 
-            Value::ConstValueIterator resource_iter = result_array.Begin();
-            while (resource_iter != result_array.End()) {
-                T temp(make_url(resource_name + "/" + resource_iter->GetString()));
+            for (unsigned i=0; i<result_array.size(); i++) {
+                T temp(make_url(resource_name + "/" + result_array[i].asString()));
                 resources.push_back(temp);
-                ++resource_iter;
             }
 
             return resources;
