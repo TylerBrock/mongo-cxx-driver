@@ -63,8 +63,10 @@ namespace orchestration {
         auto_ptr<Document> doc_ptr(new Document);
         if (response.code == Status::OK) {
             doc_ptr->Parse(response.body.c_str());
+            if ( !(doc_ptr->IsObject()) && !(doc_ptr->IsArray()) )
+                throw std::runtime_error("Failed to parse response: " + response.body);
         } else if (response.code != Status::NoContent) {
-            throw std::runtime_error("Failed to parse response: " + response.body);
+            throw std::runtime_error("Failed got a bad response: " + response.body);
         }
         return doc_ptr;
     }
@@ -110,16 +112,21 @@ namespace orchestration {
         // Process Parameters
         writer.String("procParams");
         writer.StartObject();
-        writer.String("setParameter");
-        writer.String("enableTestCommands=1");
-        writer.EndObject();
 
-        writer.EndObject();
+        writer.String("setParameter");
+        writer.StartObject();
+
+        writer.String("enableTestCommands");
+        writer.Int(1);
+        writer.EndObject(); // end enableTestCommands
+
+        writer.EndObject(); // end setParameter
+
+        writer.EndObject(); // end Object
 
         RestClient::response result = post("hosts", sb.GetString());
-        Document result_doc;
-        result_doc.Parse(result.body.c_str());
-        return result_doc["id"].GetString();
+        auto_ptr<Document> result_doc = handle_response(result);
+        return (*result_doc)["id"].GetString();
     }
 
     string API::createReplicaSet(const string& id) {
