@@ -40,6 +40,7 @@ namespace orchestration {
         RestClient::response post(string relative_path="", string payload="{}");
         RestClient::response del(string relative_path="");
 
+        RestClient::response action(string action);
         string make_url(string relative_path) const;
         auto_ptr<Json::Value> handle_response(RestClient::response response) const;
 

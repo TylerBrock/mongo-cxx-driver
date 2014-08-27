@@ -99,7 +99,8 @@ integration_tests = [
     'dbclient_writer_test',
     'gridfs_test',
     'sasl_test',
-    'replica_set/first_test'
+    'replica_set/basic',
+    'replica_set/read_preference'
 ]
 
 integrationTestEnv = gtestEnv.Clone()

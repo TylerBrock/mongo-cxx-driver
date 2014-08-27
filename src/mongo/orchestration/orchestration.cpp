@@ -19,17 +19,21 @@
 
 #include "orchestration.h"
 
-#include "third_party/jsoncpp/json.h"
-
 namespace mongo {
 namespace orchestration {
 
-    namespace Status {
-        const int OK = 200;
-        const int NoContent = 204;
-        const int BadRequest = 400;
-        const int NotFound = 404;
-        const int InternalServerError = 500;
+    enum Status {
+        OK = 200,
+        NoContent = 204,
+        BadRequest = 400,
+        NotFound = 404,
+        InternalServerError = 500
+    };
+
+    namespace URI {
+        const char kServers[] = "servers";
+        const char kReplicaSets[] = "replica_sets";
+        const char kShardedCluster[] = "sharded_cluster";
     }
 
     const char Resource::_content_type[] = "text/json";
@@ -52,18 +56,25 @@ namespace orchestration {
         return RestClient::del(make_url(relative_path));
     }
 
+    RestClient::response Resource::action(string action) {
+        Json::Value doc;
+        Json::FastWriter writer;
+        doc["action"] = action;
+        return post("", writer.write(doc));
+    }
+
     string Resource::make_url(string relative_path) const {
         return relative_path.empty() ? _url : _url + "/" + relative_path;
     }
 
     auto_ptr<Json::Value> Resource::handle_response(RestClient::response response) const {
         auto_ptr<Json::Value> doc_ptr(new Json::Value);
-        if (response.code == Status::OK) {
+        if (response.code == OK) {
             Json::Reader reader;
             bool parseSuccessful = reader.parse(response.body.c_str(), *doc_ptr);
             if (!parseSuccessful)
                 throw std::runtime_error("Failed to parse response: " + response.body);
-        } else if (response.code != Status::NoContent) {
+        } else if (response.code != NoContent) {
             throw std::runtime_error("Failed got a bad response: " + response.body);
         }
         return doc_ptr;
@@ -84,11 +95,11 @@ namespace orchestration {
     }
 
     Host API::host(const string& id) const {
-        return Host(_url + "/hosts/" + id);
+        return Host(_url + "/servers/" + id);
     }
 
     ReplicaSet API::replica_set(const string& id) const {
-        return ReplicaSet(_url + "/rs/" + id);
+        return ReplicaSet(_url + "/replica_sets/" + id);
     }
 
     string API::createMongod(const Json::Value& params) {
@@ -99,28 +110,28 @@ namespace orchestration {
 
         Json::FastWriter writer;
 
-        RestClient::response result = post("hosts", writer.write(doc));
+        RestClient::response result = post(URI::kServers, writer.write(doc));
         auto_ptr<Json::Value> result_doc = handle_response(result);
         return (*result_doc)["id"].asString();
     }
 
     string API::createReplicaSet(const Json::Value& params) {
-        auto_ptr<Json::Value> result_doc = handle_response(post("rs", "{\"members\": [{},{},{}]}"));
+        auto_ptr<Json::Value> result_doc = handle_response(post(URI::kReplicaSets, "{\"members\": [{},{},{}]}"));
         return (*result_doc)["id"].asString();
     }
 
     Host::Host(const string& url) : Resource(url) {}
 
     void Host::start() {
-        put("start");
+        action("start");
     }
 
     void Host::stop() {
-        put("stop");
+        action("stop");
     }
 
     void Host::restart() {
-        put("restart");
+        action("restart");
     }
 
     void Host::destroy() {
@@ -145,6 +156,12 @@ namespace orchestration {
         assert(doc.isObject());
         assert(doc.isMember("uri"));
         return string("mongodb://") + doc["uri"].asString();
+    }
+
+    Host ReplicaSet::primary() const {
+        auto_ptr<Json::Value> doc = handle_response(get("primary"));
+        string primary_uri = (*doc)["uri"].asString();
+        return Host(_url.substr(0, _url.find("/")) + primary_uri);
     }
 
     RestClient::response ReplicaSet::status() const {
