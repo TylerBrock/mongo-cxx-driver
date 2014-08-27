@@ -33,14 +33,9 @@ namespace {
     public:
         RSBasicTest() {
             std::string errmsg;
-
             ConnectionString cs = ConnectionString::parse(_uri, errmsg);
             conn = static_cast<DBClientReplicaSet*>(cs.connect(errmsg));
-            if (!conn) {
-                std::cout << "error connecting: " << errmsg << std::endl;
-            } else {
-                conn->dropCollection(TEST_NS);
-            }
+            conn->dropCollection(TEST_NS);
         }
 
         ~RSBasicTest() {
@@ -52,19 +47,41 @@ namespace {
 
     TEST_F(RSBasicTest, InsertRecoversFromPrimaryFailure) {
         WriteConcern wcAll = WriteConcern().nodes(3);
-        std::cout << "doing first insert" << std::endl;
-        conn->insert("test.test", BSON("x" << 1), 0, &wcAll);
-        Environment::Orchestration()->replica_set(_id).primary().stop();
-        std::cout << "doing second insert" << std::endl;
+        conn->insert(TEST_NS, BSON("x" << 1), 0, &wcAll);
+
+        orchestration::Server primary = Environment::Orchestration()->replica_set(_id).primary();
+        primary.stop();
+
         while (true) {
             try {
-                conn->insert("test.test", BSON("x" << 1), 0, &WriteConcern::acknowledged);
+                conn->insert(TEST_NS, BSON("x" << 2), 0, &WriteConcern::acknowledged);
                 break;
-            } catch (std::exception& ex) {
-                std::cout << "caught exception, sleeping" << std::endl;
-                sleep(1);
+            } catch (DBException& ex) {
+                mongo::sleepsecs(1);
             }
         }
-        std::cout << "second insert succeeded" << std::endl;
+
+        ASSERT_EQUALS(conn->count(TEST_NS, Query("{x: 1}")), 1U);
+        ASSERT_EQUALS(conn->count(TEST_NS, Query("{x: 2}")), 1U);
+
+        primary.start();
+        while (true) {
+            try {
+                conn->insert(TEST_NS, BSON("x" << 2), 0, &wcAll);
+                break;
+            } catch (DBException& ex) {
+                mongo::sleepsecs(1);
+            }
+        }
+    }
+
+    TEST_F(RSBasicTest, SecondaryQueryIsNotInteruptedByPrimaryFailure) {
+        WriteConcern wcAll = WriteConcern().nodes(3);
+        conn->insert(TEST_NS, BSON("x" << 1), 0, &wcAll);
+
+        orchestration::Server primary = Environment::Orchestration()->replica_set(_id).primary();
+        primary.stop();
+        conn->findOne(TEST_NS, Query().readPref(ReadPreference_SecondaryOnly, BSONArray()));
+        primary.start();
     }
 }

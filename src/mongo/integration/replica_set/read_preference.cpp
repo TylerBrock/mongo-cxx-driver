@@ -51,36 +51,64 @@ namespace {
     };
 
     TEST_F(ReadPreferenceTest, FirstTest) {
-        std::cout << "inserting" << std::endl;
         WriteConcern wc = WriteConcern().nodes(3);
-        conn->insert("test.test", BSON("a" << 1), 0, &wc);
-        std::cout << "finding" << std::endl;
-        std::cout << conn->findOne("test.test", Query()) << std::endl;
-        std::cout << conn->findOne("test.test", Query().readPref(ReadPreference_SecondaryOnly, BSONArray())) << std::endl;
+        conn->insert(TEST_NS, BSON("a" << 1), 0, &wc);
     }
 
-    TEST_F(ReadPreferenceTest, PrimaryOnlyCursor) {
+    TEST_F(ReadPreferenceTest, QueryPrimaryOnly) {
         Query q = Query().readPref(ReadPreference_PrimaryOnly, BSONArray());
         auto_ptr<DBClientCursor> cursor_ptr = conn->query(TEST_NS, q);
         ASSERT_TRUE(cursor_ptr->originalHost() == conn->masterConn().getServerAddress());
     }
 
-    TEST_F(ReadPreferenceTest, PrimaryPreferredCursor) {
+    TEST_F(ReadPreferenceTest, QueryPrimaryPreferred) {
         Query q = Query().readPref(ReadPreference_PrimaryPreferred, BSONArray());
         auto_ptr<DBClientCursor> cursor_ptr = conn->query(TEST_NS, q);
         ASSERT_TRUE(cursor_ptr->originalHost() == conn->masterConn().getServerAddress());
     }
 
-    TEST_F(ReadPreferenceTest, SecondaryOnlyCursor) {
+    TEST_F(ReadPreferenceTest, QuerySecondaryOnly) {
         Query q = Query().readPref(ReadPreference_SecondaryOnly, BSONArray());
         auto_ptr<DBClientCursor> cursor_ptr = conn->query(TEST_NS, q);
         ASSERT_TRUE(cursor_ptr->originalHost() != conn->masterConn().getServerAddress());
     }
 
-    TEST_F(ReadPreferenceTest, SecondaryPreferredCursor) {
+    TEST_F(ReadPreferenceTest, QuerySecondaryPreferred) {
         Query q = Query().readPref(ReadPreference_SecondaryPreferred, BSONArray());
         auto_ptr<DBClientCursor> cursor_ptr = conn->query(TEST_NS, q);
         ASSERT_TRUE(cursor_ptr->originalHost() != conn->masterConn().getServerAddress());
+    }
+
+    TEST_F(ReadPreferenceTest, CountPrimaryOnly) {
+        WriteConcern wc = WriteConcern().nodes(3);
+        conn->insert(TEST_NS, BSON("a" << 1), 0, &wc);
+
+        Query q = Query().readPref(ReadPreference_PrimaryOnly, BSONArray());
+        ASSERT_EQUALS(conn->count(TEST_NS, q), 1U);
+    }
+
+    TEST_F(ReadPreferenceTest, CountPrimaryPreferred) {
+        WriteConcern wc = WriteConcern().nodes(3);
+        conn->insert(TEST_NS, BSON("a" << 1), 0, &wc);
+
+        Query q = Query().readPref(ReadPreference_PrimaryPreferred, BSONArray());
+        ASSERT_EQUALS(conn->count(TEST_NS, q), 1U);
+    }
+
+    TEST_F(ReadPreferenceTest, CountSecondaryOnly) {
+        WriteConcern wc = WriteConcern().nodes(3);
+        conn->insert(TEST_NS, BSON("a" << 1), 0, &wc);
+
+        Query q = Query().readPref(ReadPreference_SecondaryOnly, BSONArray());
+        ASSERT_EQUALS(conn->count(TEST_NS, q), 1U);
+    }
+
+    TEST_F(ReadPreferenceTest, CountSecondaryPreferred) {
+        WriteConcern wc = WriteConcern().nodes(3);
+        conn->insert(TEST_NS, BSON("a" << 1), 0, &wc);
+
+        Query q = Query().readPref(ReadPreference_SecondaryPreferred, BSONArray());
+        ASSERT_EQUALS(conn->count(TEST_NS, q), 1U);
     }
 
 } // namespace
