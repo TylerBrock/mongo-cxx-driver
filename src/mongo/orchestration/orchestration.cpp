@@ -82,8 +82,8 @@ namespace orchestration {
 
     API::API(string url) : Resource(url) {}
 
-    vector<Host> API::hosts() const {
-        return get_plural_resource<Host>("hosts");
+    vector<Server> API::hosts() const {
+        return get_plural_resource<Server>("hosts");
     }
 
     vector<ReplicaSet> API::replica_sets() const {
@@ -94,8 +94,8 @@ namespace orchestration {
         return get_plural_resource<Cluster>("sh");
     }
 
-    Host API::host(const string& id) const {
-        return Host(_url + "/servers/" + id);
+    Server API::host(const string& id) const {
+        return Server(_url + "/servers/" + id);
     }
 
     ReplicaSet API::replica_set(const string& id) const {
@@ -120,25 +120,25 @@ namespace orchestration {
         return (*result_doc)["id"].asString();
     }
 
-    Host::Host(const string& url) : Resource(url) {}
+    Server::Server(const string& url) : Resource(url) {}
 
-    void Host::start() {
+    void Server::start() {
         action("start");
     }
 
-    void Host::stop() {
+    void Server::stop() {
         action("stop");
     }
 
-    void Host::restart() {
+    void Server::restart() {
         action("restart");
     }
 
-    void Host::destroy() {
+    void Server::destroy() {
         del();
     }
 
-    string Host::uri() const {
+    string Server::uri() const {
         Json::Value doc;
         Json::Reader reader;
         reader.parse(status().body.c_str(), doc);
@@ -158,17 +158,17 @@ namespace orchestration {
         return string("mongodb://") + doc["uri"].asString();
     }
 
-    Host ReplicaSet::primary() const {
+    Server ReplicaSet::primary() const {
         auto_ptr<Json::Value> doc = handle_response(get("primary"));
         string primary_uri = (*doc)["uri"].asString();
-        return Host(_url.substr(0, _url.find("/")) + primary_uri);
+        return Server(_url.substr(0, _url.find("/")) + primary_uri);
     }
 
     RestClient::response ReplicaSet::status() const {
         return get();
     }
 
-    RestClient::response Host::status() const {
+    RestClient::response Server::status() const {
         return get();
     }
 

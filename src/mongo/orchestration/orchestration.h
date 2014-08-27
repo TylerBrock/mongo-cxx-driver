@@ -48,7 +48,7 @@ namespace orchestration {
         string _url;
     };
 
-    class Host;
+    class Server;
     class ReplicaSet;
     class Cluster;
 
@@ -56,7 +56,7 @@ namespace orchestration {
 
     public:
         API(string url);
-        vector<Host> hosts() const;
+        vector<Server> hosts() const;
         vector<ReplicaSet> replica_sets() const;
         vector<Cluster> clusters() const;
 
@@ -65,7 +65,7 @@ namespace orchestration {
         string createReplicaSet(const Json::Value& params = Json::Value());
         string createCluster(const Json::Value& params = Json::Value());
 
-        Host host(const string& id) const;
+        Server host(const string& id) const;
         ReplicaSet replica_set(const string& id) const;
         Cluster cluster(const string& id) const;
 
@@ -88,7 +88,7 @@ namespace orchestration {
         }
     };
 
-    class Host : public Resource {
+    class Server : public Resource {
 
         friend class API;
         friend class ReplicaSet;
@@ -102,7 +102,7 @@ namespace orchestration {
         string uri() const;
 
     private:
-        Host(const string& url);
+        Server(const string& url);
         RestClient::response status() const;
     };
 
@@ -112,14 +112,14 @@ namespace orchestration {
         friend class Cluster;
 
     public:
-        Host primary() const;
+        Server primary() const;
         void destroy();
         string uri() const;
         RestClient::response status() const;
-        vector<Host> secondaries() const;
-        vector<Host> arbiters() const;
-        vector<Host> hidden() const;
-        vector<Host> members() const;
+        vector<Server> secondaries() const;
+        vector<Server> arbiters() const;
+        vector<Server> hidden() const;
+        vector<Server> members() const;
 
     private:
         ReplicaSet(const string& url);
@@ -130,9 +130,9 @@ namespace orchestration {
         friend class API;
 
     public:
-        vector<Host> members() const;
-        vector<Host> configs() const;
-        vector<Host> routers() const;
+        vector<Server> members() const;
+        vector<Server> configs() const;
+        vector<Server> routers() const;
 
     private:
         Cluster(const string& url);
