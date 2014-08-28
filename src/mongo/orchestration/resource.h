@@ -22,6 +22,9 @@
 #include "third_party/jsoncpp/json.h"
 #include "third_party/restclient/restclient.h"
 
+// Posts to resources must not end with a slash or you will get a 404
+// Posts containing a JSON encoded body must conform to strict JSON
+
 namespace mongo {
 namespace orchestration {
 
@@ -29,7 +32,7 @@ namespace orchestration {
 
     class Resource {
     public:
-        Resource(string base_url);
+        Resource(string url);
 
     protected:
         RestClient::response get(string relative_path="") const;
@@ -41,11 +44,24 @@ namespace orchestration {
         string make_url(string relative_path) const;
         auto_ptr<Json::Value> handle_response(RestClient::response response) const;
 
-        static const char _content_type[];
         string _url;
 
         template <typename T>
-        vector<T> get_plural_resource(const string& resource_name) const {
+        vector<T> plural_rooted_resource(const string& resource_name) const {
+            vector<T> resources;
+            auto_ptr<Json::Value> doc = handle_response(get("secondaries"));
+
+            for (unsigned i=0; i<doc->size(); i++) {
+                string secondary_uri = (*doc)[i]["uri"].asString();
+                T resource(_url.substr(0, _url.find("/")) + secondary_uri);
+                resources.push_back(resource);
+            }
+
+            return resources;
+        }
+
+        template <typename T>
+        vector<T> plural_resource(const string& resource_name) const {
             vector<T> resources;
 
             RestClient::response response = get(resource_name);

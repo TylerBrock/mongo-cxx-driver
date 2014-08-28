@@ -19,24 +19,24 @@
 namespace mongo {
 namespace orchestration {
 
-    namespace URI {
+    namespace Resources {
         const char kServers[] = "servers";
         const char kReplicaSets[] = "replica_sets";
-        const char kShardedCluster[] = "sharded_cluster";
+        const char kShardedClusters[] = "sharded_clusters";
     }
 
     Service::Service(string url) : Resource(url) {}
 
     vector<Server> Service::servers() const {
-        return get_plural_resource<Server>("servers");
+        return plural_resource<Server>(Resources::kServers);
     }
 
     vector<ReplicaSet> Service::replica_sets() const {
-        return get_plural_resource<ReplicaSet>("rs");
+        return plural_resource<ReplicaSet>(Resources::kReplicaSets);
     }
 
     vector<Cluster> Service::clusters() const {
-        return get_plural_resource<Cluster>("sh");
+        return plural_resource<Cluster>(Resources::kShardedClusters);
     }
 
     Server Service::server(const string& id) const {
@@ -55,13 +55,15 @@ namespace orchestration {
 
         Json::FastWriter writer;
 
-        RestClient::response result = post(URI::kServers, writer.write(doc));
+        RestClient::response result = post(Resources::kServers, writer.write(doc));
         auto_ptr<Json::Value> result_doc = handle_response(result);
         return (*result_doc)["id"].asString();
     }
 
     string Service::createReplicaSet(const Json::Value& params) {
-        auto_ptr<Json::Value> result_doc = handle_response(post(URI::kReplicaSets, "{\"members\": [{},{}]}"));
+        Json::FastWriter writer;
+
+        auto_ptr<Json::Value> result_doc = handle_response(post(Resources::kReplicaSets, writer.write(params)));
         return (*result_doc)["id"].asString();
     }
 

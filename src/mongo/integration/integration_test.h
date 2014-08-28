@@ -71,7 +71,11 @@ namespace mongo {
             }
 
             static void SetUpTestCase() {
-                _id = Environment::Orchestration()->createReplicaSet();
+                Json::Value parameters;
+                parameters["members"] = Json::Value(Json::arrayValue);
+                parameters["members"].append(Json::Value(Json::objectValue));
+                parameters["members"].append(Json::Value(Json::objectValue));
+                _id = Environment::Orchestration()->createReplicaSet(parameters);
             }
 
             static void TearDownTestCase() {

@@ -60,11 +60,13 @@ namespace {
     class DBClientTest : public StandaloneTest {
     public:
         DBClientTest() {
-            c.connect(_uri);
+            c.connect(Server().uri());
             c.dropCollection(TEST_NS);
+            _uri = Server().uri();
         }
         DBClientConnection c;
-        };
+        std::string _uri;
+    };
 
     bool serverGTE(DBClientBase* c, int major, int minor) {
         BSONObj result;

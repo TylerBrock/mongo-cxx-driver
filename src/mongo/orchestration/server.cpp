@@ -3,7 +3,8 @@
 namespace mongo {
 namespace orchestration {
 
-    Server::Server(const string& url) : Resource(url) {}
+    Server::Server(const string& url, Json::Value parameters) : Resource(url) {
+    }
 
     void Server::start() {
         action("start");

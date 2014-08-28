@@ -19,6 +19,10 @@
 namespace mongo {
 namespace orchestration {
 
+    namespace {
+        const char content_type[] = "text/json";
+    }
+
     enum Status {
         OK = 200,
         NoContent = 204,
@@ -27,20 +31,18 @@ namespace orchestration {
         InternalServerError = 500
     };
 
-    const char Resource::_content_type[] = "text/json";
-
-    Resource::Resource(string _url) : _url(_url) {}
+    Resource::Resource(string url) : _url(url) {}
 
     RestClient::response Resource::get(string relative_path) const {
         return RestClient::get(make_url(relative_path));
     }
 
     RestClient::response Resource::put(string relative_path, string payload) {
-        return RestClient::put(make_url(relative_path), _content_type, payload);
+        return RestClient::put(make_url(relative_path), content_type, payload);
     }
 
     RestClient::response Resource::post(string relative_path, string payload) {
-        return RestClient::post(make_url(relative_path), _content_type, payload);
+        return RestClient::post(make_url(relative_path), content_type, payload);
     }
 
     RestClient::response Resource::del(string relative_path) {

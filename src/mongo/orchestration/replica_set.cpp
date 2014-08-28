@@ -38,16 +38,15 @@ namespace orchestration {
     }
 
     vector<Server> ReplicaSet::secondaries() const {
-        vector<Server> secondaries;
-        auto_ptr<Json::Value> doc = handle_response(get("secondaries"));
+        return plural_rooted_resource<Server>("secondaries");
+    }
 
-        for (unsigned i=0; i<doc->size(); i++) {
-            string secondary_uri = (*doc)[i]["uri"].asString();
-            Server secondary(_url.substr(0, _url.find("/")) + secondary_uri);
-            secondaries.push_back(secondary);
-        }
+    vector<Server> ReplicaSet::hidden() const {
+        return plural_rooted_resource<Server>("hidden");
+    }
 
-        return secondaries;
+    vector<Server> ReplicaSet::arbiters() const {
+        return plural_rooted_resource<Server>("arbiters");
     }
 
     RestClient::response ReplicaSet::status() const {
