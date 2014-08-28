@@ -80,29 +80,29 @@ namespace orchestration {
         return doc_ptr;
     }
 
-    API::API(string url) : Resource(url) {}
+    Service::Service(string url) : Resource(url) {}
 
-    vector<Server> API::hosts() const {
-        return get_plural_resource<Server>("hosts");
+    vector<Server> Service::servers() const {
+        return get_plural_resource<Server>("servers");
     }
 
-    vector<ReplicaSet> API::replica_sets() const {
+    vector<ReplicaSet> Service::replica_sets() const {
         return get_plural_resource<ReplicaSet>("rs");
     }
 
-    vector<Cluster> API::clusters() const {
+    vector<Cluster> Service::clusters() const {
         return get_plural_resource<Cluster>("sh");
     }
 
-    Server API::host(const string& id) const {
+    Server Service::server(const string& id) const {
         return Server(_url + "/servers/" + id);
     }
 
-    ReplicaSet API::replica_set(const string& id) const {
+    ReplicaSet Service::replica_set(const string& id) const {
         return ReplicaSet(_url + "/replica_sets/" + id);
     }
 
-    string API::createMongod(const Json::Value& params) {
+    string Service::createMongod(const Json::Value& params) {
         Json::Value doc(params);
 
         doc["name"] = "mongod";
@@ -115,8 +115,8 @@ namespace orchestration {
         return (*result_doc)["id"].asString();
     }
 
-    string API::createReplicaSet(const Json::Value& params) {
-        auto_ptr<Json::Value> result_doc = handle_response(post(URI::kReplicaSets, "{\"members\": [{},{},{}]}"));
+    string Service::createReplicaSet(const Json::Value& params) {
+        auto_ptr<Json::Value> result_doc = handle_response(post(URI::kReplicaSets, "{\"members\": [{},{}]}"));
         return (*result_doc)["id"].asString();
     }
 
@@ -162,6 +162,19 @@ namespace orchestration {
         auto_ptr<Json::Value> doc = handle_response(get("primary"));
         string primary_uri = (*doc)["uri"].asString();
         return Server(_url.substr(0, _url.find("/")) + primary_uri);
+    }
+
+    vector<Server> ReplicaSet::secondaries() const {
+        vector<Server> secondaries;
+        auto_ptr<Json::Value> doc = handle_response(get("secondaries"));
+
+        for (unsigned i=0; i<doc->size(); i++) {
+            string secondary_uri = (*doc)[i]["uri"].asString();
+            Server secondary(_url.substr(0, _url.find("/")) + secondary_uri);
+            secondaries.push_back(secondary);
+        }
+
+        return secondaries;
     }
 
     RestClient::response ReplicaSet::status() const {

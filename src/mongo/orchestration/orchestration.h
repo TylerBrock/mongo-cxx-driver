@@ -45,30 +45,7 @@ namespace orchestration {
 
         static const char _content_type[];
         string _url;
-    };
 
-    class Server;
-    class ReplicaSet;
-    class Cluster;
-
-    class API : public Resource {
-
-    public:
-        API(string url);
-        vector<Server> hosts() const;
-        vector<ReplicaSet> replica_sets() const;
-        vector<Cluster> clusters() const;
-
-        string createMongod(const Json::Value& params = Json::Value());
-        string createMongos(const Json::Value& params = Json::Value());
-        string createReplicaSet(const Json::Value& params = Json::Value());
-        string createCluster(const Json::Value& params = Json::Value());
-
-        Server host(const string& id) const;
-        ReplicaSet replica_set(const string& id) const;
-        Cluster cluster(const string& id) const;
-
-    private:
         template <typename T>
         vector<T> get_plural_resource(const string& resource_name) const {
             vector<T> resources;
@@ -87,9 +64,32 @@ namespace orchestration {
         }
     };
 
+    class Server;
+    class ReplicaSet;
+    class Cluster;
+
+    class Service : public Resource {
+
+    public:
+        Service(string url);
+        vector<Server> servers() const;
+        vector<ReplicaSet> replica_sets() const;
+        vector<Cluster> clusters() const;
+
+        string createMongod(const Json::Value& params = Json::Value());
+        string createMongos(const Json::Value& params = Json::Value());
+        string createReplicaSet(const Json::Value& params = Json::Value());
+        string createCluster(const Json::Value& params = Json::Value());
+
+        Server server(const string& id) const;
+        ReplicaSet replica_set(const string& id) const;
+        Cluster cluster(const string& id) const;
+    };
+
     class Server : public Resource {
 
-        friend class API;
+        friend class Resource;
+        friend class Service;
         friend class ReplicaSet;
         friend class Cluster;
 
@@ -107,7 +107,8 @@ namespace orchestration {
 
     class ReplicaSet : public Resource {
 
-        friend class API;
+        friend class Resource;
+        friend class Service;
         friend class Cluster;
 
     public:
@@ -126,7 +127,8 @@ namespace orchestration {
 
     class Cluster : public Resource {
 
-        friend class API;
+        friend class Resource;
+        friend class Service;
 
     public:
         vector<Server> members() const;

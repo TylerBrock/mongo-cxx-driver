@@ -29,46 +29,57 @@
 namespace mongo {
     namespace integration {
 
+        using mongo::orchestration::Server;
+        using mongo::orchestration::ReplicaSet;
+        using mongo::orchestration::Cluster;
+
         class Environment : public ::testing::Environment {
         public:
             Environment(std::string uri) : _uri(uri) {}
             virtual ~Environment() {}
-            virtual void SetUp() { _api = new mongo::orchestration::API(_uri); }
+            virtual void SetUp() { _api = new mongo::orchestration::Service(_uri); }
             virtual void TearDown() { delete _api; }
-            static mongo::orchestration::API* Orchestration() { return _api; }
+            static mongo::orchestration::Service* Orchestration() { return _api; }
+
         private:
-            static mongo::orchestration::API* _api;
+            static mongo::orchestration::Service* _api;
             std::string _uri;
         };
 
         class StandaloneTest : public ::testing::Test {
         public:
+            virtual Server Server() {
+                return Environment::Orchestration()->server(_id);
+            }
+
             static void SetUpTestCase() {
                 _id = Environment::Orchestration()->createMongod();
-                _uri = Environment::Orchestration()->host(_id).uri();
             }
 
             static void TearDownTestCase() {
-                Environment::Orchestration()->host(_id).destroy();
+                Environment::Orchestration()->server(_id).destroy();
             }
 
+        private:
             static std::string _id;
-            static std::string _uri;
         };
 
         class ReplicaSetTest : public ::testing::Test {
         public:
+            virtual ReplicaSet ReplicaSet() {
+                return Environment::Orchestration()->replica_set(_id);
+            }
+
             static void SetUpTestCase() {
                 _id = Environment::Orchestration()->createReplicaSet();
-                _uri = Environment::Orchestration()->replica_set(_id).uri();
             }
 
             static void TearDownTestCase() {
                 Environment::Orchestration()->replica_set(_id).destroy();
             }
 
+        private:
             static std::string _id;
-            static std::string _uri;
         };
 
     } // namespace integration
