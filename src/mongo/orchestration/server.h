@@ -16,7 +16,29 @@
 
 #pragma once
 
-#include "mongo/orchestration/service.h"
-#include "mongo/orchestration/server.h"
-#include "mongo/orchestration/replica_set.h"
-#include "mongo/orchestration/cluster.h"
+#include "mongo/orchestration/resource.h"
+
+namespace mongo {
+namespace orchestration {
+
+    class Server : public Resource {
+
+        friend class Resource;
+        friend class Service;
+        friend class ReplicaSet;
+        friend class Cluster;
+
+    public:
+        void start();
+        void stop();
+        void restart();
+        void destroy();
+        string uri() const;
+
+    private:
+        Server(const string& url);
+        RestClient::response status() const;
+    };
+
+} // namespace orchestration
+} // namespace mongo

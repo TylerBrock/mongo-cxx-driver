@@ -14,9 +14,12 @@
  * limitations under the License.
  */
 
-#pragma once
+#include "orchestration.h"
 
-#include "mongo/orchestration/service.h"
-#include "mongo/orchestration/server.h"
-#include "mongo/orchestration/replica_set.h"
-#include "mongo/orchestration/cluster.h"
+namespace mongo {
+namespace orchestration {
+
+    Cluster::Cluster(const string& url) : Resource(url) {}
+
+} // namespace orchestration
+} // namespace mongo
