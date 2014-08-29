@@ -19,6 +19,11 @@
 namespace mongo {
 namespace orchestration {
 
+    namespace {
+        const char kRequiredVersion[] = "0.9";
+        const char kAPIVersion[] = "v1";
+    }
+
     namespace Resources {
         const char kServers[] = "servers";
         const char kReplicaSets[] = "replica_sets";
@@ -47,8 +52,8 @@ namespace orchestration {
         return ReplicaSet(_url + "/replica_sets/" + id);
     }
 
-    string Service::createMongod(const Json::Value& params) {
-        Json::Value doc(params);
+    string Service::createMongod(const Document& params) {
+        Document doc(params);
 
         doc["name"] = "mongod";
         doc["procParams"]["setParameter"]["enableTestCommands"] = 1;
@@ -60,11 +65,15 @@ namespace orchestration {
         return (*result_doc)["id"].asString();
     }
 
-    string Service::createReplicaSet(const Json::Value& params) {
+    string Service::createReplicaSet(const Document& params) {
         Json::FastWriter writer;
 
         auto_ptr<Json::Value> result_doc = handle_response(post(Resources::kReplicaSets, writer.write(params)));
         return (*result_doc)["id"].asString();
+    }
+
+    string Service::createCluster(const Document& params) {
+        return "";
     }
 
 } // namespace orchestration
