@@ -28,7 +28,6 @@ namespace driver {
 namespace model {
 
 class LIBMONGOCXX_EXPORT aggregate : public read<aggregate> {
-
    public:
     explicit aggregate(pipeline pipeline) : _pipeline(std::move(pipeline)) {}
 

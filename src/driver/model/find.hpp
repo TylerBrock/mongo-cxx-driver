@@ -18,6 +18,7 @@
 
 #include <cstdint>
 #include <string>
+#include <set>
 
 #include "bson/document.hpp"
 #include "driver/model/read.hpp"
@@ -27,7 +28,7 @@ namespace mongo {
 namespace driver {
 namespace model {
 
-enum class query_flags : uint32_t {
+enum class cursor_flag : uint32_t {
     k_tailable,
     k_oplog_replay,
     k_no_cursor_timeout,
@@ -39,9 +40,10 @@ enum class query_flags : uint32_t {
 class LIBMONGOCXX_EXPORT find : public read<find> {
 
    public:
-    explicit find(bson::document::view filter);
+    find();
 
     find& batch_size(std::int32_t batch_size);
+    find& criteria(bson::document::view criteria);
     find& cursor_flags(std::int32_t cursor_flags);
     find& limit(std::int32_t limit);
     find& modifiers(bson::document::view modifiers);
@@ -49,9 +51,8 @@ class LIBMONGOCXX_EXPORT find : public read<find> {
     find& skip(std::int32_t skip);
     find& sort(bson::document::view ordering);
 
-    bson::document::view filter() const;
-
     optional<std::int32_t> batch_size() const;
+    optional<bson::document::view> criteria() const;
     optional<std::int32_t> cursor_flags() const;
     optional<std::int32_t> limit() const;
     optional<bson::document::view> modifiers() const;
@@ -60,9 +61,8 @@ class LIBMONGOCXX_EXPORT find : public read<find> {
     optional<bson::document::view> sort() const;
 
    private:
-    bson::document::view _filter;
-
     optional<std::int32_t> _batch_size;
+    optional<bson::document::view> _criteria;
     optional<std::int32_t> _cursor_flags;
     optional<std::int32_t> _limit;
     optional<bson::document::view> _modifiers;

@@ -28,8 +28,11 @@
 #include "driver/model/find_one_and_remove.hpp"
 #include "driver/model/find_one_and_replace.hpp"
 #include "driver/model/find_one_and_update.hpp"
-#include "driver/model/replace.hpp"
-#include "driver/model/update.hpp"
+#include "driver/model/insert_many.hpp"
+#include "driver/model/insert_one.hpp"
+#include "driver/model/replace_one.hpp"
+#include "driver/model/update_many.hpp"
+#include "driver/model/update_one.hpp"
 
 #include "driver/result/distinct.hpp"
 #include "driver/result/explain.hpp"

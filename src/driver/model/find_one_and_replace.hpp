@@ -27,14 +27,14 @@ namespace model {
 class LIBMONGOCXX_EXPORT find_one_and_replace : public write<find_one_and_replace> {
 
    public:
-    find_one_and_replace(bson::document::view filter, bson::document::view replacement);
+    find_one_and_replace(bson::document::view criteria, bson::document::view replacement);
 
     find_one_and_replace& projection(bson::document::view projection);
     find_one_and_replace& return_replacement(bool multi);
     find_one_and_replace& sort(bson::document::view ordering);
     find_one_and_replace& upsert(bool upsert);
 
-    bson::document::view filter() const;
+    bson::document::view criteria() const;
     bson::document::view replacement() const;
 
     optional<bson::document::view> projection() const;
@@ -43,7 +43,7 @@ class LIBMONGOCXX_EXPORT find_one_and_replace : public write<find_one_and_replac
     optional<bool> upsert() const;
 
    private:
-    bson::document::view _filter;
+    bson::document::view _criteria;
     bson::document::view _replacement;
 
     optional<bson::document::view> _projection;

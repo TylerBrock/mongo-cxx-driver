@@ -14,34 +14,26 @@
 
 #pragma once
 
+#include <vector>
+
 #include "driver/config/prelude.hpp"
 
 #include "bson/document.hpp"
 #include "driver/model/write.hpp"
-#include "driver/util/optional.hpp"
 
 namespace mongo {
 namespace driver {
 namespace model {
 
-class LIBMONGOCXX_EXPORT find_one_and_remove : public write<find_one_and_remove> {
+//TODO: make generic template class for iterable vs vector
+class LIBMONGOCXX_EXPORT insert_many : public write<insert_many> {
 
    public:
-    find_one_and_remove(bson::document::view criteria);
-
-    find_one_and_remove& projection(bson::document::view projection);
-    find_one_and_remove& sort(bson::document::view ordering);
-
-    bson::document::view criteria() const;
-
-    optional<bson::document::view> projection() const;
-    optional<bson::document::view> sort() const;
+    insert_many(std::vector<bson::document::view> document);
+    std::vector<bson::document::view> document() const;
 
    private:
-    bson::document::view _criteria;
-
-    optional<bson::document::view> _projection;
-    optional<bson::document::view> _ordering;
+    std::vector<bson::document::view> _document;
 };
 
 }  // namespace model

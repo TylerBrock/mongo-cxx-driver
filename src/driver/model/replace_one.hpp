@@ -18,30 +18,25 @@
 
 #include "bson/document.hpp"
 #include "driver/model/write.hpp"
-#include "driver/util/optional.hpp"
 
 namespace mongo {
 namespace driver {
 namespace model {
 
-class LIBMONGOCXX_EXPORT find_one_and_remove : public write<find_one_and_remove> {
+class LIBMONGOCXX_EXPORT replace_one : write<replace_one> {
 
    public:
-    find_one_and_remove(bson::document::view criteria);
+    replace_one(bson::document::view criteria, bson::document::view replacement);
 
-    find_one_and_remove& projection(bson::document::view projection);
-    find_one_and_remove& sort(bson::document::view ordering);
+    replace_one& upsert(bool upsert);
 
-    bson::document::view criteria() const;
-
-    optional<bson::document::view> projection() const;
-    optional<bson::document::view> sort() const;
+    optional<bool> upsert() const;
 
    private:
     bson::document::view _criteria;
+    bson::document::view _replacement;
 
-    optional<bson::document::view> _projection;
-    optional<bson::document::view> _ordering;
+    optional<bool> _upsert;
 };
 
 }  // namespace model
