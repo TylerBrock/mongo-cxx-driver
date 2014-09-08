@@ -20,17 +20,16 @@
 #include <string>
 
 #include "bson/document.hpp"
-#include "driver/models/read.hpp"
 #include "driver/util/optional.hpp"
 
 namespace mongo {
 namespace driver {
 namespace model {
 
-class LIBMONGOCXX_EXPORT count : public ReadModel<count> {
+class LIBMONGOCXX_EXPORT count {
 
    public:
-    count();
+    count(bson::document::view criteria = bson::document::view{});
 
     count& criteria(bson::document::view criteria);
     count& hint(bson::document::view hint);
@@ -38,14 +37,14 @@ class LIBMONGOCXX_EXPORT count : public ReadModel<count> {
     count& max_time_ms(std::int64_t max_time_ms);
     count& skip(std::int32_t skip);
 
-    optional<bson::document::view> criteria() const;
+    bson::document::view criteria() const;
     optional<bson::document::view> hint() const;
     optional<std::int32_t> limit() const;
     optional<std::int64_t> max_time_ms() const;
     optional<std::int32_t> skip() const;
 
    private:
-    optional<bson::document::view> _criteria;
+    bson::document::view _criteria;
     optional<bson::document::view> _hint;
     optional<std::int32_t> _limit;
     optional<std::int64_t> _max_time_ms;

@@ -19,20 +19,33 @@
 #include <cstdint>
 #include <string>
 #include <vector>
+#include <memory>
 
 #include "bson/document.hpp"
 
 namespace mongo {
+class collection;
+
 namespace driver {
 
 class explain_result;
 
 class LIBMONGOCXX_EXPORT pipeline {
+
+    friend class collection;
+
+    class impl;
+
    public:
+    pipeline();
+    pipeline(pipeline&&);
+    pipeline& operator=(pipeline&&);
+    ~pipeline();
+
     pipeline& geoNear(/*something*/);
     pipeline& group(bson::document::view group);
     pipeline& limit(std::int32_t limit);
-    pipeline& match(bson::document::view filter);
+    pipeline& match(bson::document::view criteria);
     pipeline& out(std::string collection_name);
     pipeline& project(bson::document::view projection);
     pipeline& redact(bson::document::view restrictions);
@@ -40,10 +53,8 @@ class LIBMONGOCXX_EXPORT pipeline {
     pipeline& sort(bson::document::view sort);
     pipeline& unwind(std::string field_name);
 
-    bson::document::value operator[](int index) const;
-
    private:
-    std::vector<bson::document::value> _pipeline;
+    std::unique_ptr<impl> _impl;
 };
 
 }  // namespace driver

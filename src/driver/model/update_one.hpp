@@ -17,14 +17,13 @@
 #include "driver/config/prelude.hpp"
 
 #include "bson/document.hpp"
-#include "driver/model/write.hpp"
 #include "driver/util/optional.hpp"
 
 namespace mongo {
 namespace driver {
 namespace model {
 
-class LIBMONGOCXX_EXPORT update_one : public write<update_one> {
+class LIBMONGOCXX_EXPORT update_one {
 
    public:
     update_one(bson::document::view criteria, bson::document::view update);

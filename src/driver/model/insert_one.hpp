@@ -17,13 +17,12 @@
 #include "driver/config/prelude.hpp"
 
 #include "bson/document.hpp"
-#include "driver/model/write.hpp"
 
 namespace mongo {
 namespace driver {
 namespace model {
 
-class LIBMONGOCXX_EXPORT insert_one : public write<insert_one> {
+class LIBMONGOCXX_EXPORT insert_one {
 
    public:
     insert_one(bson::document::view document);

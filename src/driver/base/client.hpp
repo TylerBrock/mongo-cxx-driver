@@ -32,6 +32,7 @@ class LIBMONGOCXX_EXPORT client {
     friend class collection;
 
    public:
+    client();
     explicit client(const std::string& mongodb_uri);
     explicit client(const options& options);
 

@@ -17,20 +17,19 @@
 #include "driver/config/prelude.hpp"
 
 #include "bson/document.hpp"
-#include "driver/model/write.hpp"
 #include "driver/util/optional.hpp"
 
 namespace mongo {
 namespace driver {
 namespace model {
 
-class LIBMONGOCXX_EXPORT find_one_and_replace : public write<find_one_and_replace> {
+class LIBMONGOCXX_EXPORT find_one_and_replace {
 
    public:
     find_one_and_replace(bson::document::view criteria, bson::document::view replacement);
 
     find_one_and_replace& projection(bson::document::view projection);
-    find_one_and_replace& return_replacement(bool multi);
+    find_one_and_replace& return_replacement(bool return_replacement);
     find_one_and_replace& sort(bson::document::view ordering);
     find_one_and_replace& upsert(bool upsert);
 

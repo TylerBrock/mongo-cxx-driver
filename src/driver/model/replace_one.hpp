@@ -17,18 +17,22 @@
 #include "driver/config/prelude.hpp"
 
 #include "bson/document.hpp"
-#include "driver/model/write.hpp"
+
+#include "driver/util/optional.hpp"
 
 namespace mongo {
 namespace driver {
 namespace model {
 
-class LIBMONGOCXX_EXPORT replace_one : write<replace_one> {
+class LIBMONGOCXX_EXPORT replace_one {
 
    public:
     replace_one(bson::document::view criteria, bson::document::view replacement);
 
     replace_one& upsert(bool upsert);
+
+    const bson::document::view& criteria() const;
+    const bson::document::view& replacement() const;
 
     optional<bool> upsert() const;
 

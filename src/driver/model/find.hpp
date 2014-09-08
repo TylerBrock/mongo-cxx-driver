@@ -40,7 +40,7 @@ enum class cursor_flag : uint32_t {
 class LIBMONGOCXX_EXPORT find : public read<find> {
 
    public:
-    find();
+    find(bson::document::view criteria = bson::document::view{});
 
     find& batch_size(std::int32_t batch_size);
     find& criteria(bson::document::view criteria);
@@ -51,8 +51,9 @@ class LIBMONGOCXX_EXPORT find : public read<find> {
     find& skip(std::int32_t skip);
     find& sort(bson::document::view ordering);
 
+    bson::document::view criteria() const;
+
     optional<std::int32_t> batch_size() const;
-    optional<bson::document::view> criteria() const;
     optional<std::int32_t> cursor_flags() const;
     optional<std::int32_t> limit() const;
     optional<bson::document::view> modifiers() const;
@@ -61,8 +62,9 @@ class LIBMONGOCXX_EXPORT find : public read<find> {
     optional<bson::document::view> sort() const;
 
    private:
+    bson::document::view _criteria;
+
     optional<std::int32_t> _batch_size;
-    optional<bson::document::view> _criteria;
     optional<std::int32_t> _cursor_flags;
     optional<std::int32_t> _limit;
     optional<bson::document::view> _modifiers;

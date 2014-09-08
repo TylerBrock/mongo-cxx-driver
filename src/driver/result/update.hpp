@@ -16,9 +16,9 @@
 
 #include "driver/config/prelude.hpp"
 
-#include "bson/document.hpp"
-
 #include <cstdint>
+
+#include "bson/types.hpp"
 
 namespace mongo {
 namespace driver {
@@ -28,7 +28,7 @@ struct LIBMONGOCXX_EXPORT update {
     bool is_acknowledged;
     std::int64_t matched_count;
     std::int64_t modified_count;
-    bson::element upserted_id;
+    bson::document::element upserted_id;
 };
 
 }  // namespace result

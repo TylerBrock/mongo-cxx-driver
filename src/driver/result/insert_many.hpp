@@ -17,17 +17,19 @@
 #include "driver/config/prelude.hpp"
 
 #include <cstdint>
+#include <map>
 
-#include "bson/document.hpp"
+#include "bson/types.hpp"
 
 namespace mongo {
 namespace driver {
 namespace result {
 
-struct LIBMONGOCXX_EXPORT remove {
+struct LIBMONGOCXX_EXPORT insert_many {
     bool is_acknowledged;
-    std::int64_t removed_count;
-}
+    std::map<std::size_t, bson::document::element> inserted_ids;
+    std::int32_t inserted_count;
+};
 
 }  // namespace result
 }  // namespace driver

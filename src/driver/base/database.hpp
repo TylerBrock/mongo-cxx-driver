@@ -37,14 +37,22 @@ class LIBMONGOCXX_EXPORT database {
     friend class client;
     friend class collection;
 
+    class impl;
+
    public:
     class collection operator[](const std::string& collection_name);
     class collection collection(const std::string& collection_name);
 
-   private:
-    database(const client& client, const std::string& database_name);
+    const std::string& name() const;
 
-    util::unique_ptr_void _database;
+    database(database&& rhs);
+    database& operator=(database&& rhs);
+    ~database();
+
+   private:
+    database(const class client& client, const std::string& database_name);
+
+    std::unique_ptr<impl> _impl;
 };
 
 }  // namespace driver
