@@ -26,6 +26,8 @@
 #include "driver/base/pipeline.hpp"
 
 #include "driver/model/aggregate.hpp"
+#include "driver/model/delete_many.hpp"
+#include "driver/model/delete_one.hpp"
 #include "driver/model/find.hpp"
 #include "driver/model/find_one_and_delete.hpp"
 #include "driver/model/find_one_and_replace.hpp"
@@ -35,11 +37,9 @@
 #include "driver/model/replace_one.hpp"
 #include "driver/model/update_many.hpp"
 #include "driver/model/update_one.hpp"
-#include "driver/model/delete_one.hpp"
-#include "driver/model/delete_many.hpp"
 
-#include "driver/result/insert_one.hpp"
-#include "driver/result/insert_many.hpp"
 #include "driver/result/delete.hpp"
+#include "driver/result/insert_many.hpp"
+#include "driver/result/insert_one.hpp"
 #include "driver/result/replace_one.hpp"
 #include "driver/result/update.hpp"
