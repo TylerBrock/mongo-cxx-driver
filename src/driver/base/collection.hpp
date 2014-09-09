@@ -17,6 +17,7 @@
 #include "driver/config/prelude.hpp"
 
 #include <cstdint>
+#include <memory>
 #include <string>
 
 #include "bson/document.hpp"
@@ -25,7 +26,6 @@
 #include "driver/model/count.hpp"
 #include "driver/base/cursor.hpp"
 #include "driver/result/write.hpp"
-#include "driver/util/unique_ptr_void.hpp"
 
 namespace mongo {
 namespace driver {

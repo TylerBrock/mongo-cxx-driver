@@ -20,7 +20,6 @@
 #include <string>
 
 #include "driver/base/collection.hpp"
-#include "driver/util/unique_ptr_void.hpp"
 
 namespace mongo {
 namespace driver {

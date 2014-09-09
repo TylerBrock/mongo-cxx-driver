@@ -14,11 +14,11 @@
 
 #pragma once
 
+#include <memory>
+
 #include "driver/config/prelude.hpp"
 
 #include "bson/document.hpp"
-
-#include "driver/util/unique_ptr_void.hpp"
 
 namespace mongo {
 namespace driver {
@@ -29,16 +29,22 @@ class LIBMONGOCXX_EXPORT cursor {
 
     friend class collection;
 
+    class impl;
+
    public:
     class iterator;
 
     iterator begin();
     iterator end();
 
+    cursor(cursor&& rhs);
+    cursor& operator=(cursor&& rhs);
+    ~cursor();
+
    private:
     cursor(void* cursor_ptr);
 
-    util::unique_ptr_void _cursor;
+    std::unique_ptr<impl> _impl;
 };
 
 class cursor::iterator

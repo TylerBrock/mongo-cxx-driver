@@ -16,8 +16,9 @@
 
 #include "driver/config/prelude.hpp"
 
+#include <memory>
+
 #include "driver/base/database.hpp"
-#include "driver/util/unique_ptr_void.hpp"
 
 namespace mongo {
 namespace driver {
@@ -28,6 +29,9 @@ class options;
 /// accessing the databases of MongoDB clusters. Databases that are accessed via a client inherit
 /// all of the options specified on the client.
 class LIBMONGOCXX_EXPORT client {
+
+    class impl;
+
     friend class database;
     friend class collection;
 
@@ -39,8 +43,12 @@ class LIBMONGOCXX_EXPORT client {
     class database operator[](const std::string& database_name);
     class database database(const std::string& database_name);
 
+    client(client&& rhs);
+    client& operator=(client&& rhs);
+    ~client();
+
    private:
-    util::unique_ptr_void _client;
+    std::unique_ptr<impl> _impl;
 };
 
 }  // namespace driver
