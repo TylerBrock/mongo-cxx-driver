@@ -717,7 +717,7 @@ namespace mongo {
         /** count number of objects in collection ns that match the query criteria specified
             throws UserAssertion if database returns an error
         */
-        virtual unsigned long long count(const std::string &ns, const Query& query = Query(), int options=0, int limit=0, int skip=0 );
+        virtual unsigned long long count(const std::string &ns, const Query& query = Query(), int options=0, int limit=0, int skip=0, std::string hint="" );
 
         static std::string MONGO_CLIENT_FUNC createPasswordDigest(const std::string &username, const std::string &clearTextPassword);
 
@@ -1193,7 +1193,7 @@ namespace mongo {
         /** if the element contains a not master error */
         bool isNotMasterErrorString( const BSONElement& e );
 
-        BSONObj _countCmd(const std::string &ns, const Query& query, int options, int limit, int skip );
+        BSONObj _countCmd(const std::string &ns, const Query& query, int options, int limit, int skip, std::string hint="" );
 
         /**
          * Look up the options available on this client.  Caches the answer from

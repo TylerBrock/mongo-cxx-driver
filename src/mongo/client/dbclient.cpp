@@ -637,15 +637,15 @@ namespace mongo {
         return runCommand(dbname, b.done(), *info);
     }
 
-    unsigned long long DBClientWithCommands::count(const string &myns, const Query& query, int options, int limit, int skip ) {
-        BSONObj cmd = _countCmd( myns , query , options , limit , skip );
+    unsigned long long DBClientWithCommands::count(const string &myns, const Query& query, int options, int limit, int skip, std::string hint ) {
+        BSONObj cmd = _countCmd( myns , query , options , limit , skip , hint );
         BSONObj res;
         if( !runCommand(nsToDatabase(myns), cmd, res, options) )
             uasserted(11010,string("count fails:") + res.toString());
         return res["n"].numberLong();
     }
 
-    BSONObj DBClientWithCommands::_countCmd(const string &myns, const Query& query, int options, int limit, int skip ) {
+    BSONObj DBClientWithCommands::_countCmd(const string &myns, const Query& query, int options, int limit, int skip, std::string hint ) {
         NamespaceString ns(myns);
         BSONObjBuilder b;
         b.append( "count" , ns.coll() );
@@ -654,6 +654,8 @@ namespace mongo {
             b.append( "limit" , limit );
         if ( skip )
             b.append( "skip" , skip );
+        if ( !hint.empty() )
+            b.append( "hint" , hint );
 
         if (query.isComplex())
             b.appendElements(query.getModifiers());
