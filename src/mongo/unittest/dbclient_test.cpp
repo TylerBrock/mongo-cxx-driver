@@ -923,6 +923,25 @@ namespace {
         ASSERT_EQUALS(info.getIntField("nindexes"), 0);
     }
 
+    TEST_F(DBClientTest, CountWithHint) {
+        c.insert(TEST_NS, BSON("a" << 1));
+        c.insert(TEST_NS, BSON("a" << 2));
+
+        IndexSpec normal_spec;
+        normal_spec.addKey("a");
+        c.createIndex(TEST_NS, normal_spec);
+
+        ASSERT_EQUALS(c.count(TEST_NS, Query("{'a': 1}").hint("{_id: 1}")), 1U);
+        ASSERT_EQUALS(c.count(TEST_NS, Query().hint("{_id: 1}")), 2U);
+
+        IndexSpec sparse_spec;
+        sparse_spec.addKey("b").sparse(true);
+        c.createIndex(TEST_NS, sparse_spec);
+
+        ASSERT_EQUALS(c.count(TEST_NS, Query("{'a': 1}").hint("{b: 1}")), 0U);
+        ASSERT_EQUALS(c.count(TEST_NS, Query().hint("{b: 1}")), 2U);
+    }
+
     TEST_F(DBClientTest, CopyDatabase) {
         c.dropDatabase("copy");
         c.insert(TEST_NS, BSON("test" << true));
