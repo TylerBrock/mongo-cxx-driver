@@ -52,7 +52,7 @@ namespace {
     class DBClientWriterTest : public StandaloneTest {
     public:
         DBClientWriterTest() {
-            c.connect(Server().uri());
+            c.connect(server().uri());
             c.dropCollection(TEST_NS);
             writer = new T(&c);
         }

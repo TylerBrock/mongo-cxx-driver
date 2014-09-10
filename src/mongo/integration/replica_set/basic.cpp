@@ -33,7 +33,7 @@ namespace {
     public:
         RSBasicTest() {
             std::string errmsg;
-            ConnectionString cs = ConnectionString::parse(_uri, errmsg);
+            ConnectionString cs = ConnectionString::parse(rs().uri(), errmsg);
             conn = static_cast<DBClientReplicaSet*>(cs.connect(errmsg));
             conn->dropCollection(TEST_NS);
         }
@@ -49,7 +49,7 @@ namespace {
         WriteConcern wcAll = WriteConcern().nodes(3);
         conn->insert(TEST_NS, BSON("x" << 1), 0, &wcAll);
 
-        orchestration::Server primary = Environment::Orchestration()->replica_set(_id).primary();
+        orchestration::Server primary = rs().primary();
         primary.stop();
 
         while (true) {
@@ -79,7 +79,7 @@ namespace {
         WriteConcern wcAll = WriteConcern().nodes(3);
         conn->insert(TEST_NS, BSON("x" << 1), 0, &wcAll);
 
-        orchestration::Server primary = Environment::Orchestration()->replica_set(_id).primary();
+        orchestration::Server primary = rs().primary();
         primary.stop();
         conn->findOne(TEST_NS, Query().readPref(ReadPreference_SecondaryOnly, BSONArray()));
         primary.start();

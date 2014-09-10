@@ -34,7 +34,7 @@ namespace {
         ReadPreferenceTest() {
             std::string errmsg;
 
-            ConnectionString cs = ConnectionString::parse(ReplicaSet().uri(), errmsg);
+            ConnectionString cs = ConnectionString::parse(rs().uri(), errmsg);
             replset_conn = static_cast<DBClientReplicaSet*>(cs.connect(errmsg));
             if (!replset_conn) {
                 std::cout << "error connecting: " << errmsg << std::endl;
@@ -43,9 +43,9 @@ namespace {
             }
 
             primary_conn = new DBClientConnection();
-            primary_conn->connect(ReplicaSet().primary().uri());
+            primary_conn->connect(rs().primary().uri());
             secondary_conn = new DBClientConnection();
-            secondary_conn->connect(ReplicaSet().secondaries().front().uri());
+            secondary_conn->connect(rs().secondaries().front().uri());
         }
 
         ~ReadPreferenceTest() {
@@ -117,7 +117,7 @@ namespace {
         assert_route(replset_conn, secondary_conn, distinct, ReadPreference_SecondaryOnly, "command");
         assert_route(replset_conn, secondary_conn, distinct, ReadPreference_SecondaryPreferred, "command");
 
-        Server primary = ReplicaSet().primary();
+        Server primary = rs().primary();
         primary.stop();
 
         while (true) {

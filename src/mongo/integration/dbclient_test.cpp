@@ -60,9 +60,9 @@ namespace {
     class DBClientTest : public StandaloneTest {
     public:
         DBClientTest() {
-            c.connect(Server().uri());
+            c.connect(server().uri());
             c.dropCollection(TEST_NS);
-            _uri = Server().uri();
+            _uri = server().uri();
         }
         DBClientConnection c;
         std::string _uri;

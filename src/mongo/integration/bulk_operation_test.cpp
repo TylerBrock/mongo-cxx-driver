@@ -54,7 +54,7 @@ namespace {
     public:
         BulkOperationTest() {
             c = new DBClientConnection;
-            c->connect(Server().uri());
+            c->connect(server().uri());
             c->dropCollection(TEST_NS);
             _originalWireVersion = c->getMaxWireVersion();
             c->setWireVersions(RequiredWireVersion<T>::value, RequiredWireVersion<T>::value);

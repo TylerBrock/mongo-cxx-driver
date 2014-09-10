@@ -48,7 +48,7 @@ namespace mongo {
 
         class StandaloneTest : public ::testing::Test {
         public:
-            Server Server() {
+            Server server() {
                 return Environment::Orchestration()->server(_id);
             }
 
@@ -66,7 +66,7 @@ namespace mongo {
 
         class ReplicaSetTest : public ::testing::Test {
         public:
-            ReplicaSet ReplicaSet() {
+            ReplicaSet rs() {
                 return Environment::Orchestration()->replica_set(_id);
             }
 

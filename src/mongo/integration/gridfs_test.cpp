@@ -51,7 +51,7 @@ namespace {
     class GridFSTest : public StandaloneTest {
     public:
         GridFSTest() : _conn(new DBClientConnection()) {
-            _conn->connect(Server().uri());
+            _conn->connect(server().uri());
             _conn->dropDatabase(TEST_DB);
             _gfs.reset(new GridFS(*_conn, TEST_DB));
         }
