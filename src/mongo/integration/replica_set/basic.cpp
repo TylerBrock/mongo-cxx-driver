@@ -46,11 +46,11 @@ namespace {
     };
 
     TEST_F(RSBasicTest, InsertRecoversFromPrimaryFailure) {
-        WriteConcern wcAll = WriteConcern().nodes(3);
+        WriteConcern wcAll = WriteConcern().nodes(2).timeout(1000);
         conn->insert(TEST_NS, BSON("x" << 1), 0, &wcAll);
 
-        orchestration::Server primary = rs().primary();
-        primary.stop();
+        orchestration::Server original_primary = rs().primary();
+        original_primary.stop();
 
         while (true) {
             try {
@@ -64,19 +64,20 @@ namespace {
         ASSERT_EQUALS(conn->count(TEST_NS, Query("{x: 1}")), 1U);
         ASSERT_EQUALS(conn->count(TEST_NS, Query("{x: 2}")), 1U);
 
-        primary.start();
+        original_primary.start();
+
         while (true) {
             try {
                 conn->insert(TEST_NS, BSON("x" << 2), 0, &wcAll);
                 break;
-            } catch (DBException& ex) {
-                mongo::sleepsecs(1);
+            } catch (std::exception& ex) {
+                // try again
             }
         }
     }
 
     TEST_F(RSBasicTest, SecondaryQueryIsNotInteruptedByPrimaryFailure) {
-        WriteConcern wcAll = WriteConcern().nodes(3);
+        WriteConcern wcAll = WriteConcern().nodes(2);
         conn->insert(TEST_NS, BSON("x" << 1), 0, &wcAll);
 
         orchestration::Server primary = rs().primary();

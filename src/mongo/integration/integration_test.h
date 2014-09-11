@@ -72,9 +72,7 @@ namespace mongo {
 
             static void SetUpTestCase() {
                 Json::Value parameters;
-                parameters["members"] = Json::Value(Json::arrayValue);
-                parameters["members"].append(Json::Value(Json::objectValue));
-                parameters["members"].append(Json::Value(Json::objectValue));
+                parameters["preset"] = "arbiter.json";
                 _id = Environment::Orchestration()->createReplicaSet(parameters);
             }
 
