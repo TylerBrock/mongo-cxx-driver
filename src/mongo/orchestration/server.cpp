@@ -22,11 +22,12 @@ namespace orchestration {
         del();
     }
 
+    RestClient::response Server::status() const {
+        return get();
+    }
+
     string Server::uri() const {
-        Json::Value doc;
-        Json::Reader reader;
-        reader.parse(status().body.c_str(), doc);
-        return doc["uri"].asString();
+        return handle_response(status())["uri"].asString();
     }
 
 } // namespace orchestration

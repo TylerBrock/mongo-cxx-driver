@@ -46,17 +46,17 @@ namespace orchestration {
 
         RestClient::response action(string action);
         string make_url(string relative_path) const;
-        auto_ptr<Document> handle_response(RestClient::response response) const;
+        Document handle_response(RestClient::response response) const;
 
         string _url;
 
         template <typename T>
         vector<T> plural_rooted_resource(const string& resource_name) const {
             vector<T> resources;
-            auto_ptr<Document> doc = handle_response(get("secondaries"));
+            Document doc = handle_response(get("secondaries"));
 
-            for (unsigned i=0; i<doc->size(); i++) {
-                string secondary_uri = (*doc)[i]["uri"].asString();
+            for (unsigned i=0; i<doc.size(); i++) {
+                string secondary_uri = doc[i]["uri"].asString();
                 T resource(_url.substr(0, _url.find("/")) + secondary_uri);
                 resources.push_back(resource);
             }
@@ -68,10 +68,7 @@ namespace orchestration {
         vector<T> plural_resource(const string& resource_name) const {
             vector<T> resources;
 
-            RestClient::response response = get(resource_name);
-            Document result_array;
-            Json::Reader reader;
-            reader.parse(response.body.c_str(), result_array);
+            Document result_array = handle_response(get(resource_name));
 
             for (unsigned i=0; i<result_array.size(); i++) {
                 T temp(make_url(resource_name + "/" + result_array[i].asString()));

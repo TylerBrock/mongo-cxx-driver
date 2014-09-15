@@ -36,7 +36,7 @@ namespace orchestration {
         string uri() const;
 
     private:
-        Server(const string& url, Json::Value parameters = Json::Value());
+        Server(const string& url, Document parameters = Document());
         RestClient::response status() const;
 
     };

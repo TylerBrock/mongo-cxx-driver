@@ -33,10 +33,10 @@ namespace orchestration {
         vector<ReplicaSet> replica_sets() const;
         vector<ShardedCluster> clusters() const;
 
-        string createMongod(const Json::Value& params = Json::Value());
-        string createMongos(const Json::Value& params = Json::Value());
-        string createReplicaSet(const Json::Value& params = Json::Value());
-        string createShardedCluster(const Json::Value& params = Json::Value());
+        string createMongod(const Document& params = Document());
+        string createMongos(const Document& params = Document());
+        string createReplicaSet(const Document& params = Document());
+        string createShardedCluster(const Document& params = Document());
 
         Server server(const string& id) const;
         ReplicaSet replica_set(const string& id) const;

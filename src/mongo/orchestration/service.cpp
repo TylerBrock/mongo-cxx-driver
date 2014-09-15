@@ -45,11 +45,11 @@ namespace orchestration {
     }
 
     Server Service::server(const string& id) const {
-        return Server(_url + "/servers/" + id);
+        return Server(make_url("servers/" + id));
     }
 
     ReplicaSet Service::replica_set(const string& id) const {
-        return ReplicaSet(_url + "/replica_sets/" + id);
+        return ReplicaSet(make_url("replica_sets/" + id));
     }
 
     string Service::createMongod(const Document& params) {
@@ -61,15 +61,14 @@ namespace orchestration {
         Json::FastWriter writer;
 
         RestClient::response result = post(Resources::kServers, writer.write(doc));
-        auto_ptr<Json::Value> result_doc = handle_response(result);
-        return (*result_doc)["id"].asString();
+        Document result_doc = handle_response(result);
+        return result_doc["id"].asString();
     }
 
     string Service::createReplicaSet(const Document& params) {
         Json::FastWriter writer;
-
-        auto_ptr<Json::Value> result_doc = handle_response(post(Resources::kReplicaSets, writer.write(params)));
-        return (*result_doc)["id"].asString();
+        Document result_doc = handle_response(post(Resources::kReplicaSets, writer.write(params)));
+        return result_doc["id"].asString();
     }
 
     string Service::createShardedCluster(const Document& params) {

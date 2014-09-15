@@ -62,17 +62,17 @@ namespace orchestration {
         return relative_path.empty() ? _url : _url + "/" + relative_path;
     }
 
-    auto_ptr<Json::Value> Resource::handle_response(RestClient::response response) const {
-        auto_ptr<Json::Value> doc_ptr(new Json::Value);
+    Document Resource::handle_response(RestClient::response response) const {
+        Document doc;
         if (response.code == OK) {
             Json::Reader reader;
-            bool parseSuccessful = reader.parse(response.body.c_str(), *doc_ptr);
+            bool parseSuccessful = reader.parse(response.body.c_str(), doc);
             if (!parseSuccessful)
-                throw std::runtime_error("Failed to parse response: " + response.body);
+                throw std::runtime_error("[orchestration] Failed parsing response: " + response.body);
         } else if (response.code != NoContent) {
-            throw std::runtime_error("Failed got a bad response: " + response.body);
+            throw std::runtime_error("[orchestration] Bad response: " + response.body);
         }
-        return doc_ptr;
+        return doc;
     }
 
 } // namespace orchestration

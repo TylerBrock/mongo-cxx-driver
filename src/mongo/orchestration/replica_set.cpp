@@ -23,17 +23,12 @@ namespace orchestration {
     ReplicaSet::ReplicaSet(const string& url) : Resource(url) {}
 
     string ReplicaSet::uri() const {
-        Json::Value doc;
-        Json::Reader reader;
-        reader.parse(status().body.c_str(), doc);
-        assert(doc.isObject());
-        assert(doc.isMember("uri"));
-        return string("mongodb://") + doc["uri"].asString();
+        return string("mongodb://") + handle_response(status())["uri"].asString();
     }
 
     Server ReplicaSet::primary() const {
-        auto_ptr<Json::Value> doc = handle_response(get("primary"));
-        string primary_uri = (*doc)["uri"].asString();
+        Document doc = handle_response(get("primary"));
+        string primary_uri = doc["uri"].asString();
         return Server(_url.substr(0, _url.find("/")) + primary_uri);
     }
 
@@ -50,10 +45,6 @@ namespace orchestration {
     }
 
     RestClient::response ReplicaSet::status() const {
-        return get();
-    }
-
-    RestClient::response Server::status() const {
         return get();
     }
 
