@@ -33,6 +33,7 @@ namespace orchestration {
 
     private:
         ShardedCluster(const string& url);
+
     };
 
 } // namespace orchestration

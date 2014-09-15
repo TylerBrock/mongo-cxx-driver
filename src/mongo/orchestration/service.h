@@ -41,6 +41,7 @@ namespace orchestration {
         Server server(const string& id) const;
         ReplicaSet replica_set(const string& id) const;
         ShardedCluster cluster(const string& id) const;
+
     };
 
 } // namespace orchestration

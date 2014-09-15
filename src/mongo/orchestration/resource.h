@@ -34,6 +34,7 @@ namespace orchestration {
     typedef Json::Value Document;
 
     class Resource {
+
     public:
         Resource(string url);
 
@@ -79,6 +80,7 @@ namespace orchestration {
 
             return resources;
         }
+
     };
 
 } // namespace orchestration

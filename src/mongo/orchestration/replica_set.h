@@ -41,6 +41,7 @@ namespace orchestration {
 
     private:
         ReplicaSet(const string& url);
+
     };
 
 } // namespace orchestration

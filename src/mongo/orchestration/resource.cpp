@@ -31,7 +31,9 @@ namespace orchestration {
         InternalServerError = 500
     };
 
-    Resource::Resource(string url) : _url(url) {}
+    Resource::Resource(string url)
+        : _url(url)
+    {}
 
     RestClient::response Resource::get(string relative_path) const {
         return RestClient::get(make_url(relative_path));
