@@ -34,8 +34,9 @@ namespace {
         ReadPreferenceTest() {
             std::string errmsg;
 
-            ConnectionString cs = ConnectionString::parse(rs().uri(), errmsg);
+            ConnectionString cs = ConnectionString::parse(rs().mongodb_uri(), errmsg);
             replset_conn = static_cast<DBClientReplicaSet*>(cs.connect(errmsg));
+
             if (!replset_conn) {
                 std::cout << "error connecting: " << errmsg << std::endl;
             } else {
@@ -46,6 +47,24 @@ namespace {
             primary_conn->connect(rs().primary().uri());
             secondary_conn = new DBClientConnection();
             secondary_conn->connect(rs().secondaries().front().uri());
+
+            std::vector<Server> servers = mongo::integration::Environment::Orchestration()->servers();
+            std::cout << "servers:" << std::endl;
+            for (unsigned i = 0; i < servers.size(); i++) {
+                std::cout << "----> server " << servers[i].uri() << std::endl;
+            }
+
+            std::vector<Server> secondaries = rs().secondaries();
+            std::cout << "secondaries:" << std::endl;
+            for (unsigned i = 0; i < secondaries.size(); i++) {
+                std::cout << "----> secondary " << secondaries[i].uri() << std::endl;
+            }
+
+            std::cout << "arbiters:" << std::endl;
+            std::vector<Server> arbiters = rs().arbiters();
+            for (unsigned i = 0; i < arbiters.size(); i++) {
+                std::cout << "----> secondary " << arbiters[i].uri() << std::endl;
+            }
         }
 
         ~ReadPreferenceTest() {

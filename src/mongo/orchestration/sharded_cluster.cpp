@@ -14,12 +14,26 @@
  * limitations under the License.
  */
 
-#include "orchestration.h"
+#include "mongo/orchestration/sharded_cluster.h"
 
 namespace mongo {
 namespace orchestration {
 
-    ShardedCluster::ShardedCluster(const string& url) : Resource(url) {}
+    ShardedCluster::ShardedCluster(const string& url)
+        : MongoResource(url)
+    {}
+
+    vector<Server> ShardedCluster::members() const {
+        return plural_subresource<Server>("members");
+    }
+
+    vector<Server> ShardedCluster::configs() const {
+        return plural_subresource<Server>("configs");
+    }
+
+    vector<Server> ShardedCluster::routers() const {
+        return plural_subresource<Server>("routers");
+    }
 
 } // namespace orchestration
 } // namespace mongo

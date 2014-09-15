@@ -31,34 +31,38 @@ namespace orchestration {
         InternalServerError = 500
     };
 
-    Resource::Resource(string url)
+    Resource::Resource(const string& url)
         : _url(url)
     {}
 
-    RestClient::response Resource::get(string relative_path) const {
+    RestClient::response Resource::get(const string& relative_path) const {
         return RestClient::get(make_url(relative_path));
     }
 
-    RestClient::response Resource::put(string relative_path, string payload) {
+    RestClient::response Resource::put(const string& relative_path, const string& payload) {
         return RestClient::put(make_url(relative_path), content_type, payload);
     }
 
-    RestClient::response Resource::post(string relative_path, string payload) {
+    RestClient::response Resource::post(const string& relative_path, const string& payload) {
         return RestClient::post(make_url(relative_path), content_type, payload);
     }
 
-    RestClient::response Resource::del(string relative_path) {
+    RestClient::response Resource::del(const string& relative_path) {
         return RestClient::del(make_url(relative_path));
     }
 
-    RestClient::response Resource::action(string action) {
+    RestClient::response Resource::action(const string& action) {
         Json::Value doc;
         Json::FastWriter writer;
         doc["action"] = action;
         return post("", writer.write(doc));
     }
 
-    string Resource::make_url(string relative_path) const {
+    const string& Resource::url() const {
+        return _url;
+    }
+
+    string Resource::make_url(const string& relative_path) const {
         return relative_path.empty() ? _url : _url + "/" + relative_path;
     }
 

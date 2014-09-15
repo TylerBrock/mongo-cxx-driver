@@ -14,42 +14,31 @@
  * limitations under the License.
  */
 
-#include <cassert>
 #include "mongo/orchestration/replica_set.h"
 
 namespace mongo {
 namespace orchestration {
 
-    ReplicaSet::ReplicaSet(const string& url) : Resource(url) {}
-
-    string ReplicaSet::uri() const {
-        return string("mongodb://") + handle_response(status())["uri"].asString();
-    }
+    ReplicaSet::ReplicaSet(const string& url)
+        : MongoResource(url)
+    {}
 
     Server ReplicaSet::primary() const {
         Document doc = handle_response(get("primary"));
         string primary_uri = doc["uri"].asString();
-        return Server(_url.substr(0, _url.find("/")) + primary_uri);
+        return Server(url().substr(0, url().find("/")) + primary_uri);
     }
 
     vector<Server> ReplicaSet::secondaries() const {
-        return plural_rooted_resource<Server>("secondaries");
+        return plural_subresource<Server>("secondaries");
     }
 
     vector<Server> ReplicaSet::hidden() const {
-        return plural_rooted_resource<Server>("hidden");
+        return plural_subresource<Server>("hidden");
     }
 
     vector<Server> ReplicaSet::arbiters() const {
-        return plural_rooted_resource<Server>("arbiters");
-    }
-
-    RestClient::response ReplicaSet::status() const {
-        return get();
-    }
-
-    void ReplicaSet::destroy() {
-        del();
+        return plural_subresource<Server>("arbiters");
     }
 
 } // namespace orchestration

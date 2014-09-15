@@ -28,7 +28,7 @@ namespace orchestration {
     class Service : public Resource {
 
     public:
-        Service(string url);
+        Service(const string& url);
         vector<Server> servers() const;
         vector<ReplicaSet> replica_sets() const;
         vector<ShardedCluster> clusters() const;

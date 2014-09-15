@@ -16,7 +16,6 @@
 
 #pragma once
 
-#include <memory>
 #include <string>
 #include <vector>
 
@@ -36,28 +35,28 @@ namespace orchestration {
     class Resource {
 
     public:
-        Resource(string url);
+        Resource(const string& url);
 
     protected:
-        RestClient::response get(string relative_path="") const;
-        RestClient::response put(string relative_path="", string payload="{}");
-        RestClient::response post(string relative_path="", string payload="{}");
-        RestClient::response del(string relative_path="");
+        RestClient::response get(const string& relative_path="") const;
+        RestClient::response put(const string& relative_path="", const string& payload="{}");
+        RestClient::response post(const string& relative_path="", const string& payload="{}");
+        RestClient::response del(const string& relative_path="");
 
-        RestClient::response action(string action);
-        string make_url(string relative_path) const;
+        RestClient::response action(const string& action);
+        const string& url() const;
+        string make_url(const string& relative_path) const;
         Document handle_response(RestClient::response response) const;
 
-        string _url;
 
         template <typename T>
-        vector<T> plural_rooted_resource(const string& resource_name) const {
+        vector<T> plural_subresource(const string& resource_name) const {
             vector<T> resources;
-            Document doc = handle_response(get("secondaries"));
+            Document doc = handle_response(get(resource_name));
 
             for (unsigned i=0; i<doc.size(); i++) {
-                string secondary_uri = doc[i]["uri"].asString();
-                T resource(_url.substr(0, _url.find("/")) + secondary_uri);
+                string resource_uri = doc[i]["uri"].asString();
+                T resource(_url.substr(0, url().find("/")) + resource_uri);
                 resources.push_back(resource);
             }
 
@@ -77,6 +76,9 @@ namespace orchestration {
 
             return resources;
         }
+
+    private:
+        string _url;
 
     };
 

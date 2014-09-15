@@ -16,12 +16,14 @@
 
 #pragma once
 
-#include "mongo/orchestration/resource.h"
+#include "mongo/orchestration/mongo_resource.h"
 
 namespace mongo {
 namespace orchestration {
 
-    class Server : public Resource {
+    using std::string;
+
+    class Server : public MongoResource {
 
         friend class Resource;
         friend class Service;
@@ -32,12 +34,9 @@ namespace orchestration {
         void start();
         void stop();
         void restart();
-        void destroy();
-        string uri() const;
 
     private:
-        Server(const string& url, Document parameters = Document());
-        RestClient::response status() const;
+        Server(const string& url);
 
     };
 

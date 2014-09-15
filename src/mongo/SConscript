@@ -36,6 +36,7 @@ libIntegrationTestMain = staticClientEnv.StaticLibrary(
         '../third_party/jsoncpp/jsoncpp.cpp',
         'integration/integration_test_main.cpp',
         'orchestration/resource.cpp',
+        'orchestration/mongo_resource.cpp',
         'orchestration/server.cpp',
         'orchestration/service.cpp',
         'orchestration/replica_set.cpp',

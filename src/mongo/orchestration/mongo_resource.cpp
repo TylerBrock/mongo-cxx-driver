@@ -14,34 +14,30 @@
  * limitations under the License.
  */
 
-#pragma once
-
 #include "mongo/orchestration/mongo_resource.h"
-#include "mongo/orchestration/server.h"
 
 namespace mongo {
 namespace orchestration {
 
-    using std::string;
-    using std::vector;
+    MongoResource::MongoResource(const string& url)
+        : Resource(url)
+    {}
 
-    class ReplicaSet : public MongoResource {
+    void MongoResource::destroy() {
+        del();
+    }
 
-        friend class Resource;
-        friend class Service;
-        friend class Cluster;
+    RestClient::response MongoResource::status() const {
+        return get();
+    }
 
-    public:
-        Server primary() const;
-        vector<Server> secondaries() const;
-        vector<Server> arbiters() const;
-        vector<Server> hidden() const;
-        vector<Server> members() const;
+    string MongoResource::uri() const {
+        return handle_response(status())["uri"].asString();
+    }
 
-    private:
-        ReplicaSet(const string& url);
-
-    };
+    string MongoResource::mongodb_uri() const {
+        return handle_response(status())["mongodb_uri"].asString();
+    }
 
 } // namespace orchestration
 } // namespace mongo

@@ -22,34 +22,36 @@ namespace orchestration {
     namespace {
         const char kRequiredVersion[] = "0.9";
         const char kAPIVersion[] = "v1";
-    }
-
-    namespace Resources {
         const char kServers[] = "servers";
         const char kReplicaSets[] = "replica_sets";
         const char kShardedClusters[] = "sharded_clusters";
     }
 
-    Service::Service(string url) : Resource(url) {}
+    namespace Resources {
+    }
+
+    Service::Service(const string& url)
+        : Resource(url)
+    {}
 
     vector<Server> Service::servers() const {
-        return plural_resource<Server>(Resources::kServers);
+        return plural_resource<Server>(kServers);
     }
 
     vector<ReplicaSet> Service::replica_sets() const {
-        return plural_resource<ReplicaSet>(Resources::kReplicaSets);
+        return plural_resource<ReplicaSet>(kReplicaSets);
     }
 
     vector<ShardedCluster> Service::clusters() const {
-        return plural_resource<ShardedCluster>(Resources::kShardedClusters);
+        return plural_resource<ShardedCluster>(kShardedClusters);
     }
 
     Server Service::server(const string& id) const {
-        return Server(make_url("servers/" + id));
+        return Server(make_url(kServers + string("/") + id));
     }
 
     ReplicaSet Service::replica_set(const string& id) const {
-        return ReplicaSet(make_url("replica_sets/" + id));
+        return ReplicaSet(make_url(kReplicaSets + string("/") + id));
     }
 
     string Service::createMongod(const Document& params) {
@@ -60,14 +62,14 @@ namespace orchestration {
 
         Json::FastWriter writer;
 
-        RestClient::response result = post(Resources::kServers, writer.write(doc));
+        RestClient::response result = post(kServers, writer.write(doc));
         Document result_doc = handle_response(result);
         return result_doc["id"].asString();
     }
 
     string Service::createReplicaSet(const Document& params) {
         Json::FastWriter writer;
-        Document result_doc = handle_response(post(Resources::kReplicaSets, writer.write(params)));
+        Document result_doc = handle_response(post(kReplicaSets, writer.write(params)));
         return result_doc["id"].asString();
     }
 

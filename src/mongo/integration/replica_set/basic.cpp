@@ -33,7 +33,7 @@ namespace {
     public:
         RSBasicTest() {
             std::string errmsg;
-            ConnectionString cs = ConnectionString::parse(rs().uri(), errmsg);
+            ConnectionString cs = ConnectionString::parse(rs().mongodb_uri(), errmsg);
             conn = static_cast<DBClientReplicaSet*>(cs.connect(errmsg));
             conn->dropCollection(TEST_NS);
         }

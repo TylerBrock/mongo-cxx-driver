@@ -16,12 +16,16 @@
 
 #pragma once
 
+#include "mongo/orchestration/mongo_resource.h"
 #include "mongo/orchestration/server.h"
 
 namespace mongo {
 namespace orchestration {
 
-    class ShardedCluster : public Resource {
+    using std::string;
+    using std::vector;
+
+    class ShardedCluster : public MongoResource {
 
         friend class Resource;
         friend class Service;
