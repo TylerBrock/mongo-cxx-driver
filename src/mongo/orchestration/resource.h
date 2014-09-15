@@ -22,8 +22,9 @@
 #include "third_party/jsoncpp/json.h"
 #include "third_party/restclient/restclient.h"
 
-// Posts to resources must not end with a slash or you will get a 404
-// Posts containing a JSON encoded body must conform to strict JSON
+// Notes:
+//  Posts to resources must not end with a slash or you will get a 404
+//  Posts containing a JSON encoded body must conform to strict JSON
 
 namespace mongo {
 namespace orchestration {
