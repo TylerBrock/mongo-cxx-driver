@@ -541,12 +541,22 @@ for clientTest in clientTestProgramInstalls:
     if 'rsExample' in clientTest.abspath:
         continue
 
-    conn = httplib.HTTPConnection("localhost:8889")
-    headers = {"Content-Type": "application/json"}
+    orchestration_uri = "localhost:8889"
+    conn = httplib.HTTPConnection(orchestration_uri)
+    headers = { "Content-Type": "application/json" }
     params = json.dumps({ "id": "standalone", "name": "mongod" })
 
-    # Check if a standalone is already up
-    conn.request("GET", "/servers/standalone", "", headers)
+    # Check if a standalone mongod is already up
+    orchestration_up = False
+    try:
+        conn.request("GET", "/servers/standalone", "", headers)
+        orchestration_up = True
+    except:
+        print("Cannot connect to Mongo Orchestration at %s!" % orchestration_uri)
+
+    if not orchestration_up:
+        break
+
     response = conn.getresponse()
 
     if response.status / 100 != 2:
