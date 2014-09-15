@@ -100,11 +100,11 @@ for unittest in unittests:
         ])
 
 integration_tests = [
-    'bulk_operation_test',
-    'dbclient_test',
-    'dbclient_writer_test',
-    'gridfs_test',
-    'sasl_test',
+    'standalone/bulk_operation_test',
+    'standalone/dbclient_test',
+    'standalone/dbclient_writer_test',
+    'standalone/gridfs_test',
+    'standalone/sasl_test',
     'replica_set/basic',
     'replica_set/read_preference'
 ]
