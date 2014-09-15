@@ -36,7 +36,7 @@ namespace orchestration {
         string createMongod(const Json::Value& params = Json::Value());
         string createMongos(const Json::Value& params = Json::Value());
         string createReplicaSet(const Json::Value& params = Json::Value());
-        string createCluster(const Json::Value& params = Json::Value());
+        string createShardedCluster(const Json::Value& params = Json::Value());
 
         Server server(const string& id) const;
         ReplicaSet replica_set(const string& id) const;

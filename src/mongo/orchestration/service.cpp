@@ -72,7 +72,7 @@ namespace orchestration {
         return (*result_doc)["id"].asString();
     }
 
-    string Service::createCluster(const Document& params) {
+    string Service::createShardedCluster(const Document& params) {
         return "";
     }
 
