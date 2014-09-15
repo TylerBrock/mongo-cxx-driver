@@ -17,8 +17,6 @@
 
 #include "mongo/integration/integration_test.h"
 
-#include <memory>
-
 #include "mongo/client/dbclient.h"
 
 namespace {
@@ -37,24 +35,32 @@ namespace {
             std::string errmsg;
 
             ConnectionString cs = ConnectionString::parse(rs().mongodb_uri(), errmsg);
+            replset_conn = static_cast<DBClientReplicaSet*>(cs.connect(errmsg));
 
-            // Main test connection
-            replset_conn.reset(static_cast<DBClientReplicaSet*>(cs.connect(errmsg)));
-            replset_conn->dropCollection(TEST_NS);
+            if (!replset_conn) {
+                std::cout << "error connecting: " << errmsg << std::endl;
+            } else {
+                replset_conn->dropCollection(TEST_NS);
+            }
 
-            // Routing connections
-            primary_conn.reset(new DBClientConnection());
+            primary_conn = new DBClientConnection();
             primary_conn->connect(rs().primary().uri());
-            secondary_conn.reset(new DBClientConnection());
+            secondary_conn = new DBClientConnection();
             secondary_conn->connect(rs().secondaries().front().uri());
         }
 
-        std::auto_ptr<DBClientReplicaSet> replset_conn;
-        std::auto_ptr<DBClientConnection> primary_conn;
-        std::auto_ptr<DBClientConnection> secondary_conn;
+        ~ReadPreferenceTest() {
+            delete replset_conn;
+            delete primary_conn;
+            delete secondary_conn;
+        }
+
+        DBClientReplicaSet* replset_conn;
+        DBClientConnection* primary_conn;
+        DBClientConnection* secondary_conn;
     };
 
-    int op_count(auto_ptr<DBClientConnection> connection, std::string op_type) {
+    int op_count(DBClientConnection* connection, std::string op_type) {
         BSONObj cmd = BSON("serverStatus" << 1);
         BSONObj info;
         connection->runCommand("admin", cmd, info);
@@ -62,9 +68,9 @@ namespace {
     }
 
     void assert_route(
-        auto_ptr<DBClientReplicaSet> test_conn,
-        auto_ptr<DBClientConnection> expected_target,
-        void (*op)(auto_ptr<DBClientReplicaSet>, ReadPreference),
+        DBClientReplicaSet* test_conn,
+        DBClientConnection* expected_target,
+        void (*op)(DBClientReplicaSet*, ReadPreference),
         ReadPreference rp,
         std::string op_type)
     {
@@ -81,17 +87,17 @@ namespace {
         ASSERT_EQUALS(ops_after - ops_before, op_type == "command" ? 2 : 1);
     }
 
-    void query(auto_ptr<DBClientReplicaSet> test_conn, ReadPreference rp) {
+    void query(DBClientReplicaSet* test_conn, ReadPreference rp) {
         Query q = Query().readPref(rp, BSONArray());
         test_conn->findOne(TEST_NS, q);
     }
 
-    void count(auto_ptr<DBClientReplicaSet> test_conn, ReadPreference rp) {
+    void count(DBClientReplicaSet* test_conn, ReadPreference rp) {
         Query q = Query().readPref(rp, BSONArray());
         test_conn->count(TEST_NS, q);
     }
 
-    void distinct(auto_ptr<DBClientReplicaSet> test_conn, ReadPreference rp) {
+    void distinct(DBClientReplicaSet* test_conn, ReadPreference rp) {
         Query q = Query().readPref(rp, BSONArray());
         test_conn->distinct(TEST_NS, "a", q);
     }
