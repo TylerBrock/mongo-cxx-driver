@@ -17,6 +17,8 @@
 
 #include "mongo/integration/integration_test.h"
 
+#include <memory>
+
 #include "mongo/client/dbclient.h"
 
 namespace {
@@ -34,15 +36,11 @@ namespace {
         RSBasicTest() {
             std::string errmsg;
             ConnectionString cs = ConnectionString::parse(rs().mongodb_uri(), errmsg);
-            conn = static_cast<DBClientReplicaSet*>(cs.connect(errmsg));
+            conn.reset(static_cast<DBClientReplicaSet*>(cs.connect(errmsg)));
             conn->dropCollection(TEST_NS);
         }
 
-        ~RSBasicTest() {
-            delete conn;
-        }
-
-        DBClientReplicaSet* conn;
+        std::auto_ptr<DBClientReplicaSet> conn;
     };
 
     TEST_F(RSBasicTest, InsertRecoversFromPrimaryFailure) {

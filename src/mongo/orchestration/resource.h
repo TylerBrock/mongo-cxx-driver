@@ -49,7 +49,7 @@ namespace orchestration {
         string make_url(const string& relative_path) const;
         Document handle_response(RestClient::response response) const;
 
-
+        // TODO: Combine the below two templates sensibly
         template <typename T>
         vector<T> plural_subresource(const string& resource_name) const {
             vector<T> resources;
