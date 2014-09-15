@@ -31,7 +31,7 @@ namespace mongo {
 
         using mongo::orchestration::Server;
         using mongo::orchestration::ReplicaSet;
-        using mongo::orchestration::Cluster;
+        using mongo::orchestration::ShardedCluster;
 
         class Environment : public ::testing::Environment {
         public:

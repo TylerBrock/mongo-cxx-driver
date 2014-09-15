@@ -19,4 +19,4 @@
 #include "mongo/orchestration/service.h"
 #include "mongo/orchestration/server.h"
 #include "mongo/orchestration/replica_set.h"
-#include "mongo/orchestration/cluster.h"
+#include "mongo/orchestration/sharded_cluster.h"

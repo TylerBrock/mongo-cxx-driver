@@ -40,8 +40,8 @@ namespace orchestration {
         return plural_resource<ReplicaSet>(Resources::kReplicaSets);
     }
 
-    vector<Cluster> Service::clusters() const {
-        return plural_resource<Cluster>(Resources::kShardedClusters);
+    vector<ShardedCluster> Service::clusters() const {
+        return plural_resource<ShardedCluster>(Resources::kShardedClusters);
     }
 
     Server Service::server(const string& id) const {

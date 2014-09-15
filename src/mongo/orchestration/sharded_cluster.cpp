@@ -14,26 +14,12 @@
  * limitations under the License.
  */
 
-#pragma once
-
-#include "mongo/orchestration/server.h"
+#include "orchestration.h"
 
 namespace mongo {
 namespace orchestration {
 
-    class Cluster : public Resource {
-
-        friend class Resource;
-        friend class Service;
-
-    public:
-        vector<Server> members() const;
-        vector<Server> configs() const;
-        vector<Server> routers() const;
-
-    private:
-        Cluster(const string& url);
-    };
+    ShardedCluster::ShardedCluster(const string& url) : Resource(url) {}
 
 } // namespace orchestration
 } // namespace mongo

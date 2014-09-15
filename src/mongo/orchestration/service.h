@@ -16,7 +16,7 @@
 
 #pragma once
 
-#include "mongo/orchestration/cluster.h"
+#include "mongo/orchestration/sharded_cluster.h"
 #include "mongo/orchestration/replica_set.h"
 #include "mongo/orchestration/server.h"
 
@@ -31,7 +31,7 @@ namespace orchestration {
         Service(string url);
         vector<Server> servers() const;
         vector<ReplicaSet> replica_sets() const;
-        vector<Cluster> clusters() const;
+        vector<ShardedCluster> clusters() const;
 
         string createMongod(const Json::Value& params = Json::Value());
         string createMongos(const Json::Value& params = Json::Value());
@@ -40,7 +40,7 @@ namespace orchestration {
 
         Server server(const string& id) const;
         ReplicaSet replica_set(const string& id) const;
-        Cluster cluster(const string& id) const;
+        ShardedCluster cluster(const string& id) const;
     };
 
 } // namespace orchestration
