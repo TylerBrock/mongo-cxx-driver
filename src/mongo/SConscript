@@ -19,10 +19,10 @@ libMock = staticClientEnv.StaticLibrary(
     ],
 )
 
-libClientTestMain = staticClientEnv.StaticLibrary(
-    target='client_test_main',
+libUnitTestMain = staticClientEnv.StaticLibrary(
+    target='unit_test_main',
     source=[
-        'unittest/client_test_main.cpp'
+        'unittest/unit_test_main.cpp'
     ],
 )
 
@@ -86,7 +86,7 @@ gtestEnv.PrependUnique(
 unitTestEnv = gtestEnv.Clone()
 unitTestEnv.PrependUnique(
     LIBS=[
-        libClientTestMain,
+        libUnitTestMain,
         libMock,
     ])
 
