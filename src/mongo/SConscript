@@ -57,6 +57,8 @@ unittests = [
     'client/replica_set_monitor_test',
     'client/scoped_db_conn_test',
     'client/write_concern_test',
+    'unittest/connection_string_test',
+    'unittest/query',
     'db/dbmessage_test',
     'dbtests/jsobjtests',
     'dbtests/jsontests',
