@@ -19,26 +19,26 @@
 namespace mongo {
 namespace orchestration {
 
-    ReplicaSet::ReplicaSet(const string& url)
+    ReplicaSet::ReplicaSet(const std::string& url)
         : MongoResource(url)
     {}
 
     Server ReplicaSet::primary() const {
-        Document doc = handle_response(get("primary"));
-        string primary_uri = doc["uri"].asString();
-        return Server(base_relative_url(primary_uri));
+        Document doc = handleResponse(get("primary"));
+        std::string primary_uri = doc["uri"].asString();
+        return Server(baseRelativeUrl(primary_uri));
     }
 
-    vector<Server> ReplicaSet::secondaries() const {
-        return plural_resource<Server>("secondaries");
+    std::vector<Server> ReplicaSet::secondaries() const {
+        return pluralResource<Server>("secondaries");
     }
 
-    vector<Server> ReplicaSet::hidden() const {
-        return plural_resource<Server>("hidden");
+    std::vector<Server> ReplicaSet::hidden() const {
+        return pluralResource<Server>("hidden");
     }
 
-    vector<Server> ReplicaSet::arbiters() const {
-        return plural_resource<Server>("arbiters");
+    std::vector<Server> ReplicaSet::arbiters() const {
+        return pluralResource<Server>("arbiters");
     }
 
 } // namespace orchestration

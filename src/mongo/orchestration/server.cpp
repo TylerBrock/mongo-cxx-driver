@@ -19,7 +19,7 @@
 namespace mongo {
 namespace orchestration {
 
-    Server::Server(const string& url)
+    Server::Server(const std::string& url)
         : MongoResource(url)
     {}
 

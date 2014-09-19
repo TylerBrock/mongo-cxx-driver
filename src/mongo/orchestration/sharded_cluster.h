@@ -22,22 +22,17 @@
 namespace mongo {
 namespace orchestration {
 
-    using std::string;
-    using std::vector;
-
     class ShardedCluster : public MongoResource {
-
         friend class Resource;
         friend class Service;
 
     public:
-        vector<Server> members() const;
-        vector<Server> configs() const;
-        vector<Server> routers() const;
+        std::vector<Server> members() const;
+        std::vector<Server> configs() const;
+        std::vector<Server> routers() const;
 
     private:
-        ShardedCluster(const string& url);
-
+        ShardedCluster(const std::string& url);
     };
 
 } // namespace orchestration

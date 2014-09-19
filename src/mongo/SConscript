@@ -1,6 +1,11 @@
 Import('env windows mongoClientStaticLibs libGTestStatic')
 
-staticClientEnv = env.Clone()
+testEnv = env.Clone()
+conf = Configure(testEnv)
+conf.CheckLibWithHeader('curl', 'curl/curl.h', 'c')
+testEnv = conf.Finish()
+
+staticClientEnv = testEnv.Clone()
 staticClientEnv.PrependUnique(
     CPPDEFINES=[
         'STATIC_LIBMONGOCLIENT'
@@ -26,21 +31,18 @@ libUnitTestMain = staticClientEnv.StaticLibrary(
     ],
 )
 
-conf = Configure(env)
-conf.CheckLibWithHeader('curl', 'curl/curl.h', 'c')
-
 libIntegrationTestMain = staticClientEnv.StaticLibrary(
     target='integration_test_main',
     source=[
         '../third_party/restclient/restclient.cpp',
         '../third_party/jsoncpp/jsoncpp.cpp',
-        'integration/integration_test_main.cpp',
         'orchestration/resource.cpp',
         'orchestration/mongo_resource.cpp',
         'orchestration/server.cpp',
         'orchestration/service.cpp',
         'orchestration/replica_set.cpp',
-        'orchestration/sharded_cluster.cpp'
+        'orchestration/sharded_cluster.cpp',
+        'integration/integration_test_main.cpp'
     ],
 )
 
@@ -58,8 +60,6 @@ unittests = [
     'client/replica_set_monitor_test',
     'client/scoped_db_conn_test',
     'client/write_concern_test',
-    'unittest/connection_string_test',
-    'unittest/query',
     'db/dbmessage_test',
     'dbtests/jsobjtests',
     'dbtests/jsontests',
@@ -71,6 +71,8 @@ unittests = [
     'platform/atomic_word_test',
     'platform/process_id_test',
     'platform/random_test',
+    'unittest/connection_string_test',
+    'unittest/query',
     'util/net/hostandport_test',
     'util/net/sock_test',
     'util/stringutils_test',
@@ -113,9 +115,7 @@ integration_tests = [
 integrationTestEnv = gtestEnv.Clone()
 integrationTestEnv.PrependUnique(
     LIBS=[
-        libIntegrationTestMain,
-        libMock,
-        'curl'
+        libIntegrationTestMain
     ])
 
 for integration_test in integration_tests:

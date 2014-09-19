@@ -19,7 +19,7 @@
 namespace mongo {
 namespace orchestration {
 
-    MongoResource::MongoResource(const string& url)
+    MongoResource::MongoResource(const std::string& url)
         : Resource(url)
     {}
 
@@ -31,19 +31,19 @@ namespace orchestration {
         return get();
     }
 
-    RestClient::response MongoResource::action(const string& action) {
+    RestClient::response MongoResource::action(const std::string& action) {
         Json::Value doc;
         Json::FastWriter writer;
         doc["action"] = action;
         return post("", writer.write(doc));
     }
 
-    string MongoResource::uri() const {
-        return handle_response(status())["uri"].asString();
+    std::string MongoResource::uri() const {
+        return handleResponse(status())["uri"].asString();
     }
 
-    string MongoResource::mongodb_uri() const {
-        return handle_response(status())["mongodb_uri"].asString();
+    std::string MongoResource::mongodbUri() const {
+        return handleResponse(status())["mongodb_uri"].asString();
     }
 
 } // namespace orchestration

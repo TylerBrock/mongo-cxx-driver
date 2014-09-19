@@ -21,10 +21,7 @@
 namespace mongo {
 namespace orchestration {
 
-    using std::string;
-
     class Server : public MongoResource {
-
         friend class Resource;
         friend class Service;
         friend class ReplicaSet;
@@ -36,8 +33,7 @@ namespace orchestration {
         void restart();
 
     private:
-        Server(const string& url);
-
+        Server(const std::string& url);
     };
 
 } // namespace orchestration

@@ -19,7 +19,9 @@
 #include <map>
 #include <memory>
 
-#include "mongo/orchestration/orchestration.h"
+#include "mongo/orchestration/replica_set.h"
+#include "mongo/orchestration/server.h"
+#include "mongo/orchestration/service.h"
 #include "mongo/unittest/unittest.h"
 
 // Act like we are using the driver externally
@@ -29,11 +31,6 @@
 
 namespace mongo {
 namespace integration {
-
-    using mongo::orchestration::Service;
-    using mongo::orchestration::Server;
-    using mongo::orchestration::ReplicaSet;
-    using mongo::orchestration::ShardedCluster;
 
     //
     // MongoDB Integration Test Environment
@@ -48,11 +45,11 @@ namespace integration {
     //
     class Environment : public ::testing::Environment {
     public:
-        Environment(std::string uri) {
-            _orchestration.reset(new Service(uri));
+        explicit Environment(const std::string& uri) {
+            _orchestration.reset(new mongo::orchestration::Service(uri));
         }
 
-        static const std::auto_ptr<Service>& Orchestration() {
+        static const std::auto_ptr<mongo::orchestration::Service>& orchestration() {
             return _orchestration;
         }
 
@@ -68,16 +65,16 @@ namespace integration {
     //
     class StandaloneTest : public ::testing::Test {
     public:
-        Server server() {
-            return Environment::Orchestration()->server(_id);
+        mongo::orchestration::Server server() {
+            return Environment::orchestration()->server(_id);
         }
 
         static void SetUpTestCase() {
-            _id = Environment::Orchestration()->createMongod();
+            _id = Environment::orchestration()->createMongod();
         }
 
         static void TearDownTestCase() {
-            Environment::Orchestration()->server(_id).destroy();
+            Environment::orchestration()->server(_id).destroy();
         }
 
     private:
@@ -93,18 +90,18 @@ namespace integration {
     //
     class ReplicaSetTest : public ::testing::Test {
     public:
-        ReplicaSet rs() {
-            return Environment::Orchestration()->replica_set(_id);
+        mongo::orchestration::ReplicaSet rs() {
+            return Environment::orchestration()->replicaSet(_id);
         }
 
         static void SetUpTestCase() {
             Json::Value parameters;
             parameters["preset"] = "arbiter.json";
-            _id = Environment::Orchestration()->createReplicaSet(parameters);
+            _id = Environment::orchestration()->createReplicaSet(parameters);
         }
 
         static void TearDownTestCase() {
-            Environment::Orchestration()->replica_set(_id).destroy();
+            Environment::orchestration()->replicaSet(_id).destroy();
         }
 
     private:

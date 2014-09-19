@@ -541,6 +541,8 @@ for clientTest in clientTestProgramInstalls:
     if 'rsExample' in clientTest.abspath:
         continue
 
+    # TODO: Make this more Scons-like with an action target that causes
+    # a server to come into being and then have each test depend on it.
     orchestration_uri = "localhost:8889"
     conn = httplib.HTTPConnection(orchestration_uri)
     headers = { "Content-Type": "application/json" }

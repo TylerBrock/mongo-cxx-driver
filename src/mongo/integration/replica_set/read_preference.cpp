@@ -36,7 +36,7 @@ namespace {
         ReadPreferenceTest() {
             std::string errmsg;
 
-            ConnectionString cs = ConnectionString::parse(rs().mongodb_uri(), errmsg);
+            ConnectionString cs = ConnectionString::parse(rs().mongodbUri(), errmsg);
             replset_conn.reset(static_cast<DBClientReplicaSet*>(cs.connect(errmsg)));
             replset_conn->dropCollection(TEST_NS);
 
@@ -109,7 +109,7 @@ namespace {
         assert_route(replset_conn, secondary_conn, distinct, ReadPreference_SecondaryOnly, "command");
         assert_route(replset_conn, secondary_conn, distinct, ReadPreference_SecondaryPreferred, "command");
 
-        Server primary = rs().primary();
+        mongo::orchestration::Server primary = rs().primary();
         primary.stop();
 
         while (true) {

@@ -21,7 +21,7 @@ namespace orchestration {
 
     namespace {
         const char content_type[] = "text/json";
-    }
+    } // namespace
 
     enum Status {
         OK = 200,
@@ -31,7 +31,7 @@ namespace orchestration {
         InternalServerError = 500
     };
 
-    Resource::Resource(const string& url)
+    Resource::Resource(const std::string& url)
         : _url(url)
     {}
 
@@ -39,42 +39,43 @@ namespace orchestration {
 
     }
 
-    RestClient::response Resource::get(const string& relative_path) const {
-        return RestClient::get(relative_url(relative_path));
+    RestClient::response Resource::get(const std::string& relative_path) const {
+        return RestClient::get(relativeUrl(relative_path));
     }
 
-    RestClient::response Resource::put(const string& relative_path, const string& payload) {
-        return RestClient::put(relative_url(relative_path), content_type, payload);
+    RestClient::response Resource::put(const std::string& relative_path, const std::string& payload) {
+        return RestClient::put(relativeUrl(relative_path), content_type, payload);
     }
 
-    RestClient::response Resource::post(const string& relative_path, const string& payload) {
-        return RestClient::post(relative_url(relative_path), content_type, payload);
+    RestClient::response Resource::post(const std::string& relative_path, const std::string& payload) {
+        return RestClient::post(relativeUrl(relative_path), content_type, payload);
     }
 
-    RestClient::response Resource::del(const string& relative_path) {
-        return RestClient::del(relative_url(relative_path));
+    RestClient::response Resource::del(const std::string& relative_path) {
+        return RestClient::del(relativeUrl(relative_path));
     }
 
-    string Resource::url() const {
+    std::string Resource::url() const {
         return _url;
     }
 
-    string Resource::relative_url(const string& relative_path) const {
+    std::string Resource::relativeUrl(const std::string& relative_path) const {
         return relative_path.empty() ? _url : _url + "/" + relative_path;
     }
 
-    string Resource::base_relative_url(const string& relative_path) const {
-        string base = _url.substr(0, _url.find("/"));
+    std::string Resource::baseRelativeUrl(const std::string& relative_path) const {
+        std::string base = _url.substr(0, _url.find("/"));
         return relative_path.empty() ? base : base + relative_path;
     }
 
-    Document Resource::handle_response(RestClient::response response) const {
+    Document Resource::handleResponse(const RestClient::response& response) const {
         Document doc;
         if (response.code == OK) {
             Json::Reader reader;
             bool parseSuccessful = reader.parse(response.body.c_str(), doc);
             if (!parseSuccessful)
-                throw std::runtime_error("[orchestration] Failed parsing response: " + response.body);
+                throw std::runtime_error("[orchestration] Failed parsing response: " +
+                    response.body);
         } else if (response.code != NoContent) {
             throw std::runtime_error("[orchestration] Bad response: " + response.body);
         }

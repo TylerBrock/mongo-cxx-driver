@@ -23,20 +23,16 @@
 namespace mongo {
 namespace orchestration {
 
-    using std::string;
-
     class MongoResource : public Resource {
-
     public:
         void destroy();
-        string uri() const;
-        string mongodb_uri() const;
-        RestClient::response action(const string& action);
+        std::string uri() const;
+        std::string mongodbUri() const;
+        RestClient::response action(const std::string& action);
 
     protected:
-        MongoResource(const string& url);
+        MongoResource(const std::string& url);
         RestClient::response status() const;
-
     };
 
 } // namespace orchestration

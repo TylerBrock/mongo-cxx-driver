@@ -19,20 +19,20 @@
 namespace mongo {
 namespace orchestration {
 
-    ShardedCluster::ShardedCluster(const string& url)
+    ShardedCluster::ShardedCluster(const std::string& url)
         : MongoResource(url)
     {}
 
-    vector<Server> ShardedCluster::members() const {
-        return plural_resource<Server>("members");
+    std::vector<Server> ShardedCluster::members() const {
+        return pluralResource<Server>("members");
     }
 
-    vector<Server> ShardedCluster::configs() const {
-        return plural_resource<Server>("configs");
+    std::vector<Server> ShardedCluster::configs() const {
+        return pluralResource<Server>("configs");
     }
 
-    vector<Server> ShardedCluster::routers() const {
-        return plural_resource<Server>("routers");
+    std::vector<Server> ShardedCluster::routers() const {
+        return pluralResource<Server>("routers");
     }
 
 } // namespace orchestration

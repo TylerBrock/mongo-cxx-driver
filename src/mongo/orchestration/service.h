@@ -25,25 +25,21 @@
 namespace mongo {
 namespace orchestration {
 
-    using namespace std;
-
     class Service : public Resource {
-
     public:
-        Service(const string& url);
-        vector<Server> servers() const;
-        vector<ReplicaSet> replica_sets() const;
-        vector<ShardedCluster> clusters() const;
+        explicit Service(const std::string& url);
+        std::vector<Server> servers() const;
+        std::vector<ReplicaSet> replica_sets() const;
+        std::vector<ShardedCluster> clusters() const;
 
-        string createMongod(const Document& params = Document());
-        string createMongos(const Document& params = Document());
-        string createReplicaSet(const Document& params = Document());
-        string createShardedCluster(const Document& params = Document());
+        std::string createMongod(Document params = Document());
+        std::string createMongos(Document params = Document());
+        std::string createReplicaSet(const Document& params = Document());
+        std::string createShardedCluster(const Document& params = Document());
 
-        Server server(const string& id) const;
-        ReplicaSet replica_set(const string& id) const;
-        ShardedCluster cluster(const string& id) const;
-
+        Server server(const std::string& id) const;
+        ReplicaSet replicaSet(const std::string& id) const;
+        ShardedCluster shardedCluster(const std::string& id) const;
     };
 
 } // namespace orchestration

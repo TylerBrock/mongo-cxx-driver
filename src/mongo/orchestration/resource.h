@@ -29,36 +29,33 @@
 namespace mongo {
 namespace orchestration {
 
-    using namespace std;
-
     typedef Json::Value Document;
 
     class Resource {
-
     public:
-        Resource(const string& url);
+        Resource(const std::string& url);
         virtual ~Resource();
 
     protected:
-        RestClient::response get(const string& relative_path = "") const;
-        RestClient::response put(const string& relative_path = "", const string& payload = "{}");
-        RestClient::response post(const string& relative_path = "", const string& payload = "{}");
-        RestClient::response del(const string& relative_path = "");
+        RestClient::response get(const std::string& relative_path = "") const;
+        RestClient::response put(const std::string& relative_path = "", const std::string& payload = "{}");
+        RestClient::response post(const std::string& relative_path = "", const std::string& payload = "{}");
+        RestClient::response del(const std::string& relative_path = "");
 
-        string url() const;
-        string relative_url(const string& relative_path) const;
-        string base_relative_url(const string& relative_path) const;
+        std::string url() const;
+        std::string relativeUrl(const std::string& relative_path) const;
+        std::string baseRelativeUrl(const std::string& relative_path) const;
 
-        Document handle_response(RestClient::response response) const;
+        Document handleResponse(const RestClient::response& response) const;
 
         template <typename T>
-        vector<T> plural_resource(const string& resource_name) const {
-            vector<T> resources;
-            Document doc = handle_response(get(resource_name));
+        std::vector<T> pluralResource(const std::string& resource_name) const {
+            std::vector<T> resources;
+            Document doc = handleResponse(get(resource_name));
 
             for (unsigned i=0; i<doc.size(); i++) {
-                string resource_uri = doc[i]["uri"].asString();
-                T resource(base_relative_url(resource_uri));
+                std::string resource_uri = doc[i]["uri"].asString();
+                T resource(baseRelativeUrl(resource_uri));
                 resources.push_back(resource);
             }
 
@@ -66,8 +63,7 @@ namespace orchestration {
         }
 
     private:
-        string _url;
-
+        std::string _url;
     };
 
 } // namespace orchestration

@@ -25,56 +25,51 @@ namespace orchestration {
         const char kServers[] = "servers";
         const char kReplicaSets[] = "replica_sets";
         const char kShardedClusters[] = "sharded_clusters";
-    }
+    } // namespace
 
-    namespace Resources {
-    }
-
-    Service::Service(const string& url)
+    Service::Service(const std::string& url)
         : Resource(url)
     {}
 
-    vector<Server> Service::servers() const {
-        return plural_resource<Server>(kServers);
+    std::vector<Server> Service::servers() const {
+        return pluralResource<Server>(kServers);
     }
 
-    vector<ReplicaSet> Service::replica_sets() const {
-        return plural_resource<ReplicaSet>(kReplicaSets);
+    std::vector<ReplicaSet> Service::replica_sets() const {
+        return pluralResource<ReplicaSet>(kReplicaSets);
     }
 
-    vector<ShardedCluster> Service::clusters() const {
-        return plural_resource<ShardedCluster>(kShardedClusters);
+    std::vector<ShardedCluster> Service::clusters() const {
+        return pluralResource<ShardedCluster>(kShardedClusters);
     }
 
-    Server Service::server(const string& id) const {
-        return Server(relative_url(kServers + string("/") + id));
+    Server Service::server(const std::string& id) const {
+        return Server(relativeUrl(std::string(kServers).append("/").append(id)));
     }
 
-    ReplicaSet Service::replica_set(const string& id) const {
-        return ReplicaSet(relative_url(kReplicaSets + string("/") + id));
+    ReplicaSet Service::replicaSet(const std::string& id) const {
+        return ReplicaSet(relativeUrl(std::string(kReplicaSets).append("/").append(id)));
     }
 
-    string Service::createMongod(const Document& params) {
-        Document doc(params);
-
-        doc["name"] = "mongod";
-        doc["procParams"]["setParameter"]["enableTestCommands"] = 1;
+    std::string Service::createMongod(Document params) {
+        params["name"] = "mongod";
+        params["procParams"]["setParameter"]["enableTestCommands"] = 1;
 
         Json::FastWriter writer;
 
-        RestClient::response result = post(kServers, writer.write(doc));
-        Document result_doc = handle_response(result);
+        RestClient::response result = post(kServers, writer.write(params));
+        Document result_doc = handleResponse(result);
         return result_doc["id"].asString();
     }
 
-    string Service::createReplicaSet(const Document& params) {
+    std::string Service::createReplicaSet(const Document& params) {
         Json::FastWriter writer;
-        Document result_doc = handle_response(post(kReplicaSets, writer.write(params)));
+        Document result_doc = handleResponse(post(kReplicaSets, writer.write(params)));
         return result_doc["id"].asString();
     }
 
-    string Service::createShardedCluster(const Document& params) {
-        return "";
+    std::string Service::createShardedCluster(const Document& params) {
+        return "Not yet implemented";
     }
 
 } // namespace orchestration
