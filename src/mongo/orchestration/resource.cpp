@@ -21,15 +21,15 @@ namespace orchestration {
 
     namespace {
         const char content_type[] = "text/json";
-    } // namespace
 
-    enum Status {
-        OK = 200,
-        NoContent = 204,
-        BadRequest = 400,
-        NotFound = 404,
-        InternalServerError = 500
-    };
+        enum Status {
+            OK = 200,
+            NoContent = 204,
+            BadRequest = 400,
+            NotFound = 404,
+            InternalServerError = 500
+        };
+    } // namespace
 
     Resource::Resource(const std::string& url)
         : _url(url)
@@ -43,11 +43,13 @@ namespace orchestration {
         return RestClient::get(relativeUrl(relative_path));
     }
 
-    RestClient::response Resource::put(const std::string& relative_path, const std::string& payload) {
+    RestClient::response Resource::put(const std::string& relative_path,
+            const std::string& payload) {
         return RestClient::put(relativeUrl(relative_path), content_type, payload);
     }
 
-    RestClient::response Resource::post(const std::string& relative_path, const std::string& payload) {
+    RestClient::response Resource::post(const std::string& relative_path,
+            const std::string& payload) {
         return RestClient::post(relativeUrl(relative_path), content_type, payload);
     }
 

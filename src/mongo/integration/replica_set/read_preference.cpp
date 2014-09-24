@@ -51,7 +51,7 @@ namespace {
         auto_ptr<DBClientConnection> secondary_conn;
     };
 
-    int op_count(auto_ptr<DBClientConnection>& connection, std::string op_type) {
+    int op_count(auto_ptr<DBClientConnection>& connection, const std::string& op_type) {
         BSONObj cmd = BSON("serverStatus" << 1);
         BSONObj info;
         connection->runCommand("admin", cmd, info);
@@ -63,7 +63,7 @@ namespace {
         auto_ptr<DBClientConnection>& expected_target,
         void (*op)(auto_ptr<DBClientReplicaSet>&, ReadPreference),
         ReadPreference rp,
-        std::string op_type)
+        const std::string& op_type)
     {
         // Record operations of this type before running operation
         int ops_before = op_count(expected_target, op_type);

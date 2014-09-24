@@ -38,8 +38,10 @@ namespace orchestration {
 
     protected:
         RestClient::response get(const std::string& relative_path = "") const;
-        RestClient::response put(const std::string& relative_path = "", const std::string& payload = "{}");
-        RestClient::response post(const std::string& relative_path = "", const std::string& payload = "{}");
+        RestClient::response put(const std::string& relative_path = "",
+                const std::string& payload = "{}");
+        RestClient::response post(const std::string& relative_path = "",
+                const std::string& payload = "{}");
         RestClient::response del(const std::string& relative_path = "");
 
         std::string url() const;

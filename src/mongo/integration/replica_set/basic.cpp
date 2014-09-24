@@ -83,4 +83,4 @@ namespace {
         conn->findOne(TEST_NS, Query().readPref(ReadPreference_SecondaryOnly, BSONArray()));
         primary.start();
     }
-}
+} // namespace
