@@ -72,7 +72,7 @@ unittests = [
     'platform/process_id_test',
     'platform/random_test',
     'unittest/connection_string_test',
-    'unittest/query',
+    'unittest/query_test',
     'util/net/hostandport_test',
     'util/net/sock_test',
     'util/stringutils_test',

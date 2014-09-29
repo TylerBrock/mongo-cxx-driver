@@ -150,4 +150,4 @@ namespace mongo {
         ASSERT_EQUALS(tag_sets[1].Obj(), tag_set2);
     }
 
-}
+} // namespace mongo

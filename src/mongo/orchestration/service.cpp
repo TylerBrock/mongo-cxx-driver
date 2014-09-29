@@ -55,21 +55,22 @@ namespace orchestration {
         params["name"] = "mongod";
         params["procParams"]["setParameter"]["enableTestCommands"] = 1;
 
-        Json::FastWriter writer;
-
-        RestClient::response result = post(kServers, writer.write(params));
-        Document result_doc = handleResponse(result);
-        return result_doc["id"].asString();
+        return _createResource(kServers, params);
     }
 
     std::string Service::createReplicaSet(const Document& params) {
-        Json::FastWriter writer;
-        Document result_doc = handleResponse(post(kReplicaSets, writer.write(params)));
-        return result_doc["id"].asString();
+        return _createResource(kReplicaSets, params);
     }
 
     std::string Service::createShardedCluster(const Document& params) {
-        return "Not yet implemented";
+        return _createResource(kShardedClusters, params);
+    }
+
+    std::string Service::_createResource(const char resource[], const Document& params) {
+        Json::FastWriter writer;
+        RestClient::response result = post(resource, writer.write(params));
+        Document result_doc = handleResponse(result);
+        return result_doc["id"].asString();
     }
 
 } // namespace orchestration

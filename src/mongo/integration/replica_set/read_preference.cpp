@@ -51,7 +51,7 @@ namespace {
         auto_ptr<DBClientConnection> secondary_conn;
     };
 
-    int op_count(auto_ptr<DBClientConnection>& connection, const std::string& op_type) {
+    int op_count(const auto_ptr<DBClientConnection>& connection, const std::string& op_type) {
         BSONObj cmd = BSON("serverStatus" << 1);
         BSONObj info;
         connection->runCommand("admin", cmd, info);
@@ -59,9 +59,9 @@ namespace {
     }
 
     void assert_route(
-        auto_ptr<DBClientReplicaSet>& test_conn,
-        auto_ptr<DBClientConnection>& expected_target,
-        void (*op)(auto_ptr<DBClientReplicaSet>&, ReadPreference),
+        const auto_ptr<DBClientReplicaSet>& test_conn,
+        const auto_ptr<DBClientConnection>& expected_target,
+        void (*op)(const auto_ptr<DBClientReplicaSet>&, ReadPreference),
         ReadPreference rp,
         const std::string& op_type)
     {
@@ -78,17 +78,17 @@ namespace {
         ASSERT_EQUALS(ops_after - ops_before, op_type == "command" ? 2 : 1);
     }
 
-    void query(auto_ptr<DBClientReplicaSet>& test_conn, ReadPreference rp) {
+    void query(const auto_ptr<DBClientReplicaSet>& test_conn, ReadPreference rp) {
         Query q = Query().readPref(rp, BSONArray());
         test_conn->findOne(TEST_NS, q);
     }
 
-    void count(auto_ptr<DBClientReplicaSet>& test_conn, ReadPreference rp) {
+    void count(const auto_ptr<DBClientReplicaSet>& test_conn, ReadPreference rp) {
         Query q = Query().readPref(rp, BSONArray());
         test_conn->count(TEST_NS, q);
     }
 
-    void distinct(auto_ptr<DBClientReplicaSet>& test_conn, ReadPreference rp) {
+    void distinct(const auto_ptr<DBClientReplicaSet>& test_conn, ReadPreference rp) {
         Query q = Query().readPref(rp, BSONArray());
         test_conn->distinct(TEST_NS, "a", q);
     }

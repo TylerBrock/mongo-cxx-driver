@@ -28,6 +28,7 @@ namespace orchestration {
     class Service : public Resource {
     public:
         explicit Service(const std::string& url);
+
         std::vector<Server> servers() const;
         std::vector<ReplicaSet> replica_sets() const;
         std::vector<ShardedCluster> clusters() const;
@@ -40,6 +41,9 @@ namespace orchestration {
         Server server(const std::string& id) const;
         ReplicaSet replicaSet(const std::string& id) const;
         ShardedCluster shardedCluster(const std::string& id) const;
+
+    private:
+        std::string _createResource(const char resource[], const Document& params);
     };
 
 } // namespace orchestration

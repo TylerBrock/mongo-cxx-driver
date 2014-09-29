@@ -83,5 +83,4 @@ namespace mongo {
         );
     }
 
-}
-
+} // namespace mongo
