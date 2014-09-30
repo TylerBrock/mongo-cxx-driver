@@ -33,7 +33,8 @@ namespace {
 
     class ReadPreferenceTest : public ReplicaSetTest {
     public:
-        ReadPreferenceTest() {
+        static void SetUpTestCase() {
+            ReplicaSetTest::SetUpTestCase();
             std::string errmsg;
 
             ConnectionString cs = ConnectionString::parse(rs().mongodbUri(), errmsg);
@@ -46,10 +47,14 @@ namespace {
             secondary_conn->connect(rs().secondaries().front().uri());
         }
 
-        auto_ptr<DBClientReplicaSet> replset_conn;
-        auto_ptr<DBClientConnection> primary_conn;
-        auto_ptr<DBClientConnection> secondary_conn;
+        static auto_ptr<DBClientReplicaSet> replset_conn;
+        static auto_ptr<DBClientConnection> primary_conn;
+        static auto_ptr<DBClientConnection> secondary_conn;
     };
+
+    auto_ptr<DBClientReplicaSet> ReadPreferenceTest::replset_conn;
+    auto_ptr<DBClientConnection> ReadPreferenceTest::primary_conn;
+    auto_ptr<DBClientConnection> ReadPreferenceTest::secondary_conn;
 
     int op_count(const auto_ptr<DBClientConnection>& connection, const std::string& op_type) {
         BSONObj cmd = BSON("serverStatus" << 1);
@@ -93,22 +98,61 @@ namespace {
         test_conn->distinct(TEST_NS, "a", q);
     }
 
-    TEST_F(ReadPreferenceTest, Routing) {
+    void collStats(const auto_ptr<DBClientReplicaSet>& test_conn, ReadPreference rp) {
+        BSONObjBuilder cmd;
+        cmd.append("query", BSON("collStats" << TEST_COLL));
+
+        switch (rp) {
+            case ReadPreference_PrimaryOnly:
+                cmd.append("$readPreference", BSON("mode" << "primary"));
+                break;
+            case ReadPreference_PrimaryPreferred:
+                cmd.append("$readPreference", BSON("mode" << "primaryPreferred"));
+                break;
+            case ReadPreference_SecondaryOnly:
+                cmd.append("$readPreference", BSON("mode" << "secondary"));
+                break;
+            case ReadPreference_SecondaryPreferred:
+                cmd.append("$readPreference", BSON("mode" << "secondaryPreferred"));
+                break;
+            case ReadPreference_Nearest:
+                // for completeness
+                break;
+        }
+
+        BSONObj info;
+        test_conn->runCommand(TEST_DB, cmd.obj(), info);
+    }
+
+    TEST_F(ReadPreferenceTest, RoutingQuery) {
         assert_route(replset_conn, primary_conn, query, ReadPreference_PrimaryOnly, "query");
         assert_route(replset_conn, primary_conn, query, ReadPreference_PrimaryPreferred, "query");
         assert_route(replset_conn, secondary_conn, query, ReadPreference_SecondaryOnly, "query");
         assert_route(replset_conn, secondary_conn, query, ReadPreference_SecondaryPreferred, "query");
+    }
 
+    TEST_F(ReadPreferenceTest, RoutingCount) {
         assert_route(replset_conn, primary_conn, count, ReadPreference_PrimaryOnly, "command");
         assert_route(replset_conn, primary_conn, count, ReadPreference_PrimaryPreferred, "command");
         assert_route(replset_conn, secondary_conn, count, ReadPreference_SecondaryOnly, "command");
         assert_route(replset_conn, secondary_conn, count, ReadPreference_SecondaryPreferred, "command");
+    }
 
+    TEST_F(ReadPreferenceTest, RoutingDistinct) {
         assert_route(replset_conn, primary_conn, distinct, ReadPreference_PrimaryOnly, "command");
         assert_route(replset_conn, primary_conn, distinct, ReadPreference_PrimaryPreferred, "command");
         assert_route(replset_conn, secondary_conn, distinct, ReadPreference_SecondaryOnly, "command");
         assert_route(replset_conn, secondary_conn, distinct, ReadPreference_SecondaryPreferred, "command");
+    }
 
+    TEST_F(ReadPreferenceTest, RoutingCollStats) {
+        assert_route(replset_conn, primary_conn, collStats, ReadPreference_PrimaryOnly, "command");
+        assert_route(replset_conn, primary_conn, collStats, ReadPreference_PrimaryPreferred, "command");
+        assert_route(replset_conn, secondary_conn, collStats, ReadPreference_SecondaryOnly, "command");
+        assert_route(replset_conn, secondary_conn, collStats, ReadPreference_SecondaryPreferred, "command");
+    }
+
+    TEST_F(ReadPreferenceTest, RoutingPrimaryDown) {
         mongo::orchestration::Server primary = rs().primary();
         primary.stop();
 

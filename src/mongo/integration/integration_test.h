@@ -65,7 +65,7 @@ namespace integration {
     //
     class StandaloneTest : public ::testing::Test {
     public:
-        mongo::orchestration::Server server() {
+        static mongo::orchestration::Server server() {
             return Environment::orchestration()->server(_id);
         }
 
@@ -90,7 +90,7 @@ namespace integration {
     //
     class ReplicaSetTest : public ::testing::Test {
     public:
-        mongo::orchestration::ReplicaSet rs() {
+        static mongo::orchestration::ReplicaSet rs() {
             return Environment::orchestration()->replicaSet(_id);
         }
 
