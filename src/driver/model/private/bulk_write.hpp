@@ -25,13 +25,12 @@ namespace model {
 
 class bulk_write::impl {
    public:
-    impl(bool ordered, mongoc_bulk_operation_t* op) :
-        ordered(ordered),
-        operation_t(op) {}
+    impl(mongoc_bulk_operation_t* op) :
+        operation_t(op)
+    {}
 
     ~impl() { mongoc_bulk_operation_destroy(operation_t); }
 
-    bool ordered;
     mongoc_bulk_operation_t* operation_t;
     optional<class write_concern> _write_concern;
 };

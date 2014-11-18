@@ -12,43 +12,26 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-#pragma once
-
-#include "driver/config/prelude.hpp"
-
-#include <vector>
-
-#include "driver/options/bulk_write.hpp"
 #include "driver/base/write_concern.hpp"
-#include "driver/model/write.hpp"
-#include "driver/util/optional.hpp"
+#include "driver/options/bulk_write.hpp"
 
 namespace mongo {
 namespace driver {
-class collection;
+namespace options {
 
-namespace model {
+void bulk_write::ordered(bool ordered) {
+    _ordered = ordered;
+}
 
-class LIBMONGOCXX_EXPORT bulk_write {
+void bulk_write::write_concern(class write_concern wc) {
+    _write_concern = std::move(wc);
+}
 
-    friend class mongo::driver::collection;
+const optional<bool>& bulk_write::ordered() const {
+    return _ordered;
+}
 
-    class impl;
-
-   public:
-    bulk_write(const options::bulk_write& options);
-
-    bulk_write& append(write operation);
-
-    bulk_write(bulk_write&&);
-    bulk_write& operator=(bulk_write&&);
-    ~bulk_write();
-
-   private:
-    std::unique_ptr<impl> _impl;
-};
-
-}  // namespace model
+}  // namespace options
 }  // namespace driver
 }  // namespace mongo
 

@@ -14,25 +14,31 @@
 
 #pragma once
 
+#include "driver/config/prelude.hpp"
+
+#include "driver/util/optional.hpp"
+
 namespace mongo {
 namespace driver {
-namespace util {
+namespace options {
 
-template <typename T>
-class is_iterable {
-   private:
-    typedef char Yes;
-    typedef Yes No[2];
-
-    template <typename C>
-    static auto Test(void*) -> decltype(size_t{std::declval<C const>().begin()}, Yes{});
-
-    template <typename>
-    static No& Test(...);
+class LIBMONGOCXX_EXPORT bulk_write {
 
    public:
-    static bool const value = sizeof(Test<T>(0)) == sizeof(Yes);
+    void ordered(bool ordered);
+    void write_concern(class write_concern wc);
+
+    const optional<bool>& ordered() const;
+    const optional<class write_concern>& write_concern() const;
+
+   private:
+    optional<bool> _ordered;
+    optional<class write_concern> _write_concern;
+
 };
-}
-}
-}
+
+}  // namesapce options
+}  // namespace driver
+}  // namespace mongo
+
+#include "driver/config/postlude.hpp"

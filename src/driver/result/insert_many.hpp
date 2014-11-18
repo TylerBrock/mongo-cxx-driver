@@ -26,7 +26,6 @@ namespace driver {
 namespace result {
 
 struct LIBMONGOCXX_EXPORT insert_many {
-    bool acknowledged;
     std::map<std::size_t, bson::document::element> inserted_ids;
     std::int32_t inserted_count;
 };

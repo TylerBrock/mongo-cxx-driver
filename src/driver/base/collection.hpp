@@ -25,6 +25,7 @@
 
 #include "driver/base/cursor.hpp"
 #include "driver/result/write.hpp"
+#include "driver/result/bulk_write.hpp"
 
 #include "driver/base/read_preference.hpp"
 #include "driver/base/write_concern.hpp"
@@ -38,6 +39,11 @@ class write_concern;
 class read_preference;
 class pipeline;
 
+namespace model {
+class write;
+class bulk_write;
+}
+
 namespace options {
 class aggregate;
 class bulk_write;
@@ -48,8 +54,7 @@ class find_one_and_delete;
 class find_one_and_update;
 class delete_one;
 class delete_many;
-class insert_one;
-class insert_many;
+class insert;
 class replace_one;
 class update;
 class distinct;
@@ -58,19 +63,13 @@ class explain;
 }  // namespace options
 
 namespace result {
-struct bulk_write;
 struct insert_one;
 struct insert_many;
 struct replace_one;
 struct update;
 struct delete_result;
-class write;
+struct bulk_write;
 }  // namespace result
-
-namespace fluent {
-class findable;
-class aggregatable;
-}  // namespace fluent
 
 class LIBMONGOCXX_EXPORT collection {
 
@@ -100,61 +99,61 @@ class LIBMONGOCXX_EXPORT collection {
         const options::find& options
     ) const;
 
-    optional<bson::document::value> find_one(
-        const bson::document::view& filter,
-        const options::find& options
-    ) const;
-
     bson::document::value explain(
         const options::explain& model
     ) const;
 
-    result::insert_one insert_one(const bson::document::view& document);
-    result::insert_many insert_many(const std::vector<bson::document::view>& model);
+    optional<result::insert_one> insert_one(
+        const bson::document::view& document
+    );
 
-    result::replace_one replace_one(
+    optional<result::insert_many> insert_many(
+        const std::vector<bson::document::view&> documents,
+        const options::insert& options
+    );
+
+    optional<result::replace_one> replace_one(
         const bson::document::view& filter,
         const bson::document::view& replacement,
         const options::update& options
     );
 
-    result::update update_one(
+    optional<result::update> update_one(
         const bson::document::view& filter,
         const bson::document::view& update,
         const options::update& options
     );
 
-    result::update update_many(
+    optional<result::update> update_many(
         const bson::document::view& filter,
         const bson::document::view& update,
         const options::update& options
     );
 
-    result::delete_result delete_one(
+    optional<result::delete_result> delete_one(
         const bson::document::view& filter
     );
 
-    result::delete_result delete_many(
+    optional<result::delete_result> delete_many(
         const bson::document::view& filter
     );
 
-    result::bulk_write bulk_write(
-        const std::vector<write>& requests,
-        const options::bulk_write& options
+    optional<result::bulk_write> bulk_write(
+        const model::bulk_write& model
     );
 
-    optional<bson::document::value> find_one_and_delete(
+    bson::document::value find_one_and_delete(
         const bson::document::view& filter,
         const options::find_one_and_delete& options
     );
 
-    optional<bson::document::value> find_one_and_replace(
+    bson::document::value find_one_and_replace(
         const bson::document::view& filter,
         const bson::document::view& replacement,
         const options::find_one_and_replace& options
     );
 
-    optional<bson::document::value> find_one_and_update(
+    bson::document::value find_one_and_update(
         const bson::document::view& filter,
         const bson::document::view& update,
         const options::find_one_and_update& options

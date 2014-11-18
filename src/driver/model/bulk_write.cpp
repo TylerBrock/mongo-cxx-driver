@@ -28,8 +28,8 @@ bulk_write::bulk_write(bulk_write&&) = default;
 bulk_write& bulk_write::operator=(bulk_write&&) = default;
 bulk_write::~bulk_write() = default;
 
-bulk_write::bulk_write(bool ordered)
-    : _impl(new impl{ordered, mongoc_bulk_operation_new(ordered)}) {}
+bulk_write::bulk_write(const options::bulk_write& options)
+    : _impl(new impl{mongoc_bulk_operation_new(options.ordered().value_or(true))}) {}
 
 bulk_write& bulk_write::append(write operation_t) {
     switch (operation_t.type()) {

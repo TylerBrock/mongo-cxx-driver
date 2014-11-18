@@ -23,7 +23,6 @@ namespace driver {
 namespace result {
 
 struct LIBMONGOCXX_EXPORT delete_result {
-    bool acknowledged;
     std::int64_t removed_count;
 };
 
