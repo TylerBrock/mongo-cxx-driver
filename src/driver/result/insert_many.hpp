@@ -15,6 +15,7 @@
 #pragma once
 
 #include "driver/config/prelude.hpp"
+#include "driver/result/bulk_write.hpp"
 
 #include <cstdint>
 #include <map>
@@ -25,10 +26,20 @@ namespace mongo {
 namespace driver {
 namespace result {
 
-struct LIBMONGOCXX_EXPORT insert_many {
-    std::map<std::size_t, bson::document::element> inserted_ids;
-    std::int32_t inserted_count;
-}; // struct insert_many
+class LIBMONGOCXX_EXPORT insert_many {
+
+   public:
+    insert_many(result::bulk_write result, std::map<std::size_t, bson::document::element> inserted_ids);
+
+    std::map<std::size_t, bson::document::element> inserted_ids();
+
+    std::int64_t inserted_count() const;
+
+   private:
+    result::bulk_write _result;
+
+    std::map<std::size_t, bson::document::element> _generated_ids;
+}; // class insert_many
 
 }  // namespace result
 }  // namespace driver

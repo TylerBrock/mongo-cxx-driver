@@ -23,6 +23,7 @@
 
 #include "bson/document.hpp"
 
+#include "bson/builder.hpp"
 #include "driver/base/bulk_write.hpp"
 #include "driver/base/cursor.hpp"
 #include "driver/base/read_preference.hpp"
@@ -235,16 +236,31 @@ inline optional<result::insert_many> collection::insert_many(
 ) {
     class bulk_write writes(false);
 
-    std::for_each(begin, end, [&](bson::document::view current){
-        writes.append(model::insert_one(current));
+    std::map<std::size_t, bson::document::element> inserted_ids{};
+    size_t index = 0;
+    std::for_each(begin, end, [&](const bson::document::view& current){
+        if ( !current.has_key("_id")) {
+            bson::builder::document new_document;
+            new_document << "_id" << bson::oid(bson::oid::init_tag);
+            new_document << bson::builder::helpers::concat{current};
+
+            writes.append(model::insert_one(new_document.view()));
+
+            inserted_ids.emplace(index++, new_document.view()["_id"]);
+        } else {
+            writes.append(model::insert_one(current));
+
+            inserted_ids.emplace(index++, current["_id"]);
+        }
+
     });
 
     if (options.write_concern())
         writes.write_concern(*options.write_concern());
+    result::bulk_write res(std::move(bulk_write(writes).value()));
+    optional<result::insert_many> result(result::insert_many(std::move(res), std::move(inserted_ids)));
+    return result;
 
-    bulk_write(writes);
-    // TODO: map result::bulk_write to result::insert_many
-    return result::insert_many();
 }
 
 }  // namespace driver

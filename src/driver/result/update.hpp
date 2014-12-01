@@ -15,20 +15,35 @@
 #pragma once
 
 #include "driver/config/prelude.hpp"
+#include "driver/result/bulk_write.hpp"
 
 #include <cstdint>
 
 #include "bson/types.hpp"
 
+#include "stdx/optional.hpp"
+
 namespace mongo {
 namespace driver {
 namespace result {
 
-struct LIBMONGOCXX_EXPORT update {
-    std::int64_t matched_count;
-    std::int64_t modified_count;
-    bson::document::element upserted_id;
-}; // struct update
+class LIBMONGOCXX_EXPORT update {
+
+   public:
+    explicit update(result::bulk_write result);
+
+    const result::bulk_write& result() const;
+
+    std::int64_t matched_count() const;
+
+    std::int64_t modified_count() const;
+
+    optional <bson::document::element> upserted_id() const;
+
+   private:
+    result::bulk_write _result;
+
+}; // class update
 
 }  // namespace result
 }  // namespace driver

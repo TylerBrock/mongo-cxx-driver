@@ -17,6 +17,7 @@
 #include "bson/builder.hpp"
 #include "bson/libbson.hpp"
 
+
 #include "driver/base/private/client.hpp"
 #include "driver/base/private/collection.hpp"
 #include "driver/base/private/database.hpp"
@@ -168,14 +169,29 @@ cursor collection::aggregate(const pipeline& pipeline, const options::aggregate&
 optional<result::insert_one> collection::insert_one(bson::document::view document,
                                                     const options::insert& options) {
     class bulk_write bulk_op(false);
-    model::insert_one insert(document);
-    bulk_op.append(insert);
+    bson::document::element oid{};
 
-    if (options.write_concern()) bulk_op.write_concern(*options.write_concern());
+    if (!document.has_key("_id")) {
+        bson::builder::document new_document;
+        new_document << "_id" << bson::oid(bson::oid::init_tag);
+        new_document << bson::builder::helpers::concat{document};
+        bulk_op.append(model::insert_one(new_document.view()));
 
-    optional<result::insert_one> result(std::move(bulk_write(bulk_op).value()));
+        oid = new_document.view()["_id"];
+    } else {
+        bulk_op.append(model::insert_one(document));
+        oid = document["_id"];
+    }
 
-    return result;
+    if (options.write_concern()) {
+        bulk_op.write_concern(*options.write_concern());
+    }
+
+    auto result = bulk_write(bulk_op);
+    if (! result) {
+        return optional<result::insert_one>();
+    }
+    return optional<result::insert_one>(result::insert_one(std::move(result.value()), oid));
 }
 
 optional<result::replace_one> collection::replace_one(bson::document::view filter,
@@ -187,11 +203,13 @@ optional<result::replace_one> collection::replace_one(bson::document::view filte
 
     if (options.write_concern()) bulk_op.write_concern(*options.write_concern());
 
-    optional<result::bulk_write> res(bulk_write(bulk_op));
+    auto result = bulk_write(bulk_op);
+    if (!result) {
+        return optional<result::replace_one>();
+    }
 
-    optional<result::replace_one> result;
-    return result;
-}
+    return optional<result::replace_one>(result::replace_one(std::move(result.value())));
+};
 
 optional<result::update> collection::update_many(bson::document::view filter,
                                                  bson::document::view update,
@@ -205,9 +223,12 @@ optional<result::update> collection::update_many(bson::document::view filter,
 
     if (options.write_concern()) bulk_op.write_concern(*options.write_concern());
 
-    optional<result::bulk_write> res(bulk_write(bulk_op));
-    optional<result::update> result;
-    return result;
+    auto result = bulk_write(bulk_op);
+    if (!result) {
+        return optional<result::update>();
+    }
+
+    return optional<result::update> (result::update(std::move(result.value())));
 }
 
 optional<result::delete_result> collection::delete_many(bson::document::view filter,
@@ -218,10 +239,12 @@ optional<result::delete_result> collection::delete_many(bson::document::view fil
 
     if (options.write_concern()) bulk_op.write_concern(*options.write_concern());
 
-    optional<result::bulk_write> res(bulk_write(bulk_op));
+    auto result = bulk_write(bulk_op);
+    if (!result) {
+        return optional<result::delete_result>();
+    }
 
-    optional<result::delete_result> result;
-    return result;
+    return optional<result::delete_result> (result::delete_result(std::move(result.value())));
 }
 
 optional<result::update> collection::update_one(bson::document::view filter,
@@ -236,9 +259,13 @@ optional<result::update> collection::update_one(bson::document::view filter,
 
     if (options.write_concern()) bulk_op.write_concern(*options.write_concern());
 
-    optional<result::bulk_write> res(bulk_write(bulk_op));
-    optional<result::update> result;
-    return result;
+    auto result = bulk_write(bulk_op);
+    if (!result) {
+        return optional<result::update>();
+    }
+
+    return optional<result::update> (result::update(std::move(result.value())));
+
 }
 
 optional<result::delete_result> collection::delete_one(bson::document::view filter,
@@ -249,10 +276,11 @@ optional<result::delete_result> collection::delete_one(bson::document::view filt
 
     if (options.write_concern()) bulk_op.write_concern(*options.write_concern());
 
-    optional<result::bulk_write> res(bulk_write(bulk_op));
-
-    optional<result::delete_result> result;
-    return result;
+    auto result = bulk_write(bulk_op);
+    if (!result) {
+        return optional<result::delete_result>();
+    }
+    return optional<result::delete_result>(result::delete_result(std::move(result.value())));
 }
 
 optional<bson::document::value> collection::find_one_and_replace(

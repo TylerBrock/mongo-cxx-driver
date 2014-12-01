@@ -12,31 +12,23 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-#pragma once
-
-#include "driver/config/prelude.hpp"
-#include "driver/result/bulk_write.hpp"
-
-#include "bson/types.hpp"
+#include "driver/result/delete.hpp"
 
 namespace mongo {
 namespace driver {
 namespace result {
 
-class LIBMONGOCXX_EXPORT insert_one {
-   public:
-    insert_one(result::bulk_write result, bson::document::element generated_id);
+delete_result::delete_result(result::bulk_write result)
+    : _result(std::move(result))
+{}
 
-    const result::bulk_write& result() const;
+const result::bulk_write& delete_result::result() const {
+    return _result;
+}
 
-    bson::document::element inserted_id() const;
-    
-   private:
-    result::bulk_write _result;
-
-    bson::document::element _generated_id;
-
-}; // class insert_one
+std::int64_t delete_result::removed_count() const {
+    return _result.deleted_count();
+}
 
 }  // namespace result
 }  // namespace driver

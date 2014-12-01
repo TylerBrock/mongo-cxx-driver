@@ -51,6 +51,8 @@ class LIBMONGOCXX_EXPORT view {
     iterator begin() const;
     iterator end() const;
 
+    bool has_key(const string_or_literal& key) const;
+
     element operator[](const string_or_literal& key) const;
 
     view(const std::uint8_t* b, std::size_t l);

@@ -66,6 +66,10 @@ view::iterator view::begin() const {
     return iterator(&iter);
 }
 
+bool view::has_key(const string_or_literal& key) const {
+    return !((*this)[key] == bson::document::element{});
+}
+
 view::iterator view::end() const { return iterator(true); }
 
 element view::operator[](const string_or_literal& key) const {

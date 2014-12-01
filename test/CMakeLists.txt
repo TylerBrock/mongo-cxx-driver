@@ -18,6 +18,30 @@ add_executable(test_model_update_many
 target_link_libraries(test_model_update_many mongocxx-mocked)
 add_test(model_update_many test_model_update_many)
 
+add_executable(test_result_insert_one
+    driver/result/insert_one.cpp
+)
+target_link_libraries(test_result_insert_one mongocxx-mocked)
+add_test(result_insert_one test_result_insert_one)
+
+add_executable(test_result_delete
+    driver/result/delete.cpp
+)
+target_link_libraries(test_result_delete mongocxx-mocked)
+add_test(result_delete test_result_delete)
+
+add_executable(test_result_replace
+    driver/result/replace_one.cpp
+)
+target_link_libraries(test_result_replace mongocxx-mocked)
+add_test(result_replace test_result_replace)
+
+add_executable(test_result_update
+    driver/result/update.cpp
+)
+target_link_libraries(test_result_update mongocxx-mocked)
+add_test(result_update test_result_update)
+
 test(3)
 add_test(test_suite_3 test_3)
 test(4)

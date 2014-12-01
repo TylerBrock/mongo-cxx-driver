@@ -18,22 +18,26 @@ namespace mongo {
 namespace driver {
 namespace result {
 
-std::int64_t bulk_write::inserted_count() const { return _view()["nInserted"].get_int64(); }
+std::int64_t bulk_write::inserted_count() const { return view()["nInserted"].get_int64(); }
 
-std::int64_t bulk_write::matched_count() const { return _view()["nMatched"].get_int64(); }
+std::int64_t bulk_write::matched_count() const { return view()["nMatched"].get_int64(); }
 
-std::int64_t bulk_write::modified_count() const { return _view()["nModified"].get_int64(); };
+std::int64_t bulk_write::modified_count() const { return view()["nModified"].get_int64(); };
 
-std::int64_t bulk_write::deleted_count() const { return _view()["nRemoved"].get_int64(); }
+std::int64_t bulk_write::deleted_count() const { return view()["nRemoved"].get_int64(); }
 
-std::int64_t bulk_write::upserted_count() const { return _view()["nUpserted"].get_int64(); }
+std::int64_t bulk_write::upserted_count() const { return view()["nUpserted"].get_int64(); }
 
-bson::document::view bulk_write::inserted_ids() const {
-    return _view()["inserted_ids"].get_array();
+bson::document::element bulk_write::inserted_ids() const {
+    return view()["inserted_ids"];
 }
 
-bson::document::view bulk_write::upserted_ids() const {
-    return _view()["upserted_ids"].get_array();
+bson::document::element bulk_write::upserted_ids() const {
+    return view()["upserted_ids"];
+}
+
+bson::document::view bulk_write::view() const {
+    return _response.view();
 }
 
 }  // namespace result

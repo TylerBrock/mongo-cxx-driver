@@ -12,27 +12,27 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-#include "driver/result/insert_one.hpp"
+#define CATCH_CONFIG_MAIN
+#include "catch.hpp"
+#include "helpers.hpp"
 
-namespace mongo {
-namespace driver {
-namespace result {
+#include "mongocxx.hpp"
 
-insert_one::insert_one(result::bulk_write result, bson::document::element generated_id)
-    : _result(std::move(result)),
-      _generated_id(std::move(generated_id))
-{}
+using namespace mongo::driver;
 
-const result::bulk_write& insert_one::result() const {
-    return _result;
+TEST_CASE("insert_one", "[insert_one][result]") {
+    bson::builder::document build;
+    build << "_id" << bson::oid{bson::oid::init_tag} << "x" << 1;
+
+    bson::document::element g_oid{};
+
+    result::bulk_write b(bson::document::value(build.view()));
+
+    result::insert_one insert_one(std::move(b), g_oid);
+
+    SECTION("returns correct response") {
+        REQUIRE(insert_one.inserted_id() == g_oid);
+    }
+
 }
 
-bson::document::element insert_one::inserted_id() const {
-    return _generated_id;
-}
-
-}  // namespace result
-}  // namespace driver
-}  // namespace mongo
-
-#include "driver/config/postlude.hpp"

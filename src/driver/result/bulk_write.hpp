@@ -29,28 +29,32 @@ namespace driver {
 namespace result {
 
     class insert_one;
+    class delete_result;
+    class update;
+    class replace_one;
+    class insert_many;
 
 class LIBMONGOCXX_EXPORT bulk_write {
 
-    friend class driver::collection;
-    friend class result::insert_one;
 
    public:
+
+    bulk_write(bson::document::value raw_response)
+        : _response(std::move(raw_response))
+    {}
+
+    bson::document::view view() const;
+
     std::int64_t inserted_count() const;
     std::int64_t matched_count() const;
     std::int64_t modified_count() const;
     std::int64_t deleted_count() const;
     std::int64_t upserted_count() const;
 
-    bson::document::view inserted_ids() const;
-    bson::document::view upserted_ids() const;
+    bson::document::element inserted_ids() const;
+    bson::document::element upserted_ids() const;
 
    private:
-    bulk_write(bson::document::value raw_response)
-        : _response(std::move(raw_response))
-    {}
-
-    bson::document::view _view() const;
 
     bson::document::value _response;
 

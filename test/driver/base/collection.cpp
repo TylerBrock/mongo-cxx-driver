@@ -19,6 +19,11 @@ TEST_CASE("CRUD functionality", "[driver::collection]") {
 
         REQUIRE(coll.insert_one(b));
 
+        bson::builder::document c;
+        c << "x" << 1;
+
+        REQUIRE(coll.insert_one(c.view()));
+
         auto cursor = coll.find(b);
 
         std::size_t i = 0;
@@ -28,25 +33,6 @@ TEST_CASE("CRUD functionality", "[driver::collection]") {
         }
 
         REQUIRE(i == 1);
-    }
-
-    SECTION("insert and read multiple documents", "[collection]") {
-        bson::builder::document b1, b2;
-
-        b1 << "_id" << 1;
-        b2 << "_id" << 2;
-
-        std::vector<bson::document::view> inserts{b1, b2};
-        result::insert_many result = coll.insert_many(inserts).value();
-
-        auto cursor = coll.find(bson::document::view());
-
-        std::int32_t sum = 0;
-        for (auto&& doc : cursor) {
-            sum += doc["_id"].get_int32();
-        }
-
-        REQUIRE(sum == 3);
     }
 
     SECTION("insert and update single document", "[collection]") {
@@ -108,7 +94,7 @@ TEST_CASE("CRUD functionality", "[driver::collection]") {
         replacement << "x" << 2;
 
         coll.replace_one(doc, replacement);
-
+        auto c = coll.count(doc);
         REQUIRE(coll.count(doc) == 1);
     }
 
@@ -129,7 +115,7 @@ TEST_CASE("CRUD functionality", "[driver::collection]") {
 
         REQUIRE(updated);
         REQUIRE(updated->view()["changed"].get_bool() == true);
-        REQUIRE(coll.count(bson::document::view()) == 1);
+        REQUIRE(coll.count(bson::document::view()) == (std::int64_t)1);
     }
 
     SECTION("matching upsert updates document", "[collection]") {
@@ -197,7 +183,7 @@ TEST_CASE("CRUD functionality", "[driver::collection]") {
 
         coll.delete_one(b2);
 
-        REQUIRE(coll.count(bson::document::view()) == 2);
+        REQUIRE(coll.count(bson::document::view()) == (std::int64_t)2);
 
         auto cursor = coll.find(bson::document::view());
 
