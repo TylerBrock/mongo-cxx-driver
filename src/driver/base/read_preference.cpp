@@ -14,10 +14,17 @@
 
 #include "driver/base/read_preference.hpp"
 
+#include "mongoc.h"
+
 namespace mongo {
 namespace driver {
 
-read_preference::read_preference(read_mode mode) : _mode(mode) {}
+read_preference::read_preference(read_mode mode) : _impl(std::make_unique<impl>(mongoc_read_prefs_new(static_cast<mongoc_read_mode_t>(mode)))) {
+    if (arg.tags()) {
+        bson::libbson::scoped_bson_t btags(arg.tags());
+        mongoc_read_prefs_set_tags(wc, btags.bson());
+    }
+}
 
 void read_preference::mode(read_mode mode) { _mode = mode; }
 

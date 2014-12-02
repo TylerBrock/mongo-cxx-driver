@@ -16,8 +16,9 @@
 
 #include "driver/config/prelude.hpp"
 
-#include <string>
 #include <cstdint>
+#include <string>
+#include <memory>
 
 #include "bson/document.hpp"
 
@@ -36,6 +37,8 @@ enum class read_mode : std::uint8_t {
 
 class LIBMONGOCXX_EXPORT read_preference {
 
+    class impl;
+
    public:
        read_preference(read_mode = read_mode::k_primary);
 
@@ -46,8 +49,7 @@ class LIBMONGOCXX_EXPORT read_preference {
        const optional<bson::document::view>& tags() const;
 
    private:
-       read_mode _mode;
-       optional<bson::document::view> _tags;
+       std::unique_ptr<impl> _impl;
 
 }; // class read_preference
 
