@@ -19,7 +19,6 @@
 #include "driver/base/database.hpp"
 #include "driver/base/client.hpp"
 #include "driver/base/private/client.hpp"
-#include "driver/base/private/read_preference.hpp"
 #include "driver/base/private/write_concern.hpp"
 
 #include "mongoc.h"

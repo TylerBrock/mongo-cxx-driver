@@ -13,11 +13,13 @@
 // limitations under the License.
 
 #include "driver/options/client.hpp"
-#include <utility>
 
 namespace mongo {
 namespace driver {
-namespace options {}  // namespace options
+namespace options {
+
+
+}  // namespace options
 }  // namespace driver
 }  // namespace mongo
 

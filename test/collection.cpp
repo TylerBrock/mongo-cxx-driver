@@ -7,7 +7,6 @@
 using namespace mongo::driver;
 
 TEST_CASE("CRUD functionality", "[driver::collection]") {
-    mongoc_init();
     client mongodb_client;
     database db = mongodb_client["test"];
     collection coll = db["mongo_cxx_driver"];

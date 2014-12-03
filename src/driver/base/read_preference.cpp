@@ -12,7 +12,6 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-
 #include "driver/base/read_preference.hpp"
 #include "driver/base/private/read_preference.hpp"
 #include "driver/util/libbson.hpp"
@@ -24,10 +23,14 @@
 namespace mongo {
 namespace driver {
 
+read_preference::read_preference(const read_preference&) {
+    throw("wow");
+}
+
 read_preference::read_preference(read_preference&&) noexcept = default;
 read_preference& read_preference::operator=(read_preference&&) noexcept = default;
 
-read_preference::read_preference(std::unique_ptr<impl> implementation) {
+read_preference::read_preference(std::unique_ptr<impl>&& implementation) {
     _impl.reset(implementation.get());
 }
 
@@ -38,6 +41,8 @@ read_preference::read_preference(read_mode mode, bson::document::view tags)
     : read_preference(mode) {
     read_preference::tags(tags);
 }
+
+read_preference::~read_preference() = default;
 
 void read_preference::mode(read_mode mode) {
     mongoc_read_prefs_set_mode(_impl->read_preference_t, static_cast<mongoc_read_mode_t>(mode));

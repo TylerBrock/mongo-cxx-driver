@@ -18,6 +18,7 @@
 #include "driver/base/client.hpp"
 #include "driver/base/private/database.hpp"
 #include "driver/base/private/client.hpp"
+#include "driver/base/private/read_preference.hpp"
 #include "stdx/make_unique.hpp"
 
 namespace mongo {

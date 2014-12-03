@@ -23,8 +23,8 @@
 #include "driver/base/private/database.hpp"
 #include "driver/base/private/pipeline.hpp"
 #include "driver/base/private/bulk_write.hpp"
-#include "driver/base/private/write_concern.hpp"
 #include "driver/base/private/read_preference.hpp"
+#include "driver/base/private/write_concern.hpp"
 
 #include "driver/base/write_concern.hpp"
 #include "driver/base/collection.hpp"
@@ -39,6 +39,8 @@
 #include "driver/result/write.hpp"
 #include "driver/util/libbson.hpp"
 #include "driver/util/optional.hpp"
+
+#include "stdx/make_unique.hpp"
 
 namespace mongo {
 namespace driver {
