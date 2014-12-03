@@ -48,7 +48,7 @@ class LIBMONGOCXX_EXPORT database {
     const std::string& name() const;
 
     void read_preference(class read_preference rp);
-    const class read_preference& read_preference() const;
+    class read_preference read_preference() const;
 
     void write_concern(class write_concern wc);
     const class write_concern& write_concern() const;

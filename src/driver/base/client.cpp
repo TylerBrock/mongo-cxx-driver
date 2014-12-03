@@ -14,6 +14,7 @@
 
 #include "driver/base/client.hpp"
 #include "driver/base/private/client.hpp"
+#include "driver/base/private/read_preference.hpp"
 #include "driver/base/private/uri.hpp"
 #include "stdx/make_unique.hpp"
 
@@ -28,8 +29,15 @@ client& client::operator=(client&&) noexcept = default;
 
 client::~client() = default;
 
-void client::read_preference(class read_preference rp) { _impl->read_preference(std::move(rp)); }
-const class read_preference& client::read_preference() const { return _impl->read_preference(); }
+void client::read_preference(class read_preference rp) {
+    mongoc_client_set_read_prefs(_impl->client_t, rp._impl->read_preference_t);
+}
+
+class read_preference client::read_preference() const {
+    class read_preference rp(stdx::make_unique<read_preference::impl>(
+        mongoc_read_prefs_copy(mongoc_client_get_read_prefs(_impl->client_t))));
+    return rp;
+}
 
 void client::write_concern(class write_concern wc) { _impl->write_concern(std::move(wc)); }
 const class write_concern& client::write_concern() const { return _impl->write_concern(); }

@@ -13,6 +13,7 @@
 // limitations under the License.
 
 #include "driver/options/find.hpp"
+#include "driver/base/private/read_preference.hpp"
 
 // TODO: figure out what to do with this
 enum class cursor_flag : uint32_t {

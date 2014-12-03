@@ -52,7 +52,7 @@ class LIBMONGOCXX_EXPORT client {
 
     // TODO: document that modifications at this level do not affect existing clients + databases
     void read_preference(class read_preference rp);
-    const class read_preference& read_preference() const;
+    class read_preference read_preference() const;
 
     // TODO: document that modifications at this level do not affect existing clients + databases
     void write_concern(class write_concern wc);

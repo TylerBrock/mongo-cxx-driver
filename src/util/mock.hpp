@@ -23,6 +23,7 @@
 #include <functional>
 #include <type_traits>
 #include <thread>
+
 #include "driver/util/optional.hpp"
 
 namespace mongo {

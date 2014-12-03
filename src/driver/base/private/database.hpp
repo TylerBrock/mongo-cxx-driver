@@ -34,7 +34,6 @@ class database::impl {
         client_impl(client),
         name(std::move(name))
     {
-        read_preference(client->read_preference());
         write_concern(client->write_concern());
     }
 
@@ -42,14 +41,6 @@ class database::impl {
     mongoc_database_t* database_t;
     const class client::impl* client_impl;
     std::string name;
-
-    void read_preference(class read_preference rp) {
-        priv::read_preference read_prefs{rp};
-
-        mongoc_database_set_read_prefs(database_t, read_prefs.get_read_preference());
-
-        _read_preference = std::move(rp);
-    }
 
     void write_concern(class write_concern wc) {
         priv::write_concern write_conc{wc};
@@ -59,16 +50,12 @@ class database::impl {
         _write_concern = std::move(wc);
     }
 
-    const class read_preference& read_preference() const {
-        return _read_preference;
-    }
-
     const class write_concern& write_concern() const {
         return _write_concern;
     }
+
     private:
-    class read_preference _read_preference;
-    class write_concern _write_concern;
+        class write_concern _write_concern;
 };
 
 }  // namespace driver

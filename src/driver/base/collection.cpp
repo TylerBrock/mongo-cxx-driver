@@ -99,14 +99,10 @@ cursor collection::find(const bson::document::view& filter, const options::find&
         filter_bson.init_from_static(filter);
     }
 
-    optional<priv::read_preference> read_prefs;
-    const mongoc_read_prefs_t* rp_ptr;
+    const mongoc_read_prefs_t* rp_ptr = NULL;
 
     if (options.read_preference()) {
-        read_prefs = priv::read_preference{*options.read_preference()};
-        rp_ptr = read_prefs->get_read_preference();
-    } else {
-        rp_ptr = mongoc_collection_get_read_prefs(_impl->collection_t);
+        rp_ptr = options.read_preference()->_impl->read_preference_t;
     }
 
     return cursor(mongoc_collection_find(_impl->collection_t, mongoc_query_flags_t(0),
@@ -148,12 +144,10 @@ cursor collection::aggregate(const pipeline& pipeline, const options::aggregate&
 
     scoped_bson_t options_bson(b.view());
 
-    const mongoc_read_prefs_t* rp_ptr;
+    const mongoc_read_prefs_t* rp_ptr = NULL;
 
     if (options.read_preference()) {
         rp_ptr = read_preference()._impl->read_preference_t;
-    } else {
-        rp_ptr = mongoc_collection_get_read_prefs(_impl->collection_t);
     }
 
     return cursor(mongoc_collection_aggregate(_impl->collection_t,
@@ -354,12 +348,10 @@ std::int64_t collection::count(const bson::document::view& filter, const options
     scoped_bson_t bson_filter{filter};
     bson_error_t error;
 
-    const mongoc_read_prefs_t* rp_ptr;
+    const mongoc_read_prefs_t* rp_ptr = NULL;
 
     if (options.read_preference()) {
         rp_ptr = options.read_preference()->_impl->read_preference_t;
-    } else {
-        rp_ptr = mongoc_collection_get_read_prefs(_impl->collection_t);
     }
 
     auto result = mongoc_collection_count(_impl->collection_t, static_cast<mongoc_query_flags_t>(0),
@@ -386,7 +378,7 @@ void collection::read_preference(class read_preference rp) {
 }
 
 class read_preference collection::read_preference() const {
-    class read_preference rp(std::make_unique<read_preference::impl>(
+    class read_preference rp(stdx::make_unique<read_preference::impl>(
         mongoc_read_prefs_copy(mongoc_collection_get_read_prefs(_impl->collection_t))));
     return rp;
 }

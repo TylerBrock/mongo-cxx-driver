@@ -20,14 +20,11 @@
 #include <string>
 
 #include "bson/document.hpp"
-#include "driver/util/optional.hpp"
 #include "driver/base/read_preference.hpp"
+#include "driver/util/optional.hpp"
 
 namespace mongo {
 namespace driver {
-
-class read_preference;
-
 namespace options {
 
 // TODO: take hint as a std::string parameter in addition to bson::document::view

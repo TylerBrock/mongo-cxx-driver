@@ -13,6 +13,7 @@
 // limitations under the License.
 
 #include "driver/options/count.hpp"
+#include "driver/base/private/read_preference.hpp"
 
 namespace mongo {
 namespace driver {

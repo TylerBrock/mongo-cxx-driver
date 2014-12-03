@@ -12,20 +12,27 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
+
 #include "driver/base/read_preference.hpp"
 #include "driver/base/private/read_preference.hpp"
-
 #include "driver/util/libbson.hpp"
+
+#include "stdx/make_unique.hpp"
 
 #include "mongoc.h"
 
 namespace mongo {
 namespace driver {
 
-read_preference::read_preference(impl implementation) {}
+read_preference::read_preference(read_preference&&) noexcept = default;
+read_preference& read_preference::operator=(read_preference&&) noexcept = default;
+
+read_preference::read_preference(std::unique_ptr<impl> implementation) {
+    _impl.reset(implementation.get());
+}
 
 read_preference::read_preference(read_mode mode)
-    : _impl(std::make_unique<impl>(mongoc_read_prefs_new(static_cast<mongoc_read_mode_t>(mode)))) {}
+    : _impl(stdx::make_unique<impl>(mongoc_read_prefs_new(static_cast<mongoc_read_mode_t>(mode)))) {}
 
 read_preference::read_preference(read_mode mode, bson::document::view tags)
     : read_preference(mode) {

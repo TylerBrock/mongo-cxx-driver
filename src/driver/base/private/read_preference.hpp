@@ -26,6 +26,10 @@ namespace driver {
 class read_preference::impl {
 
    public:
+    impl(mongoc_read_prefs_t* read_pref)
+        : read_preference_t(read_pref)
+    {}
+
     ~impl() {
         mongoc_read_prefs_destroy(read_preference_t);
     }

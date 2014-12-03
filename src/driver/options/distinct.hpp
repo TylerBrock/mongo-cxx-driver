@@ -19,8 +19,8 @@
 #include <cstdint>
 #include <string>
 
-#include "driver/base/read_preference.hpp"
 #include "bson/document.hpp"
+#include "driver/base/read_preference.hpp"
 #include "driver/util/optional.hpp"
 
 namespace mongo {
