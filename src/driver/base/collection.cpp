@@ -350,8 +350,7 @@ optional<bson::document::value> collection::find_one_and_delete(
     return b.extract();
 }
 
-std::int64_t collection::count(const bson::document::view& filter,
-                               const options::count& options) {
+std::int64_t collection::count(const bson::document::view& filter, const options::count& options) {
     scoped_bson_t bson_filter{filter};
     bson_error_t error;
 
@@ -387,21 +386,14 @@ void collection::read_preference(class read_preference rp) {
 }
 
 class read_preference collection::read_preference() const {
-    class read_preference rp(
-        std::make_unique<read_preference::impl>(
-            mongoc_read_prefs_copy(mongoc_collection_get_read_prefs(_impl->collection_t))
-        )
-    );
+    class read_preference rp(std::make_unique<read_preference::impl>(
+        mongoc_read_prefs_copy(mongoc_collection_get_read_prefs(_impl->collection_t))));
     return rp;
 }
 
-void collection::write_concern(class write_concern wc) {
-    _impl->write_concern(std::move(wc));
-}
+void collection::write_concern(class write_concern wc) { _impl->write_concern(std::move(wc)); }
 
-const class write_concern& collection::write_concern() const {
-    return _impl->write_concern();
-}
+const class write_concern& collection::write_concern() const { return _impl->write_concern(); }
 
 }  // namespace driver
 }  // namespace mongo
