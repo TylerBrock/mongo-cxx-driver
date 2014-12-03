@@ -13,26 +13,53 @@
 // limitations under the License.
 
 #include "driver/base/read_preference.hpp"
+#include "driver/base/private/read_preference.hpp"
+
+#include "driver/util/libbson.hpp"
 
 #include "mongoc.h"
 
 namespace mongo {
 namespace driver {
 
-read_preference::read_preference(read_mode mode) : _impl(std::make_unique<impl>(mongoc_read_prefs_new(static_cast<mongoc_read_mode_t>(mode)))) {
-    if (arg.tags()) {
-        bson::libbson::scoped_bson_t btags(arg.tags());
-        mongoc_read_prefs_set_tags(wc, btags.bson());
-    }
+read_preference::read_preference(impl implementation) {
 }
 
-void read_preference::mode(read_mode mode) { _mode = mode; }
+read_preference::read_preference(read_mode mode)
+    : _impl(
+        std::make_unique<impl>(
+            mongoc_read_prefs_new(static_cast<mongoc_read_mode_t>(mode))
+        )
+    )
+{}
 
-void read_preference::tags(bson::document::view tags) { _tags = std::move(tags); }
+read_preference::read_preference(read_mode mode, bson::document::view tags)
+    : read_preference(mode)
+{
+    read_preference::tags(tags);
+}
 
-read_mode read_preference::mode() const { return _mode; }
+void read_preference::mode(read_mode mode) {
+    mongoc_read_prefs_set_mode(_impl->read_preference_t, static_cast<mongoc_read_mode_t>(mode));
+}
 
-const optional<bson::document::view>& read_preference::tags() const { return _tags; }
+void read_preference::tags(bson::document::view tags) {
+    bson::libbson::scoped_bson_t scoped_bson_tags(tags);
+    mongoc_read_prefs_set_tags(_impl->read_preference_t, scoped_bson_tags.bson());
+}
+
+read_mode read_preference::mode() const {
+    return static_cast<read_mode>(mongoc_read_prefs_get_mode(_impl->read_preference_t));
+}
+
+optional<bson::document::view> read_preference::tags() const {
+    const bson_t* bson_tags = mongoc_read_prefs_get_tags(_impl->read_preference_t);
+
+    if (bson_count_keys(bson_tags))
+        return bson::document::view(bson_get_data(bson_tags), bson_tags->len);
+
+    return optional<bson::document::view>{};
+}
 
 }  // namespace driver
 }  // namespace mongo

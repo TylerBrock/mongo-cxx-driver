@@ -27,6 +27,8 @@
 namespace mongo {
 namespace driver {
 
+    class collection;
+
 enum class read_mode : std::uint8_t {
     k_primary = (1 << 0),
     k_secondary = (1 << 1),
@@ -37,18 +39,23 @@ enum class read_mode : std::uint8_t {
 
 class LIBMONGOCXX_EXPORT read_preference {
 
+    friend collection;
+
     class impl;
 
    public:
        read_preference(read_mode = read_mode::k_primary);
+       read_preference(read_mode, bson::document::view tags);
 
        void mode(read_mode mode);
        void tags(bson::document::view tags);
 
        read_mode mode() const;
-       const optional<bson::document::view>& tags() const;
+       optional<bson::document::view> tags() const;
 
    private:
+       read_preference(std::unique_ptr<impl> implementation);
+
        std::unique_ptr<impl> _impl;
 
 }; // class read_preference

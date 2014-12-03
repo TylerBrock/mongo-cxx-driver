@@ -28,6 +28,7 @@ namespace mongo {
 namespace driver {
 
 class collection::impl {
+
    public:
     impl(mongoc_collection_t* collection, const class database::impl* database, const class client::impl* client, std::string name) :
         collection_t(collection),
@@ -35,7 +36,6 @@ class collection::impl {
         client_impl(client),
         name(name)
     {
-        read_preference(database->read_preference());
         write_concern(database->write_concern());
     }
 
@@ -46,14 +46,6 @@ class collection::impl {
     const class client::impl* client_impl;
     std::string name;
 
-    void read_preference(class read_preference rp) {
-        priv::read_preference read_prefs{rp};
-
-        mongoc_collection_set_read_prefs(collection_t, read_prefs.get_read_preference());
-
-        _read_preference = std::move(rp);
-    }
-
     void write_concern(class write_concern wc) {
         priv::write_concern write_conc{wc};
 
@@ -62,15 +54,11 @@ class collection::impl {
         _write_concern = std::move(wc);
     }
 
-    const class read_preference& read_preference() const {
-        return _read_preference;
-    }
-
     const class write_concern& write_concern() const {
         return _write_concern;
     }
-private:
-    class read_preference _read_preference;
+
+   private:
     class write_concern _write_concern;
 
 }; // class impl

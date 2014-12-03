@@ -148,12 +148,10 @@ cursor collection::aggregate(const pipeline& pipeline, const options::aggregate&
 
     scoped_bson_t options_bson(b.view());
 
-    optional<priv::read_preference> read_prefs;
     const mongoc_read_prefs_t* rp_ptr;
 
     if (options.read_preference()) {
-        read_prefs = priv::read_preference{*options.read_preference()};
-        rp_ptr = read_prefs->get_read_preference();
+        rp_ptr = read_preference()._impl->read_preference_t;
     } else {
         rp_ptr = mongoc_collection_get_read_prefs(_impl->collection_t);
     }
@@ -357,12 +355,10 @@ std::int64_t collection::count(const bson::document::view& filter,
     scoped_bson_t bson_filter{filter};
     bson_error_t error;
 
-    optional<priv::read_preference> read_prefs;
     const mongoc_read_prefs_t* rp_ptr;
 
     if (options.read_preference()) {
-        read_prefs = priv::read_preference{*options.read_preference()};
-        rp_ptr = read_prefs->get_read_preference();
+        rp_ptr = options.read_preference()->_impl->read_preference_t;
     } else {
         rp_ptr = mongoc_collection_get_read_prefs(_impl->collection_t);
     }
@@ -387,15 +383,25 @@ void collection::drop() {
 }
 
 void collection::read_preference(class read_preference rp) {
-    _impl->read_preference(std::move(rp));
-}
-const class read_preference& collection::read_preference() const {
-    return _impl->read_preference();
+    mongoc_collection_set_read_prefs(_impl->collection_t, rp._impl->read_preference_t);
 }
 
-void collection::write_concern(class write_concern wc) { _impl->write_concern(std::move(wc)); }
+class read_preference collection::read_preference() const {
+    class read_preference rp(
+        std::make_unique<read_preference::impl>(
+            mongoc_read_prefs_copy(mongoc_collection_get_read_prefs(_impl->collection_t))
+        )
+    );
+    return rp;
+}
 
-const class write_concern& collection::write_concern() const { return _impl->write_concern(); }
+void collection::write_concern(class write_concern wc) {
+    _impl->write_concern(std::move(wc));
+}
+
+const class write_concern& collection::write_concern() const {
+    return _impl->write_concern();
+}
 
 }  // namespace driver
 }  // namespace mongo

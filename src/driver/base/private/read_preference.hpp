@@ -16,38 +16,24 @@
 
 #include "driver/config/prelude.hpp"
 
-#include <memory>
+#include "driver/base/read_preference.hpp"
 
 #include "mongoc.h"
 
-#include "driver/base/read_preference.hpp"
-#include "driver/util/libbson.hpp"
-
 namespace mongo {
 namespace driver {
-namespace priv {
 
-class read_preference {
- public:
-    read_preference(mongoc_read_prefs_t* read_prefs)
-        : _read_preference(read_prefs)
-    {
+class read_preference::impl {
+
+   public:
+    ~impl() {
+        mongoc_read_prefs_destroy(read_preference_t);
     }
 
-    ~read_preference() {
-        mongoc_read_prefs_destroy(_read_preference);
-    }
+    mongoc_read_prefs_t* read_preference_t;
 
-    const mongoc_read_prefs_t* get_read_preference() const {
-        return _read_preference;
-    }
+}; // class impl
 
- private:
-    mongoc_read_prefs_t* _read_preference;
-
-}; // class read_preference
-
-}  // namespace priv
 }  // namespace driver
 }  // namespace mongo
 

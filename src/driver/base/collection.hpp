@@ -158,8 +158,7 @@ class LIBMONGOCXX_EXPORT collection {
     );
 
     void read_preference(class read_preference rp);
-    const class read_preference& read_preference() const;
-
+    class read_preference read_preference() const;
 
     optional<result::replace_one> replace_one(
         const bson::document::view& filter,
