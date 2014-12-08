@@ -548,8 +548,10 @@ clientTestProgramInstalls = staticClientProgramInstalls + sharedClientProgramIns
 
 # TODO: Make this more Scons-like with an action target that causes
 # a server to come into being and then have each test depend on it.
-orchestration_uri = "%s:%s" % (clientEnv.GetOption("mongo-orchestration-host"),
-                               clientEnv.GetOption("mongo-orchestration-port"))
+orchestration_host = clientEnv.GetOption("mongo-orchestration-host")
+orchestration_port = clientEnv.GetOption("mongo-orchestration-port")
+orchestration_uri = "%s:%s" % (orchestration_host, orchestration_port)
+
 json_headers = { "Content-Type": "application/json" }
 
 params = json.dumps({
@@ -585,8 +587,14 @@ for attempt in range(10):
         continue
 
     # Grab the port from the response -- use it in the tests
-    decoded_response = json.loads(message)
-    mongodb_uri = decoded_response['mongodb_uri']
+    try:
+        decoded_response = json.loads(message)
+        mongodb_uri = decoded_response['mongodb_uri']
+    except TypeError:
+        print("Bad response %s" % decoded_response)
+        break
+
+    standalone_port = re.search("mongodb://(\w+)\:(\d+)", mongodb_uri).group(2)
 
     for clientTest in clientTestProgramInstalls:
 
@@ -605,7 +613,7 @@ for attempt in range(10):
             clientEnv.Alias(
                 'examples',
                 [clientTest],
-                "%s %s" % (clientTest.abspath, mongodb_uri)
+                "%s mongodb://%s:%s" % (clientTest.abspath, orchestration_host, standalone_port)
             )
         )
 
