@@ -29,6 +29,7 @@
 #include "mongo/client/dbclientcursorshim.h"
 #include "mongo/client/dbclientcursorshimarray.h"
 #include "mongo/client/dbclientcursorshimcursorid.h"
+#include "mongo/client/dbclientcursorshimtransform.h"
 #include "mongo/client/dbclient_writer.h"
 #include "mongo/client/insert_write_operation.h"
 #include "mongo/client/options.h"
@@ -1328,80 +1329,94 @@ namespace mongo {
     }
 
     list<string> DBClientWithCommands::getCollectionNames( const string& db ) {
-        list<BSONObj> infos = getCollectionInfos( db );
+        auto_ptr<DBClientCursor> infos = getCollectionInfo( db );
         list<string> names;
-        for ( list<BSONObj>::iterator it = infos.begin(); it != infos.end(); ++it ) {
-            names.push_back( db + "." + (*it)["name"].valuestr() );
+
+        while(infos->more()) {
+            names.push_back(infos->nextSafe()["name"].valuestr());
         }
+
         return names;
     }
 
-    list<BSONObj> DBClientWithCommands::getCollectionInfos( const string& db,
-                                                            const BSONObj& filter ) {
-        list<BSONObj> infos;
+    bool transformCollectionInfos(const BSONObj& input, BSONObj& output) {
+        string ns = input["name"].valuestr();
 
+        // Filter the $ collections out
+        if ( ns.find( "$" ) != string::npos )
+            return false;
+
+        // Strip the database from the name
+        BSONObjBuilder b;
+        b.append( "name", ns.substr( ns.find(".") + 1 ) );
+        b.appendElementsUnique( input );
+        output = b.obj();
+        return true;
+    }
+
+    auto_ptr<DBClientCursor> DBClientWithCommands::getCollectionInfo( const string& db,
+                                                            const BSONObj& filter ) {
         // first we're going to try the command
         // it was only added in 2.8, so if we're talking to an older server
         // we'll fail back to querying system.namespaces
         // TODO(spencer): remove fallback behavior after 2.8
 
-        {
-            BSONObj res;
-            if (runCommand(db,
-                           BSON("listCollections" << 1 << "filter" << filter),
-                           res,
-                           QueryOption_SlaveOk)) {
-                BSONObj collections = res["collections"].Obj();
-                BSONObjIterator it( collections );
-                while ( it.more() ) {
-                    BSONElement e = it.next();
-                    infos.push_back( e.Obj().getOwned() );
+        std::string ns = db + ".$cmd";
+
+        BSONObj res;
+        BSONObj cmd = BSON("listCollections" << 1 << "filter" << filter);
+
+        auto_ptr<DBClientCursor> cursor = this->query(ns, cmd, 1, 0, NULL, QueryOption_SlaveOk, 0);
+
+        if (cursor.get()) {
+            DBClientCursorShimCursorID* cursor_shim;
+            cursor->shim.reset((cursor_shim = new DBClientCursorShimCursorID(*cursor)));
+            cursor->nToReturn = 0;
+
+            if (cursor->rawMore()) {
+                BSONObj res = cursor_shim->get_cursor();
+
+                if (isOk(res)) {
+                    return cursor;
                 }
-                return infos;
-            }
 
-            // command failed
+                int error_code = res["code"].numberInt();
+                string errmsg = res["errmsg"].valuestrsafe();
 
-            int code = res["code"].numberInt();
-            string errmsg = res["errmsg"].valuestrsafe();
-            if ( code == ErrorCodes::CommandNotFound ||
-                 errmsg.find( "no such cmd" ) != string::npos ) {
-                // old version of server, ok, fall through to old code
-            }
-            else {
-                uasserted( 18630, str::stream() << "listCollections failed: " << res );
-            }
+                if ((error_code == ErrorCodes::CommandNotFound) || (error_code == 13390)
+                        || (errmsg.find( "no such cmd" ) != string::npos)) {
 
+
+                    // SERVER-14951 filter for old version fallback needs to db qualify the 'name' element
+                    BSONObjBuilder fallbackFilter;
+                    if ( filter.hasField( "name" ) && filter["name"].type() == String ) {
+                        fallbackFilter.append( "name", db + "." + filter["name"].str() );
+                    }
+                    fallbackFilter.appendElementsUnique( filter );
+
+                    string ns = db + ".system.namespaces";
+
+                    auto_ptr<DBClientCursor> simple = query(
+                        ns, fallbackFilter.obj(), 0, 0, 0, QueryOption_SlaveOk);
+
+                    stdx::function<bool(const BSONObj&, BSONObj&)> transformation = transformCollectionInfos;
+                    simple->shim.reset(new DBClientCursorShimTransform(*simple, transformation));
+                    simple->nToReturn = 0;
+
+                    return simple;
+                } else {
+                    uasserted( 18630, str::stream() << "listCollections failed: " << res );
+                }
+            }
         }
 
-        // SERVER-14951 filter for old version fallback needs to db qualify the 'name' element
-        BSONObjBuilder fallbackFilter;
-        if ( filter.hasField( "name" ) && filter["name"].type() == String ) {
-            fallbackFilter.append( "name", db + "." + filter["name"].str() );
-        }
-        fallbackFilter.appendElementsUnique( filter );
-
-        string ns = db + ".system.namespaces";
-        auto_ptr<DBClientCursor> c = query(
-                ns.c_str(), fallbackFilter.obj(), 0, 0, 0, QueryOption_SlaveOk);
-        while ( c->more() ) {
-            BSONObj obj = c->nextSafe();
-            string ns = obj["name"].valuestr();
-            if ( ns.find( "$" ) != string::npos )
-                continue;
-            BSONObjBuilder b;
-            b.append( "name", ns.substr( db.size() + 1 ) );
-            b.appendElementsUnique( obj );
-            infos.push_back( b.obj() );
-        }
-
-        return infos;
+        return auto_ptr<DBClientCursor>(NULL);
     }
 
     bool DBClientWithCommands::exists( const string& ns ) {
         BSONObj filter = BSON( "name" << nsToCollectionSubstring( ns ) );
-        list<BSONObj> results = getCollectionInfos( nsToDatabase( ns ), filter );
-        return !results.empty();
+        auto_ptr<DBClientCursor> results = getCollectionInfo( nsToDatabase( ns ), filter );
+        return results->more();
     }
 
     /* --- dbclientconnection --- */

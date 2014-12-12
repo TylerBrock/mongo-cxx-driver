@@ -1127,11 +1127,17 @@ namespace mongo {
         std::list<std::string> getCollectionNames( const std::string& db );
 
         /**
-         * { name : "<short collection name>",
-         *   options : { }
-         * }
+         * Returns a DBClientCursor with collection information objects.
+         *
+         *  Example collection information object:
+         *  {
+         *      "name" : "mongo_cxx_driver",
+         *      "options" : {
+         *          "flags" : 1
+         *      }
+         *  }
          */
-        std::list<BSONObj> getCollectionInfos( const std::string& db,
+        std::auto_ptr<DBClientCursor> getCollectionInfo( const std::string& db,
                                                const BSONObj& filter = BSONObj() );
 
         bool exists( const std::string& ns );

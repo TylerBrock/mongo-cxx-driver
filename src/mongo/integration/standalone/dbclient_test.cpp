@@ -326,6 +326,24 @@ namespace {
         ASSERT_EQUALS(results[2].Int(), 3);
     }
 
+    TEST_F(DBClientTest, GetCollectionNames) {
+        c.dropDatabase(TEST_DB);
+        ASSERT_EQUALS(c.getCollectionNames(TEST_DB).size(), 0U);
+
+        c.createCollection(TEST_NS);
+        // Greater than because we sometimes create system.indexes, etc...
+        ASSERT_GREATER_THAN(c.getCollectionNames(TEST_DB).size(), 1U);
+
+        list<string> names = c.getCollectionNames(TEST_DB);
+        list<string>::iterator it = names.begin();
+
+        bool saw_it = false;
+        while(it != names.end())
+            if (*it++ == TEST_COLL) { saw_it = true; }
+
+        ASSERT_TRUE(saw_it);
+    }
+
     TEST_F(DBClientTest, DistinctWithQuery) {
         c.insert(TEST_NS, BSON("a" << 1));
         c.insert(TEST_NS, BSON("a" << 2));
