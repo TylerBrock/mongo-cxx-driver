@@ -1364,7 +1364,7 @@ namespace mongo {
         std::string ns = db + ".$cmd";
 
         BSONObj res;
-        BSONObj cmd = BSON("listCollections" << 1 << "filter" << filter);
+        BSONObj cmd = BSON("listCollections" << 1 << "filter" << filter << "cursor" << BSONObj());
 
         auto_ptr<DBClientCursor> cursor = this->query(ns, cmd, 1, 0, NULL, QueryOption_SlaveOk, 0);
 
