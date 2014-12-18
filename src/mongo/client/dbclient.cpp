@@ -1389,21 +1389,19 @@ namespace mongo {
         BSONObj result = cursor->peekFirst();
 
         if ( isOk(result) ) {
-
-            // listCollections command worked -- we are on MongoDB 2.7.6 or above
+            // Command worked -- we are on MongoDB 2.7.6 or above
+            DBClientCursorShim* cursor_shim;
             if ( result.hasField("collections") ) {
                 // MongoDB 2.7.6 to 2.8.0-rc2 behavior
-                DBClientCursorShimArray* cursor_shim;
-                cursor->shim.reset(cursor_shim = new DBClientCursorShimArray(*cursor, "collections"));
+                cursor_shim = new DBClientCursorShimArray(*cursor, "collections");
             } else {
                 // MongoDB 2.8.0-rc3+ behavior
-                DBClientCursorShimCursorID* cursor_shim;
-                cursor->shim.reset(cursor_shim = new DBClientCursorShimCursorID(*cursor));
-                cursor_shim->get_cursor();
+                cursor_shim = new DBClientCursorShimCursorID(*cursor);
+                static_cast<DBClientCursorShimCursorID*>(cursor_shim)->get_cursor();
             }
-
+            // Insert the shim
+            cursor->shim.reset(cursor_shim);
         } else {
-
             // Command failed -- we are either on an older MongoDB or something else happened
             int error_code = result["code"].numberInt();
             string errmsg = result["errmsg"].valuestrsafe();
@@ -1419,7 +1417,6 @@ namespace mongo {
                 // Something else happened, uassert with the reason
                 uasserted( 18630, str::stream() << "listCollections failed: " << result );
             }
-
         }
 
         return cursor;
