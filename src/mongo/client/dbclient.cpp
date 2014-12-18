@@ -1391,6 +1391,8 @@ namespace mongo {
         if ( isOk(result) ) {
             // Command worked -- we are on MongoDB 2.7.6 or above
             DBClientCursorShim* cursor_shim;
+
+            // Select the appropriate shim for this version of MongoDB
             if ( result.hasField("collections") ) {
                 // MongoDB 2.7.6 to 2.8.0-rc2 behavior
                 cursor_shim = new DBClientCursorShimArray(*cursor, "collections");
@@ -1399,6 +1401,7 @@ namespace mongo {
                 cursor_shim = new DBClientCursorShimCursorID(*cursor);
                 static_cast<DBClientCursorShimCursorID*>(cursor_shim)->get_cursor();
             }
+
             // Insert the shim
             cursor->shim.reset(cursor_shim);
         } else {
@@ -1411,14 +1414,13 @@ namespace mongo {
                 ( error_code == 13390 ) ||
                 ( errmsg.find( "no such cmd" ) != string::npos )
             ) {
-                // MongoDB < 2.7.6 behavior -- run legacy code
-                return _legacyCollectionInfo(db, filter);
+                // MongoDB < 2.7.6 behavior -- run legacy code to produce a cursor
+                cursor.reset(_legacyCollectionInfo(db, filter).release());
             } else {
                 // Something else happened, uassert with the reason
                 uasserted( 18630, str::stream() << "listCollections failed: " << result );
             }
         }
-
         return cursor;
     }
 
