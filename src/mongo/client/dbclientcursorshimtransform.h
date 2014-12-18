@@ -22,20 +22,24 @@ namespace mongo  {
 
     class DBClientCursor;
 
-    /** DBClientCursorShimTransform implements the shim interface over a cursor
-     * reply document by allowing a transformation to be applied. */
+    /**
+     * DBClientCursorShimTransform implements the shim interface over a cursor
+     * reply document by allowing a transformation to be applied.
+     */
     class DBClientCursorShimTransform : public DBClientCursorShim {
     public:
-        DBClientCursorShimTransform(DBClientCursor& c,
-            const stdx::function<bool(const BSONObj& input, BSONObj& output)>& transformation);
+        DBClientCursorShimTransform(
+            DBClientCursor& c,
+            const stdx::function<bool(const BSONObj& input, BSONObj* output)>& transformation
+        );
 
         virtual BSONObj next();
         virtual bool more();
 
     private:
         DBClientCursor& cursor;
-        stdx::function<bool(const BSONObj&, BSONObj&)> transformation;
+        stdx::function<bool(const BSONObj&, BSONObj*)> transformation;
         BSONObj next_doc;
     };
 
-}
+} // namespace mongo

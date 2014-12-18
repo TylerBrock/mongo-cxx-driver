@@ -1332,41 +1332,41 @@ namespace mongo {
         auto_ptr<DBClientCursor> infos = getCollectionInfo( db );
         list<string> names;
 
-        while(infos->more()) {
+        while (infos->more()) {
             names.push_back(infos->nextSafe()["name"].valuestr());
         }
 
         return names;
     }
 
-    bool transformCollectionInfos(const BSONObj& input, BSONObj& output) {
-        string ns = input["name"].valuestr();
+    bool transformCollectionInfos(const BSONObj& input, BSONObj* output) {
+        const StringData ns = input["name"].checkAndGetStringData();
 
         // Filter the $ collections out
-        if ( ns.find( "$" ) != string::npos )
+        if ( ns.find( '$' ) != string::npos )
             return false;
 
         // Strip the database from the name
         BSONObjBuilder b;
         b.append( "name", ns.substr( ns.find(".") + 1 ) );
         b.appendElementsUnique( input );
-        output = b.obj();
+        *output = b.obj();
         return true;
     }
 
     auto_ptr<DBClientCursor> DBClientWithCommands::getCollectionInfo( const string& db,
-                                                            const BSONObj& filter ) {
+                                                                      const BSONObj& filter ) {
         // first we're going to try the command
         // it was only added in 2.8, so if we're talking to an older server
         // we'll fail back to querying system.namespaces
         // TODO(spencer): remove fallback behavior after 2.8
 
-        std::string ns = db + ".$cmd";
+        const std::string command_ns = db + ".$cmd";
 
-        BSONObj res;
         BSONObj cmd = BSON("listCollections" << 1 << "filter" << filter << "cursor" << BSONObj());
 
-        auto_ptr<DBClientCursor> cursor = this->query(ns, cmd, 1, 0, NULL, QueryOption_SlaveOk, 0);
+        auto_ptr<DBClientCursor> cursor = this->query(command_ns, cmd, 1, 0, NULL,
+                                                      QueryOption_SlaveOk, 0);
 
         if (cursor.get()) {
             DBClientCursorShimCursorID* cursor_shim;
@@ -1399,7 +1399,7 @@ namespace mongo {
                     auto_ptr<DBClientCursor> simple = query(
                         ns, fallbackFilter.obj(), 0, 0, 0, QueryOption_SlaveOk);
 
-                    stdx::function<bool(const BSONObj&, BSONObj&)> transformation = transformCollectionInfos;
+                    stdx::function<bool(const BSONObj&, BSONObj*)> transformation = transformCollectionInfos;
                     simple->shim.reset(new DBClientCursorShimTransform(*simple, transformation));
                     simple->nToReturn = 0;
 
@@ -1410,7 +1410,7 @@ namespace mongo {
             }
         }
 
-        return auto_ptr<DBClientCursor>(NULL);
+        return cursor;
     }
 
     bool DBClientWithCommands::exists( const string& ns ) {

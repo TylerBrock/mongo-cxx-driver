@@ -1138,7 +1138,7 @@ namespace mongo {
          *  }
          */
         std::auto_ptr<DBClientCursor> getCollectionInfo( const std::string& db,
-                                               const BSONObj& filter = BSONObj() );
+                                                         const BSONObj& filter = BSONObj() );
 
         bool exists( const std::string& ns );
 
