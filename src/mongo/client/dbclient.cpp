@@ -1382,10 +1382,8 @@ namespace mongo {
         const std::string command_ns = db + ".$cmd";
 
         BSONObj cmd = BSON("listCollections" << 1 << "filter" << filter << "cursor" << BSONObj());
-
         auto_ptr<DBClientCursor> cursor = this->query(command_ns, cmd, 1, 0, NULL,
                                                       QueryOption_SlaveOk, 0);
-
         BSONObj result = cursor->peekFirst();
 
         if ( isOk(result) ) {
@@ -1421,6 +1419,7 @@ namespace mongo {
                 uasserted( 18630, str::stream() << "listCollections failed: " << result );
             }
         }
+
         return cursor;
     }
 
