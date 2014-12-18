@@ -1415,7 +1415,8 @@ namespace mongo {
             ) {
                 // MongoDB < 2.7.6 behavior -- run legacy code to produce a cursor
                 cursor.reset(_legacyCollectionInfo(db, filter).release());
-            } else {
+            }
+            else {
                 // Something else happened, uassert with the reason
                 uasserted( 18630, str::stream() << "listCollections failed: " << result );
             }
