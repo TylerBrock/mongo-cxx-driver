@@ -1330,11 +1330,9 @@ namespace mongo {
 
     list<string> DBClientWithCommands::getCollectionNames( const string& db, const BSONObj& filter ) {
         auto_ptr<DBClientCursor> infos = enumerateCollections( db, filter );
-        std::cout << "heereeeeee" << std::endl;
         list<string> names;
 
         while (infos->more()) {
-            std::cout << infos->peekFirst() <<std::endl;
             names.push_back(infos->nextSafe()["name"].valuestr());
         }
 
