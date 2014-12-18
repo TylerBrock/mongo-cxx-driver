@@ -1370,8 +1370,7 @@ namespace mongo {
         auto_ptr<DBClientCursor> simple = query(namespaces_ns, fallbackFilter.obj(),
                                                 0, 0, 0, QueryOption_SlaveOk);
 
-        stdx::function<bool(const BSONObj&, BSONObj*)> transformation = transformLegacyCollectionInfos;
-        simple->shim.reset(new DBClientCursorShimTransform(*simple, transformation));
+        simple->shim.reset(new DBClientCursorShimTransform(*simple, transformLegacyCollectionInfos));
         simple->nToReturn = 0;
 
         return simple;
@@ -1394,7 +1393,8 @@ namespace mongo {
             if ( result.hasField("collections") ) {
                 // MongoDB 2.7.6 to 2.8.0-rc2 behavior
                 cursor_shim = new DBClientCursorShimArray(*cursor, "collections");
-            } else {
+            }
+            else {
                 // MongoDB 2.8.0-rc3+ behavior
                 cursor_shim = new DBClientCursorShimCursorID(*cursor);
                 static_cast<DBClientCursorShimCursorID*>(cursor_shim)->get_cursor();
@@ -1402,7 +1402,8 @@ namespace mongo {
 
             // Insert the shim
             cursor->shim.reset(cursor_shim);
-        } else {
+        }
+        else {
             // Command failed -- we are either on an older MongoDB or something else happened
             int error_code = result["code"].numberInt();
             string errmsg = result["errmsg"].valuestrsafe();

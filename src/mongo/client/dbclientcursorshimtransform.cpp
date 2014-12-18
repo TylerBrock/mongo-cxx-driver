@@ -15,8 +15,9 @@
 
 #include "mongo/platform/basic.h"
 
-#include "mongo/client/dbclientcursor.h"
 #include "mongo/client/dbclientcursorshimtransform.h"
+
+#include "mongo/client/dbclientcursor.h"
 
 namespace mongo  {
 
@@ -30,14 +31,14 @@ namespace mongo  {
 
     bool DBClientCursorShimTransform::more() {
         while (cursor.rawMore()) {
-            if (transformation(cursor.rawNext(), &next_doc))
+            if (transformation(cursor.rawNext(), &nextDoc))
                 return true;
         }
         return false;
     }
 
     BSONObj DBClientCursorShimTransform::next() {
-        return next_doc;
+        return nextDoc;
     }
 
 } // namespace mongo

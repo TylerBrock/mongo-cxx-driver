@@ -39,7 +39,7 @@ namespace mongo  {
     private:
         DBClientCursor& cursor;
         stdx::function<bool(const BSONObj&, BSONObj*)> transformation;
-        BSONObj next_doc;
+        BSONObj nextDoc;
     };
 
 } // namespace mongo
