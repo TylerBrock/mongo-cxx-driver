@@ -27,7 +27,7 @@ namespace mongo  {
      * a single batch, as in the 2.4 aggregate command reply */
     class DBClientCursorShimArray : public DBClientCursorShim {
     public:
-        DBClientCursorShimArray(DBClientCursor& c);
+        DBClientCursorShimArray(DBClientCursor& c, const std::string& arrayField);
 
         virtual BSONObj next();
         virtual bool more();
@@ -36,6 +36,7 @@ namespace mongo  {
         DBClientCursor& cursor;
         BSONObjIterator iter;
         bool has_array;
+        const std::string array_field;
     };
 
 }

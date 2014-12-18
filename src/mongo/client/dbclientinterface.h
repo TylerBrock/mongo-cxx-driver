@@ -1122,9 +1122,9 @@ namespace mongo {
 
         /**
          * Get a list of all the current collections in db.
-         * Returns fully qualified names.
          */
-        std::list<std::string> getCollectionNames( const std::string& db );
+        std::list<std::string> getCollectionNames( const std::string& db,
+                                                   const BSONObj& filter = BSONObj() );
 
         /**
          * Returns a DBClientCursor with collection information objects.
@@ -1137,8 +1137,8 @@ namespace mongo {
          *      }
          *  }
          */
-        std::auto_ptr<DBClientCursor> getCollectionInfo( const std::string& db,
-                                                         const BSONObj& filter = BSONObj() );
+        std::auto_ptr<DBClientCursor> enumerateCollections ( const std::string& db,
+                                                             const BSONObj& filter = BSONObj() );
 
         bool exists( const std::string& ns );
 
@@ -1293,6 +1293,11 @@ namespace mongo {
             bool upsert,
             const BSONObj& fields,
             BSONObjBuilder* out
+        );
+
+        std::auto_ptr<DBClientCursor> _legacyCollectionInfo(
+            const std::string& db,
+            const BSONObj& filter
         );
     };
 

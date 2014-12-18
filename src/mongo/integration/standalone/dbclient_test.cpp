@@ -330,18 +330,62 @@ namespace {
         c.dropDatabase(TEST_DB);
         ASSERT_EQUALS(c.getCollectionNames(TEST_DB).size(), 0U);
 
-        c.createCollection(TEST_NS);
-        // Greater than because we sometimes create system.indexes, etc...
-        ASSERT_GREATER_THAN(c.getCollectionNames(TEST_DB).size(), 1U);
+        c.createCollection(TEST_DB + ".normal");
+        c.createCollection(TEST_DB + ".capped", 1, true);
 
         list<string> names = c.getCollectionNames(TEST_DB);
+
+        // Greater than because we sometimes create system.indexes, etc...
+        ASSERT_GREATER_THAN(names.size(), 2U);
+
         list<string>::iterator it = names.begin();
 
-        bool saw_it = false;
-        while(it != names.end())
-            if (*it++ == TEST_COLL) { saw_it = true; }
+        bool saw_normal = false;
+        bool saw_capped = false;
+        bool saw_indexes = false;
 
-        ASSERT_TRUE(saw_it);
+        while(it != names.end()) {
+            if (*it == "normal") {
+                ASSERT_FALSE(saw_normal);
+                saw_normal = true;
+            } else if (*it == "capped") {
+                ASSERT_FALSE(saw_capped);
+                saw_capped = true;
+            } else {
+                ASSERT_FALSE(saw_indexes);
+                saw_indexes = true;
+            }
+            ++it;
+        }
+
+        ASSERT_TRUE(saw_normal);
+        ASSERT_TRUE(saw_capped);
+    }
+
+    TEST_F(DBClientTest, GetCollectionNamesFiltered) {
+        c.dropDatabase(TEST_DB);
+        ASSERT_EQUALS(c.getCollectionNames(TEST_DB).size(), 0U);
+
+        c.createCollection(TEST_DB + ".normal");
+        c.createCollection(TEST_DB + ".capped", 1, true);
+
+        list<string> names = c.getCollectionNames(TEST_DB, BSON("options.capped" << true));
+
+        ASSERT_EQUALS(names.size(), 1U);
+
+        list<string>::iterator it = names.begin();
+
+        bool saw_capped = false;
+
+        while(it != names.end()) {
+            if (*it == "capped") {
+                ASSERT_FALSE(saw_capped);
+                saw_capped = true;
+            }
+            ++it;
+        }
+
+        ASSERT_TRUE(saw_capped);
     }
 
     TEST_F(DBClientTest, DistinctWithQuery) {
