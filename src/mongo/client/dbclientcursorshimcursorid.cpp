@@ -24,8 +24,7 @@ namespace mongo  {
     DBClientCursorShimCursorID::DBClientCursorShimCursorID(DBClientCursor& c) :
         cursor(c),
         iter(NULL, NULL),
-        in_first_batch(false)
-    {}
+        in_first_batch(false) {}
 
     BSONObj DBClientCursorShimCursorID::get_cursor() {
         BSONObj b = cursor.rawNext();
