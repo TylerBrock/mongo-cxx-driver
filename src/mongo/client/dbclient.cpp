@@ -1414,7 +1414,7 @@ namespace mongo {
                 ( errmsg.find( "no such cmd" ) != string::npos )
             ) {
                 // MongoDB < 2.7.6 behavior -- run legacy code
-                cursor.reset(_legacyCollectionInfo(db, filter).get());
+                return _legacyCollectionInfo(db, filter);
             } else {
                 // Something else happened, uassert with the reason
                 uasserted( 18630, str::stream() << "listCollections failed: " << result );
