@@ -1328,7 +1328,8 @@ namespace mongo {
         return names;
     }
 
-    list<string> DBClientWithCommands::getCollectionNames( const string& db, const BSONObj& filter ) {
+    list<string> DBClientWithCommands::getCollectionNames( const string& db,
+                                                           const BSONObj& filter ) {
         auto_ptr<DBClientCursor> infos = enumerateCollections( db, filter );
         list<string> names;
 
@@ -1337,6 +1338,18 @@ namespace mongo {
         }
 
         return names;
+    }
+
+    list<BSONObj> DBClientWithCommands::getCollectionInfos( const string& db,
+                                                            const BSONObj& filter ) {
+        auto_ptr<DBClientCursor> info_cursor = enumerateCollections( db, filter );
+        list<BSONObj> infos;
+
+        while (info_cursor->more()) {
+            infos.push_back(info_cursor->nextSafe().getOwned());
+        }
+
+        return infos;
     }
 
     // Entries in the system.namespaces collection are fully qualified so the database name
