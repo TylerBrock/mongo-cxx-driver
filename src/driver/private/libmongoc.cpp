@@ -12,34 +12,18 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-#pragma once
+#include "libmongoc.hpp"
 
-#include "driver/config/prelude.hpp"
+namespace mongo {
+namespace driver {
+namespace libmongoc {
 
-#include <cstdlib>
-#include <memory>
+#ifdef MONGOCXX_TESTING
+#define MONGOCXX_LIBMONGOC_SYMBOL(name) mock::mock<decltype(&mongoc_##name)> name(mongoc_##name);
+#include "libmongoc_symbols.hpp"
+#undef MONGOCXX_LIBMONGOC_SYMBOL
+#endif  // MONGOCXX_TESTING
 
-#include "bson/document/view.hpp"
-
-namespace bson {
-namespace document {
-
-class LIBMONGOCXX_EXPORT value {
-
-   public:
-    value(const std::uint8_t* b, std::size_t l, decltype(&std::free) = std::free);
-    value(const view& view);
-
-    document::view view() const;
-    operator document::view() const;
-
-   private:
-    std::unique_ptr<void, decltype(&std::free)> _buf;
-    std::size_t _len;
-
-};
-
-}  // namespace document
-}  // namespace bson
-
-#include "driver/config/postlude.hpp"
+}  // namespace libmongoc
+}  // namespace driver
+}  // namespace mongo

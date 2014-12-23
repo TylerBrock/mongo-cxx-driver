@@ -14,32 +14,23 @@
 
 #pragma once
 
-#include "driver/config/prelude.hpp"
+#include "mongoc.h"
+#include "mock/mock.hpp"
 
-#include <cstdlib>
-#include <memory>
+namespace mongo {
+namespace driver {
+namespace libmongoc {
 
-#include "bson/document/view.hpp"
+#ifdef MONGOCXX_TESTING
+#define MONGOCXX_LIBMONGOC_SYMBOL(name) extern mongo::mock::mock<decltype(&mongoc_##name)> name;
+#include "libmongoc_symbols.hpp"
+#undef MONGOCXX_LIBMONGOC_SYMBOL
+#else
+#define MONGOCXX_LIBMONGOC_SYMBOL(name) constexpr auto name = mongoc_##name;
+#include "libmongoc_symbols.hpp"
+#undef MONGOCXX_LIBMONGOC_SYMBOL
+#endif  // MONGOCXX_TESTING
 
-namespace bson {
-namespace document {
-
-class LIBMONGOCXX_EXPORT value {
-
-   public:
-    value(const std::uint8_t* b, std::size_t l, decltype(&std::free) = std::free);
-    value(const view& view);
-
-    document::view view() const;
-    operator document::view() const;
-
-   private:
-    std::unique_ptr<void, decltype(&std::free)> _buf;
-    std::size_t _len;
-
-};
-
-}  // namespace document
-}  // namespace bson
-
-#include "driver/config/postlude.hpp"
+}  // namespace libmongoc
+}  // namespace driver
+}  // namespace mongo

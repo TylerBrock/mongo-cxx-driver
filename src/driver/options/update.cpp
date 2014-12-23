@@ -12,34 +12,20 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-#pragma once
+#include "driver/options/update.hpp"
 
-#include "driver/config/prelude.hpp"
+namespace mongo {
+namespace driver {
+namespace options {
 
-#include <cstdlib>
-#include <memory>
+void update::upsert(bool upsert) { _upsert = upsert; }
 
-#include "bson/document/view.hpp"
+void update::write_concern(class write_concern wc) { _write_concern = std::move(wc); }
 
-namespace bson {
-namespace document {
+const optional<bool>& update::upsert() const { return _upsert; }
 
-class LIBMONGOCXX_EXPORT value {
+const optional<class write_concern>& update::write_concern() const { return _write_concern; }
 
-   public:
-    value(const std::uint8_t* b, std::size_t l, decltype(&std::free) = std::free);
-    value(const view& view);
-
-    document::view view() const;
-    operator document::view() const;
-
-   private:
-    std::unique_ptr<void, decltype(&std::free)> _buf;
-    std::size_t _len;
-
-};
-
-}  // namespace document
-}  // namespace bson
-
-#include "driver/config/postlude.hpp"
+}  // namespace options
+}  // namespace driver
+}  // namespace mongo

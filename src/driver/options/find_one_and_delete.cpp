@@ -12,34 +12,24 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-#pragma once
+#include "driver/options/find_one_and_delete.hpp"
 
-#include "driver/config/prelude.hpp"
+namespace mongo {
+namespace driver {
+namespace options {
 
-#include <cstdlib>
-#include <memory>
+void find_one_and_delete::projection(bson::document::view projection) { _projection = projection; }
 
-#include "bson/document/view.hpp"
+void find_one_and_delete::sort(bson::document::view ordering) { _ordering = ordering; }
 
-namespace bson {
-namespace document {
+const optional<bson::document::view>& find_one_and_delete::projection() const {
+    return _projection;
+}
 
-class LIBMONGOCXX_EXPORT value {
+const optional<bson::document::view>& find_one_and_delete::sort() const { return _ordering; }
 
-   public:
-    value(const std::uint8_t* b, std::size_t l, decltype(&std::free) = std::free);
-    value(const view& view);
-
-    document::view view() const;
-    operator document::view() const;
-
-   private:
-    std::unique_ptr<void, decltype(&std::free)> _buf;
-    std::size_t _len;
-
-};
-
-}  // namespace document
-}  // namespace bson
+}  // namespace options
+}  // namespace driver
+}  // namespace mongo
 
 #include "driver/config/postlude.hpp"

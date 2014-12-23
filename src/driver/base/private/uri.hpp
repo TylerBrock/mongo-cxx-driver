@@ -14,32 +14,22 @@
 
 #pragma once
 
-#include "driver/config/prelude.hpp"
+#include "driver/base/uri.hpp"
 
-#include <cstdlib>
-#include <memory>
+#include "mongoc.h"
 
-#include "bson/document/view.hpp"
+namespace mongo {
+namespace driver {
 
-namespace bson {
-namespace document {
-
-class LIBMONGOCXX_EXPORT value {
-
+class uri::impl {
    public:
-    value(const std::uint8_t* b, std::size_t l, decltype(&std::free) = std::free);
-    value(const view& view);
+    impl(mongoc_uri_t* uri) : uri_t(uri) {}
+    ~impl() { mongoc_uri_destroy(uri_t); }
+    mongoc_uri_t* uri_t;
 
-    document::view view() const;
-    operator document::view() const;
+}; // class impl
 
-   private:
-    std::unique_ptr<void, decltype(&std::free)> _buf;
-    std::size_t _len;
-
-};
-
-}  // namespace document
-}  // namespace bson
+}  // namespace driver
+}  // namespace mongo
 
 #include "driver/config/postlude.hpp"

@@ -12,34 +12,24 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-#pragma once
+#include "driver/options/distinct.hpp"
+#include "driver/base/private/read_preference.hpp"
 
-#include "driver/config/prelude.hpp"
+namespace mongo {
+namespace driver {
+namespace options {
 
-#include <cstdlib>
-#include <memory>
+void distinct::max_time_ms(std::int64_t max_time_ms) { _max_time_ms = std::move(max_time_ms); }
 
-#include "bson/document/view.hpp"
+void distinct::read_preference(class read_preference rp) { _read_preference = std::move(rp); }
 
-namespace bson {
-namespace document {
+const optional<std::int64_t>& distinct::max_time_ms() const { return _max_time_ms; }
+const optional<class read_preference>& distinct::read_preference() const {
+    return _read_preference;
+}
 
-class LIBMONGOCXX_EXPORT value {
-
-   public:
-    value(const std::uint8_t* b, std::size_t l, decltype(&std::free) = std::free);
-    value(const view& view);
-
-    document::view view() const;
-    operator document::view() const;
-
-   private:
-    std::unique_ptr<void, decltype(&std::free)> _buf;
-    std::size_t _len;
-
-};
-
-}  // namespace document
-}  // namespace bson
+}  // namespace options
+}  // namespace driver
+}  // namespace mongo
 
 #include "driver/config/postlude.hpp"

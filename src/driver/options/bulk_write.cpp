@@ -12,34 +12,21 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-#pragma once
+#include "driver/base/write_concern.hpp"
+#include "driver/options/bulk_write.hpp"
 
-#include "driver/config/prelude.hpp"
+namespace mongo {
+namespace driver {
+namespace options {
 
-#include <cstdlib>
-#include <memory>
+void bulk_write::ordered(bool ordered) { _ordered = ordered; }
 
-#include "bson/document/view.hpp"
+void bulk_write::write_concern(class write_concern wc) { _write_concern = std::move(wc); }
 
-namespace bson {
-namespace document {
+const optional<bool>& bulk_write::ordered() const { return _ordered; }
 
-class LIBMONGOCXX_EXPORT value {
-
-   public:
-    value(const std::uint8_t* b, std::size_t l, decltype(&std::free) = std::free);
-    value(const view& view);
-
-    document::view view() const;
-    operator document::view() const;
-
-   private:
-    std::unique_ptr<void, decltype(&std::free)> _buf;
-    std::size_t _len;
-
-};
-
-}  // namespace document
-}  // namespace bson
+}  // namespace options
+}  // namespace driver
+}  // namespace mongo
 
 #include "driver/config/postlude.hpp"

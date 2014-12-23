@@ -16,30 +16,35 @@
 
 #include "driver/config/prelude.hpp"
 
-#include <cstdlib>
-#include <memory>
+#include "driver/base/database.hpp"
+#include "driver/base/client.hpp"
+#include "driver/base/private/client.hpp"
+#include "driver/base/private/write_concern.hpp"
 
-#include "bson/document/view.hpp"
+#include "mongoc.h"
 
-namespace bson {
-namespace document {
+namespace mongo {
+namespace driver {
 
-class LIBMONGOCXX_EXPORT value {
-
+class database::impl {
    public:
-    value(const std::uint8_t* b, std::size_t l, decltype(&std::free) = std::free);
-    value(const view& view);
+    impl(mongoc_database_t* db, const class client::impl* client, std::string name) :
+        database_t(db),
+        client_impl(client),
+        name(std::move(name))
+    {}
 
-    document::view view() const;
-    operator document::view() const;
+    ~impl() {
+        libmongoc::database_destroy(database_t);
+    }
 
-   private:
-    std::unique_ptr<void, decltype(&std::free)> _buf;
-    std::size_t _len;
+    mongoc_database_t* database_t;
+    const class client::impl* client_impl;
+    std::string name;
 
 };
 
-}  // namespace document
-}  // namespace bson
+}  // namespace driver
+}  // namespace mongo
 
 #include "driver/config/postlude.hpp"

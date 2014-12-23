@@ -12,34 +12,34 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-#pragma once
+#include "driver/result/replace_one.hpp"
 
-#include "driver/config/prelude.hpp"
+namespace mongo {
+namespace driver {
+namespace result {
 
-#include <cstdlib>
-#include <memory>
+replace_one::replace_one(result::bulk_write result)
+    : _result(std::move(result))
+{}
 
-#include "bson/document/view.hpp"
+const result::bulk_write& replace_one::result() const {
+    return _result;
+}
 
-namespace bson {
-namespace document {
+std::int64_t replace_one::matched_count() const {
+    return _result.matched_count();
+}
 
-class LIBMONGOCXX_EXPORT value {
+std::int64_t replace_one::modified_count() const {
+    return _result.modified_count();
+}
 
-   public:
-    value(const std::uint8_t* b, std::size_t l, decltype(&std::free) = std::free);
-    value(const view& view);
+optional<bson::document::element> replace_one::upserted_id() const {
+    return _result.upserted_ids();
+}
 
-    document::view view() const;
-    operator document::view() const;
-
-   private:
-    std::unique_ptr<void, decltype(&std::free)> _buf;
-    std::size_t _len;
-
-};
-
-}  // namespace document
-}  // namespace bson
+}  // namespace result
+}  // namespace driver
+}  // namespace mongo
 
 #include "driver/config/postlude.hpp"

@@ -12,34 +12,13 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-#pragma once
+#include "stdx/optional.hpp"
 
-#include "driver/config/prelude.hpp"
+namespace mongo {
+namespace driver {
 
-#include <cstdlib>
-#include <memory>
+in_place_t in_place;
+nullopt_t nullopt(0);
 
-#include "bson/document/view.hpp"
-
-namespace bson {
-namespace document {
-
-class LIBMONGOCXX_EXPORT value {
-
-   public:
-    value(const std::uint8_t* b, std::size_t l, decltype(&std::free) = std::free);
-    value(const view& view);
-
-    document::view view() const;
-    operator document::view() const;
-
-   private:
-    std::unique_ptr<void, decltype(&std::free)> _buf;
-    std::size_t _len;
-
-};
-
-}  // namespace document
-}  // namespace bson
-
-#include "driver/config/postlude.hpp"
+}
+}

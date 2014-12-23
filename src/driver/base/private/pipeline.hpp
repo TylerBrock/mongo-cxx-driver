@@ -16,30 +16,29 @@
 
 #include "driver/config/prelude.hpp"
 
-#include <cstdlib>
-#include <memory>
+#include "bson/builder.hpp"
+#include "driver/base/pipeline.hpp"
 
-#include "bson/document/view.hpp"
+namespace mongo {
+namespace driver {
 
-namespace bson {
-namespace document {
-
-class LIBMONGOCXX_EXPORT value {
+class pipeline::impl {
 
    public:
-    value(const std::uint8_t* b, std::size_t l, decltype(&std::free) = std::free);
-    value(const view& view);
+    bson::builder::single_ctx sink() {
+        return _builder;
+    }
 
-    document::view view() const;
-    operator document::view() const;
+    bson::document::view view() {
+        return _builder.view();
+    }
 
    private:
-    std::unique_ptr<void, decltype(&std::free)> _buf;
-    std::size_t _len;
+    bson::builder::array _builder;
 
-};
+}; // class impl
 
-}  // namespace document
-}  // namespace bson
+}  // namespace driver
+}  // namespace mongo
 
 #include "driver/config/postlude.hpp"

@@ -12,34 +12,27 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-#pragma once
+#include "catch.hpp"
+#include "helpers.hpp"
 
-#include "driver/config/prelude.hpp"
+#include "bson/builder.hpp"
+#include "driver/result/insert_one.hpp"
 
-#include <cstdlib>
-#include <memory>
+using namespace mongo::driver;
 
-#include "bson/document/view.hpp"
+TEST_CASE("insert_one", "[insert_one][result]") {
+    bson::builder::document build;
+    build << "_id" << bson::oid{bson::oid::init_tag} << "x" << 1;
 
-namespace bson {
-namespace document {
+    bson::document::element g_oid{};
 
-class LIBMONGOCXX_EXPORT value {
+    result::bulk_write b(bson::document::value(build.view()));
 
-   public:
-    value(const std::uint8_t* b, std::size_t l, decltype(&std::free) = std::free);
-    value(const view& view);
+    result::insert_one insert_one(std::move(b), g_oid);
 
-    document::view view() const;
-    operator document::view() const;
+    SECTION("returns correct response") {
+        REQUIRE(insert_one.inserted_id() == g_oid);
+    }
 
-   private:
-    std::unique_ptr<void, decltype(&std::free)> _buf;
-    std::size_t _len;
+}
 
-};
-
-}  // namespace document
-}  // namespace bson
-
-#include "driver/config/postlude.hpp"

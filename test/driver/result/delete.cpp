@@ -12,34 +12,26 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-#pragma once
+#include "catch.hpp"
+#include "helpers.hpp"
 
-#include "driver/config/prelude.hpp"
+#include "bson/builder.hpp"
+#include "driver/result/delete.hpp"
 
-#include <cstdlib>
-#include <memory>
+using namespace mongo::driver;
 
-#include "bson/document/view.hpp"
+TEST_CASE("delete", "[delete][result]") {
 
-namespace bson {
-namespace document {
+    bson::builder::document build;
+    build << "_id" << bson::oid{bson::oid::init_tag} << "nRemoved" << bson::types::b_int64{1};
 
-class LIBMONGOCXX_EXPORT value {
+    result::bulk_write b(bson::document::value(build.view()));
 
-   public:
-    value(const std::uint8_t* b, std::size_t l, decltype(&std::free) = std::free);
-    value(const view& view);
+    result::delete_result delete_result(std::move(b));
 
-    document::view view() const;
-    operator document::view() const;
+    SECTION("returns correct removed count") {
+        std::cout << build.view();
+        REQUIRE(delete_result.removed_count() == 1);
+    }
 
-   private:
-    std::unique_ptr<void, decltype(&std::free)> _buf;
-    std::size_t _len;
-
-};
-
-}  // namespace document
-}  // namespace bson
-
-#include "driver/config/postlude.hpp"
+}

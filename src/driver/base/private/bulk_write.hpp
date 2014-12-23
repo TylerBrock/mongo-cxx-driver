@@ -16,30 +16,28 @@
 
 #include "driver/config/prelude.hpp"
 
-#include <cstdlib>
-#include <memory>
+#include "driver/base/bulk_write.hpp"
+#include "driver/private/libmongoc.hpp"
 
-#include "bson/document/view.hpp"
+namespace mongo {
+namespace driver {
 
-namespace bson {
-namespace document {
-
-class LIBMONGOCXX_EXPORT value {
+class bulk_write::impl {
 
    public:
-    value(const std::uint8_t* b, std::size_t l, decltype(&std::free) = std::free);
-    value(const view& view);
+    impl(mongoc_bulk_operation_t* op)
+        : operation_t(op)
+    {}
 
-    document::view view() const;
-    operator document::view() const;
+    ~impl() {
+        libmongoc::bulk_operation_destroy(operation_t);
+    }
 
-   private:
-    std::unique_ptr<void, decltype(&std::free)> _buf;
-    std::size_t _len;
+    mongoc_bulk_operation_t* operation_t;
 
-};
+}; // class impl
 
-}  // namespace document
-}  // namespace bson
+}  // namespace driver
+}  // namespace mongo
 
 #include "driver/config/postlude.hpp"
