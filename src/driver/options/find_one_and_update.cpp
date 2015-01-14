@@ -18,27 +18,27 @@ namespace mongo {
 namespace driver {
 namespace options {
 
-void find_one_and_update::projection(bson::document::view projection) { _projection = projection; }
+void find_one_and_update_t::projection(bson::document::view projection) { _projection = projection; }
 
-void find_one_and_update::return_document(enum return_document return_document) {
+void find_one_and_update_t::return_document(return_document_t return_document) {
     _return_document = return_document;
 }
 
-void find_one_and_update::sort(bson::document::view ordering) { _ordering = ordering; }
+void find_one_and_update_t::sort(bson::document::view ordering) { _ordering = ordering; }
 
-void find_one_and_update::upsert(bool upsert) { _upsert = upsert; }
+void find_one_and_update_t::upsert(bool upsert) { _upsert = upsert; }
 
-const optional<bson::document::view>& find_one_and_update::projection() const {
+const optional<bson::document::view>& find_one_and_update_t::projection() const {
     return _projection;
 }
 
-const optional<return_document>& find_one_and_update::return_document() const {
+const optional<return_document_t>& find_one_and_update_t::return_document() const {
     return _return_document;
 }
 
-const optional<bson::document::view>& find_one_and_update::sort() const { return _ordering; }
+const optional<bson::document::view>& find_one_and_update_t::sort() const { return _ordering; }
 
-const optional<bool>& find_one_and_update::upsert() const { return _upsert; }
+const optional<bool>& find_one_and_update_t::upsert() const { return _upsert; }
 
 }  // namespace options
 }  // namespace driver

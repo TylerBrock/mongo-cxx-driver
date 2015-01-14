@@ -19,7 +19,7 @@
 using namespace mongo::driver;
 
 TEST_CASE("a default write_concern", "[write_concern][base]") {
-    write_concern wc{};
+    write_concern_t wc{};
 
     SECTION("doesn't require the server to fsync") { REQUIRE(wc.fsync() == false); }
 
@@ -39,7 +39,7 @@ TEST_CASE("a default write_concern", "[write_concern][base]") {
 }
 
 TEST_CASE("write_concern fields may be set and retrieved", "[write_concern][base]") {
-    write_concern wc{};
+    write_concern_t wc{};
 
     SECTION("fsync may be configured") {
         wc.fsync(true);
@@ -79,42 +79,42 @@ TEST_CASE("write_concern fields may be set and retrieved", "[write_concern][base
 TEST_CASE("confirmation from tags, a repl-member count, and majority are mutually exclusive",
           "[write_concern][base]") {
     SECTION("setting the confirmation number unsets the confirmation tag") {
-        write_concern wc{};
+        write_concern_t wc{};
         wc.tag("MultipleDC");
         wc.nodes(10);
         REQUIRE(wc.tag().empty());
     }
 
     SECTION("setting the confirmation number unsets majority") {
-        write_concern wc{};
+        write_concern_t wc{};
         wc.majority(std::chrono::milliseconds(100));
         wc.nodes(20);
         REQUIRE(!wc.majority());
     }
 
     SECTION("setting the tag unsets the confirmation number") {
-        write_concern wc{};
+        write_concern_t wc{};
         wc.nodes(10);
         wc.tag("MultipleDC");
         REQUIRE(-4 == wc.nodes());
     }
 
     SECTION("setting the tag unsets majority") {
-        write_concern wc{};
+        write_concern_t wc{};
         wc.majority(std::chrono::milliseconds(100));
         wc.tag("MultipleDC");
         REQUIRE(!wc.majority());
     }
 
     SECTION("setting the majority unsets the confirmation number") {
-        write_concern wc{};
+        write_concern_t wc{};
         wc.nodes(10);
         wc.majority(std::chrono::milliseconds(100));
         REQUIRE(-3 == wc.nodes());
     }
 
     SECTION("setting majority unsets the tag") {
-        write_concern wc{};
+        write_concern_t wc{};
         wc.tag("MultipleDC");
         wc.majority(std::chrono::milliseconds(100));
         REQUIRE(wc.tag().empty());

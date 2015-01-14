@@ -18,15 +18,15 @@ namespace mongo {
 namespace driver {
 namespace result {
 
-delete_result::delete_result(result::bulk_write result)
+delete_t::delete_t(result::bulk_write_t result)
     : _result(std::move(result))
 {}
 
-const result::bulk_write& delete_result::result() const {
+const result::bulk_write_t& delete_t::result() const {
     return _result;
 }
 
-std::int64_t delete_result::removed_count() const {
+std::int64_t delete_t::removed_count() const {
     return _result.deleted_count();
 }
 

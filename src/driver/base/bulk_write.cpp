@@ -25,23 +25,23 @@ namespace driver {
 
 using namespace bson::libbson;
 
-bulk_write::bulk_write(bulk_write&&) noexcept = default;
-bulk_write& bulk_write::operator=(bulk_write&&) noexcept = default;
+bulk_write_t::bulk_write_t(bulk_write_t&&) noexcept = default;
+bulk_write_t& bulk_write_t::operator=(bulk_write_t&&) noexcept = default;
 
-bulk_write::~bulk_write() = default;
+bulk_write_t::~bulk_write_t() = default;
 
-bulk_write::bulk_write(bool ordered)
+bulk_write_t::bulk_write_t(bool ordered)
     : _impl(stdx::make_unique<impl>(libmongoc::bulk_operation_new(ordered))) {}
 
-void bulk_write::append(const model::write& operation) {
+void bulk_write_t::append(const model::write_t& operation) {
     switch (operation.type()) {
-        case write_type::k_insert_one: {
+        case write_type_t::k_insert_one: {
             scoped_bson_t doc(operation.get_insert_one().document());
 
             libmongoc::bulk_operation_insert(_impl->operation_t, doc.bson());
             break;
         }
-        case write_type::k_update_one: {
+        case write_type_t::k_update_one: {
             scoped_bson_t filter(operation.get_update_one().filter());
             scoped_bson_t update(operation.get_update_one().update());
             bool upsert = operation.get_update_one().upsert().value_or(false);
@@ -50,7 +50,7 @@ void bulk_write::append(const model::write& operation) {
                                                  upsert);
             break;
         }
-        case write_type::k_update_many: {
+        case write_type_t::k_update_many: {
             scoped_bson_t filter(operation.get_update_many().filter());
             scoped_bson_t update(operation.get_update_many().update());
             bool upsert = operation.get_update_many().upsert().value_or(false);
@@ -59,17 +59,17 @@ void bulk_write::append(const model::write& operation) {
                                              upsert);
             break;
         }
-        case write_type::k_delete_one: {
+        case write_type_t::k_delete_one: {
             scoped_bson_t filter(operation.get_delete_one().filter());
             libmongoc::bulk_operation_remove_one(_impl->operation_t, filter.bson());
             break;
         }
-        case write_type::k_delete_many: {
+        case write_type_t::k_delete_many: {
             scoped_bson_t filter(operation.get_delete_many().filter());
             libmongoc::bulk_operation_remove(_impl->operation_t, filter.bson());
             break;
         }
-        case write_type::k_replace_one: {
+        case write_type_t::k_replace_one: {
             scoped_bson_t filter(operation.get_replace_one().filter());
             scoped_bson_t replace(operation.get_replace_one().replacement());
             bool upsert = operation.get_replace_one().upsert().value_or(false);
@@ -78,16 +78,16 @@ void bulk_write::append(const model::write& operation) {
                                                   upsert);
             break;
         }
-        case write_type::k_uninitialized:
+        case write_type_t::k_uninitialized:
             break;  // TODO: something exceptiony
     }
 }
 
-void bulk_write::write_concern(class write_concern wc) {
+void bulk_write_t::write_concern(class write_concern_t wc) {
     libmongoc::bulk_operation_set_write_concern(_impl->operation_t, wc._impl->write_concern_t);
 }
 
-//class write_concern bulk_write::write_concern() const {
+//class write_concern bulk_write_t::write_concern() const {
     //class write_concern wc(stdx::make_unique<write_concern::impl>(
         //libmongoc::write_concern_copy(
             //libmongoc::bulk_operation_get_write_concern(_impl->operation_t)

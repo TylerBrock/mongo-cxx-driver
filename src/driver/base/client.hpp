@@ -27,48 +27,48 @@
 namespace mongo {
 namespace driver {
 
-/// The client class is the entry point into the MongoDB driver. It acts as a logical gateway for
-/// accessing the databases of MongoDB clusters. Databases that are accessed via a client inherit
-/// all of the options specified on the client.
-class LIBMONGOCXX_EXPORT client {
+/// The client_t class is the entry point into the MongoDB driver. It acts as a logical gateway for
+/// accessing the databases of MongoDB clusters. Databases that are accessed via a client_t inherit
+/// all of the options specified on the client_t.
+class LIBMONGOCXX_EXPORT client_t {
 
     // TODO: iterable for databases on the server
-    // TODO: add + implement client api methods
+    // TODO: add + implement client_t api methods
    public:
-    client(
-        const uri& mongodb_uri = uri(),
-        const options::client& options = options::client()
+    client_t(
+        const uri_t& mongodb_uri = uri_t(),
+        const options::client_t& options = options::client_t()
     );
 
-    client(client&& rhs) noexcept;
-    client& operator=(client&& rhs) noexcept;
+    client_t(client_t&& rhs) noexcept;
+    client_t& operator=(client_t&& rhs) noexcept;
 
-    ~client();
+    ~client_t();
 
-    // TODO: document that modifications at this level do not affect existing clients + databases
-    void read_preference(class read_preference rp);
-    class read_preference read_preference() const;
+    // TODO: document that modifications at this level do not affect existing client_ts + databases
+    void read_preference(read_preference_t rp);
+    read_preference_t read_preference() const;
 
-    // TODO: document that modifications at this level do not affect existing clients + databases
-    void write_concern(class write_concern wc);
-    class write_concern write_concern() const;
+    // TODO: document that modifications at this level do not affect existing client_ts + databases
+    void write_concern(write_concern_t wc);
+    write_concern_t write_concern() const;
 
-    class database database(const std::string& name) const &;
-    class database database(const std::string& name) const && = delete;
+    database_t database(const std::string& name) const &;
+    database_t database(const std::string& name) const && = delete;
 
-    inline class database operator[](const std::string& name) const &;
-    inline class database operator[](const std::string& name) const && = delete;
+    inline database_t operator[](const std::string& name) const &;
+    inline database_t operator[](const std::string& name) const && = delete;
 
    private:
-    friend class database;
-    friend class collection;
+    friend class database_t;
+    friend class collection_t;
 
     class impl;
     std::unique_ptr<impl> _impl;
 
-}; // class client
+}; // class client_t
 
-inline class database client::operator[](const std::string& name) const & {
+inline database_t client_t::operator[](const std::string& name) const & {
     return database(name);
 }
 

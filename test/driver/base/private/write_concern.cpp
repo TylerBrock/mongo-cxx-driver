@@ -31,9 +31,9 @@ TEST_CASE("creation of write_concern passes universal parameters to c-driver's m
             fsync_called = true;
             fsync_value = fsync;
         });
-        write_concern wc{};
+        write_concern_t wc{};
         wc.fsync(true);
-        write_concern{wc};
+        write_concern_t{wc};
         REQUIRE(fsync_called == true);
         REQUIRE(fsync_value == true);
     }
@@ -46,9 +46,9 @@ TEST_CASE("creation of write_concern passes universal parameters to c-driver's m
             journal_called = true;
             journal_value = journal;
         });
-        write_concern wc{};
+        write_concern_t wc{};
         wc.journal(true);
-        write_concern{wc};
+        write_concern_t{wc};
         REQUIRE(journal_called == true);
         REQUIRE(journal_value == true);
     }
@@ -61,9 +61,9 @@ TEST_CASE("creation of write_concern passes universal parameters to c-driver's m
             wtimeout_called = true;
             wtimeout_value = wtimeout;
         });
-        write_concern wc{};
+        write_concern_t wc{};
         wc.timeout(std::chrono::seconds(1));
-        write_concern{wc};
+        write_concern_t{wc};
         REQUIRE(wtimeout_called == true);
         REQUIRE(wtimeout_value == 1000);
     }
@@ -80,9 +80,9 @@ TEST_CASE("write_concern is called with w MAJORITY",
         [&](mongoc_write_concern_t* wc, int wtimout) { wmajority_called = true; });
     wtag_instance->visit([&](mongoc_write_concern_t* wc, const char* wtag) { wtag_called = true; });
 
-    write_concern wc{};
+    write_concern_t wc{};
     wc.majority(std::chrono::milliseconds(100));
-    write_concern{wc};
+    write_concern_t{wc};
 
     SECTION("mongoc_write_concern_set_wmajority is called") { REQUIRE(wmajority_called == true); }
 
@@ -107,9 +107,9 @@ TEST_CASE("write_concern is called with a number of necessary confirmations",
         [&](mongoc_write_concern_t* wc, int wtimout) { wmajority_called = true; });
     wtag_instance->visit([&](mongoc_write_concern_t* wc, const char* wtag) { wtag_called = true; });
 
-    write_concern wc{};
+    write_concern_t wc{};
     wc.nodes(expected_w);
-    write_concern{wc};
+    write_concern_t{wc};
 
     SECTION("mongoc_write_concern_set_w is called with that number") {
         REQUIRE(w_called == true);
@@ -138,9 +138,9 @@ TEST_CASE("write_concern is called with a tag", "[write_concern][base][c-driver]
         wtag_value = wtag;
     });
 
-    write_concern wc{};
+    write_concern_t wc{};
     wc.tag(expected_wtag);
-    write_concern{wc};
+    write_concern_t{wc};
 
     SECTION("mongoc_write_concern_set_w is not called") { REQUIRE(w_called == false); }
 

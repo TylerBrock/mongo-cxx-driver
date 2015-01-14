@@ -34,13 +34,13 @@ TEST_CASE("a bulk_write will setup a mongoc bulk operation", "[bulk_write][base]
     });
 
     SECTION("with an ordered bulk write") {
-        bulk_write(true);
+        bulk_write_t(true);
         REQUIRE(construct_called);
         REQUIRE(ordered_value);
     }
 
     SECTION("with an unordered bulk write") {
-        bulk_write(false);
+        bulk_write_t(false);
         REQUIRE(construct_called);
         REQUIRE(!ordered_value);
     }
@@ -50,7 +50,7 @@ TEST_CASE("the destruction of a bulk_write will destroy the mongoc operation",
     auto destruct = libmongoc::bulk_operation_destroy.create_instance();
     bool destruct_called = false;
     destruct->visit([&destruct_called](mongoc_bulk_operation_t* op) { destruct_called = true; });
-    bulk_write(true);
+    bulk_write_t(true);
     REQUIRE(destruct_called);
 }
 
@@ -95,7 +95,7 @@ class FilteredDocumentFun : public SingleDocumentFun {
 
 TEST_CASE("passing valid write operations to append calls the corresponding C function",
           "[bulk_write][base]") {
-    bulk_write bw(true);
+    bulk_write_t bw(true);
     bson::builder::document filter_builder, doc_builder;
     filter_builder << "_id" << 1;
     doc_builder << "_id" << 2;
@@ -111,7 +111,7 @@ TEST_CASE("passing valid write operations to append calls the corresponding C fu
         bool bulk_insert_called = false;
         bulk_insert->visit(single_doc_fun);
 
-        bw.append(model::insert_one(doc));
+        bw.append(model::insert_one_t(doc));
         REQUIRE(single_doc_fun.called());
     }
 
@@ -120,7 +120,7 @@ TEST_CASE("passing valid write operations to append calls the corresponding C fu
         bool bulk_update_one_called = false;
         bulk_insert->visit(filtered_doc_fun);
 
-        bw.append(model::update_one(filter, doc));
+        bw.append(model::update_one_t(filter, doc));
         REQUIRE(filtered_doc_fun.called());
     }
 
@@ -130,7 +130,7 @@ TEST_CASE("passing valid write operations to append calls the corresponding C fu
         filtered_doc_fun.upsert(true);
         bulk_insert->visit(filtered_doc_fun);
 
-        model::update_one uo(filter, doc);
+        model::update_one_t uo(filter, doc);
         uo.upsert(true);
         bw.append(uo);
         REQUIRE(filtered_doc_fun.called());
@@ -141,7 +141,7 @@ TEST_CASE("passing valid write operations to append calls the corresponding C fu
         bool bulk_update_called = false;
         bulk_insert->visit(filtered_doc_fun);
 
-        bw.append(model::update_many(filter, doc));
+        bw.append(model::update_many_t(filter, doc));
         REQUIRE(filtered_doc_fun.called());
     }
 
@@ -151,7 +151,7 @@ TEST_CASE("passing valid write operations to append calls the corresponding C fu
         filtered_doc_fun.upsert(true);
         bulk_insert->visit(filtered_doc_fun);
 
-        model::update_many um(filter, doc);
+        model::update_many_t um(filter, doc);
         um.upsert(true);
         bw.append(um);
         REQUIRE(filtered_doc_fun.called());
@@ -162,7 +162,7 @@ TEST_CASE("passing valid write operations to append calls the corresponding C fu
         bool bulk_remove_one_called = false;
         bulk_insert->visit(single_doc_fun);
 
-        bw.append(model::delete_one(doc));
+        bw.append(model::delete_one_t(doc));
         REQUIRE(single_doc_fun.called());
     }
 
@@ -171,7 +171,7 @@ TEST_CASE("passing valid write operations to append calls the corresponding C fu
         bool bulk_remove_called = false;
         bulk_insert->visit(single_doc_fun);
 
-        bw.append(model::delete_many(doc));
+        bw.append(model::delete_many_t(doc));
         REQUIRE(single_doc_fun.called());
     }
 
@@ -180,7 +180,7 @@ TEST_CASE("passing valid write operations to append calls the corresponding C fu
         bool bulk_replace_one_called = false;
         bulk_insert->visit(filtered_doc_fun);
 
-        bw.append(model::replace_one(filter, doc));
+        bw.append(model::replace_one_t(filter, doc));
         REQUIRE(filtered_doc_fun.called());
     }
 
@@ -190,7 +190,7 @@ TEST_CASE("passing valid write operations to append calls the corresponding C fu
         filtered_doc_fun.upsert(true);
         bulk_insert->visit(filtered_doc_fun);
 
-        model::replace_one ro(filter, doc);
+        model::replace_one_t ro(filter, doc);
         ro.upsert(true);
         bw.append(ro);
         REQUIRE(filtered_doc_fun.called());

@@ -16,8 +16,6 @@
 
 #include "bson/builder.hpp"
 #include "bson/libbson.hpp"
-
-
 #include "driver/base/private/client.hpp"
 #include "driver/base/private/collection.hpp"
 #include "driver/base/private/database.hpp"
@@ -37,18 +35,17 @@
 #include "driver/result/replace_one.hpp"
 #include "driver/result/update.hpp"
 #include "stdx/optional.hpp"
-
 #include "stdx/make_unique.hpp"
 
 namespace {
-enum class cursor_flag : uint32_t {
+enum class cursor_flag_t : uint32_t {
     k_tailable,
     k_oplog_replay,
     k_no_cursor_timeout,
     k_await_data,
     k_exhaust,
     k_partial
-};
+}; // class cursor_flag_t
 }  // namespace
 
 namespace mongo {
@@ -56,18 +53,18 @@ namespace driver {
 
 using namespace bson::libbson;
 
-collection::collection(collection&&) noexcept = default;
-collection& collection::operator=(collection&&) noexcept = default;
-collection::~collection() = default;
+collection_t::collection_t(collection_t&&) noexcept = default;
+collection_t& collection_t::operator=(collection_t&&) noexcept = default;
+collection_t::~collection_t() = default;
 
-const std::string& collection::name() const { return _impl->name; }
+const std::string& collection_t::name() const { return _impl->name; }
 
-collection::collection(const database& database, const std::string& collection_name)
+collection_t::collection_t(const database_t& database, const std::string& collection_name)
     : _impl(stdx::make_unique<impl>(
           libmongoc::database_get_collection(database._impl->database_t, collection_name.c_str()),
           database._impl.get(), database._impl->client_impl, collection_name.c_str())) {}
 
-optional<result::bulk_write> collection::bulk_write(const class bulk_write& bulk_write) {
+optional<result::bulk_write_t> collection_t::bulk_write(const bulk_write_t& bulk_write) {
     mongoc_bulk_operation_t* b = bulk_write._impl->operation_t;
     libmongoc::bulk_operation_set_database(b, _impl->database_impl->name.c_str());
     libmongoc::bulk_operation_set_collection(b, _impl->name.c_str());
@@ -82,12 +79,12 @@ optional<result::bulk_write> collection::bulk_write(const class bulk_write& bulk
         throw std::runtime_error(error.message);
     }
 
-    result::bulk_write result(reply.steal());
+    result::bulk_write_t result(reply.steal());
 
-    return optional<result::bulk_write>(std::move(result));
+    return optional<result::bulk_write_t>(std::move(result));
 }
 
-cursor collection::find(bson::document::view filter, const options::find& options) {
+cursor_t collection_t::find(bson::document::view filter, const options::find_t& options) {
     using namespace bson;
 
     builder::document filter_builder;
@@ -110,25 +107,25 @@ cursor collection::find(bson::document::view filter, const options::find& option
         rp_ptr = options.read_preference()->_impl->read_preference_t;
     }
 
-    return cursor(libmongoc::collection_find(_impl->collection_t, mongoc_query_flags_t(0),
+    return cursor_t(libmongoc::collection_find(_impl->collection_t, mongoc_query_flags_t(0),
                                              options.skip().value_or(0), options.limit().value_or(0),
                                              options.batch_size().value_or(0), filter_bson.bson(),
                                              projection.bson(), rp_ptr));
 }
 
-optional<bson::document::value> collection::find_one(bson::document::view filter,
-                                                     const options::find& options) {
-    options::find copy(options);
+optional<bson::document::value> collection_t::find_one(bson::document::view filter,
+                                                       const options::find_t& options) {
+    options::find_t copy(options);
     copy.limit(1);
-    cursor cursor = find(filter, copy);
-    cursor::iterator it = cursor.begin();
+    cursor_t cursor = find(filter, copy);
+    cursor_t::iterator it = cursor.begin();
     if (it == cursor.end()) {
         return nullopt;
     }
     return optional<bson::document::value>(*it);
 }
 
-cursor collection::aggregate(const pipeline& pipeline, const options::aggregate& options) {
+cursor_t collection_t::aggregate(const pipeline_t& pipeline, const options::aggregate_t& options) {
     using namespace bson::builder::helpers;
 
     scoped_bson_t stages(pipeline._impl->view());
@@ -157,28 +154,28 @@ cursor collection::aggregate(const pipeline& pipeline, const options::aggregate&
     const mongoc_read_prefs_t* rp_ptr = NULL;
 
     if (options.read_preference()) {
-        rp_ptr = read_preference()._impl->read_preference_t;
+        rp_ptr = read_preference_t()._impl->read_preference_t;
     }
 
-    return cursor(libmongoc::collection_aggregate(_impl->collection_t,
+    return cursor_t(libmongoc::collection_aggregate(_impl->collection_t,
                                                   static_cast<mongoc_query_flags_t>(0), stages.bson(),
                                                   options_bson.bson(), rp_ptr));
 }
 
-optional<result::insert_one> collection::insert_one(bson::document::view document,
-                                                    const options::insert& options) {
-    class bulk_write bulk_op(false);
+optional<result::insert_one_t> collection_t::insert_one(bson::document::view document,
+                                                    const options::insert_t& options) {
+    bulk_write_t bulk_op(false);
     bson::document::element oid{};
 
     if (!document.has_key("_id")) {
         bson::builder::document new_document;
         new_document << "_id" << bson::oid(bson::oid::init_tag);
         new_document << bson::builder::helpers::concat{document};
-        bulk_op.append(model::insert_one(new_document.view()));
+        bulk_op.append(model::insert_one_t(new_document.view()));
 
         oid = new_document.view()["_id"];
     } else {
-        bulk_op.append(model::insert_one(document));
+        bulk_op.append(model::insert_one_t(document));
         oid = document["_id"];
     }
 
@@ -188,33 +185,33 @@ optional<result::insert_one> collection::insert_one(bson::document::view documen
 
     auto result = bulk_write(bulk_op);
     if (! result) {
-        return optional<result::insert_one>();
+        return optional<result::insert_one_t>();
     }
-    return optional<result::insert_one>(result::insert_one(std::move(result.value()), oid));
+    return optional<result::insert_one_t>(result::insert_one_t(std::move(result.value()), oid));
 }
 
-optional<result::replace_one> collection::replace_one(bson::document::view filter,
+optional<result::replace_one_t> collection_t::replace_one(bson::document::view filter,
                                                       bson::document::view replacement,
-                                                      const options::update& options) {
-    class bulk_write bulk_op(false);
-    model::replace_one replace_op(filter, replacement);
+                                                      const options::update_t& options) {
+    bulk_write_t bulk_op(false);
+    model::replace_one_t replace_op(filter, replacement);
     bulk_op.append(replace_op);
 
     if (options.write_concern()) bulk_op.write_concern(*options.write_concern());
 
     auto result = bulk_write(bulk_op);
     if (!result) {
-        return optional<result::replace_one>();
+        return optional<result::replace_one_t>();
     }
 
-    return optional<result::replace_one>(result::replace_one(std::move(result.value())));
+    return optional<result::replace_one_t>(result::replace_one_t(std::move(result.value())));
 };
 
-optional<result::update> collection::update_many(bson::document::view filter,
+optional<result::update_t> collection_t::update_many(bson::document::view filter,
                                                  bson::document::view update,
-                                                 const options::update& options) {
-    class bulk_write bulk_op(false);
-    model::update_many update_op(filter, update);
+                                                 const options::update_t& options) {
+    class bulk_write_t bulk_op(false);
+    model::update_many_t update_op(filter, update);
 
     if (options.upsert()) update_op.upsert(options.upsert().value());
 
@@ -224,33 +221,33 @@ optional<result::update> collection::update_many(bson::document::view filter,
 
     auto result = bulk_write(bulk_op);
     if (!result) {
-        return optional<result::update>();
+        return optional<result::update_t>();
     }
 
-    return optional<result::update> (result::update(std::move(result.value())));
+    return optional<result::update_t> (result::update_t(std::move(result.value())));
 }
 
-optional<result::delete_result> collection::delete_many(bson::document::view filter,
-                                                        const options::delete_options& options) {
-    class bulk_write bulk_op(false);
-    model::delete_many delete_op(filter);
+optional<result::delete_t> collection_t::delete_many(bson::document::view filter,
+                                                        const options::delete_t& options) {
+    class bulk_write_t bulk_op(false);
+    model::delete_many_t delete_op(filter);
     bulk_op.append(delete_op);
 
     if (options.write_concern()) bulk_op.write_concern(*options.write_concern());
 
     auto result = bulk_write(bulk_op);
     if (!result) {
-        return optional<result::delete_result>();
+        return optional<result::delete_t>();
     }
 
-    return optional<result::delete_result> (result::delete_result(std::move(result.value())));
+    return optional<result::delete_t> (result::delete_t(std::move(result.value())));
 }
 
-optional<result::update> collection::update_one(bson::document::view filter,
+optional<result::update_t> collection_t::update_one(bson::document::view filter,
                                                 bson::document::view update,
-                                                const options::update& options) {
-    class bulk_write bulk_op(false);
-    model::update_many update_op(filter, update);
+                                                const options::update_t& options) {
+    bulk_write_t bulk_op(false);
+    model::update_many_t update_op(filter, update);
 
     if (options.upsert()) update_op.upsert(options.upsert().value());
 
@@ -260,31 +257,30 @@ optional<result::update> collection::update_one(bson::document::view filter,
 
     auto result = bulk_write(bulk_op);
     if (!result) {
-        return optional<result::update>();
+        return optional<result::update_t>();
     }
 
-    return optional<result::update> (result::update(std::move(result.value())));
-
+    return optional<result::update_t> (result::update_t(std::move(result.value())));
 }
 
-optional<result::delete_result> collection::delete_one(bson::document::view filter,
-                                                       const options::delete_options& options) {
-    class bulk_write bulk_op(false);
-    model::delete_one delete_op(filter);
+optional<result::delete_t> collection_t::delete_one(bson::document::view filter,
+                                                       const options::delete_t& options) {
+    class bulk_write_t bulk_op(false);
+    model::delete_one_t delete_op(filter);
     bulk_op.append(delete_op);
 
     if (options.write_concern()) bulk_op.write_concern(*options.write_concern());
 
     auto result = bulk_write(bulk_op);
     if (!result) {
-        return optional<result::delete_result>();
+        return optional<result::delete_t>();
     }
-    return optional<result::delete_result>(result::delete_result(std::move(result.value())));
+    return optional<result::delete_t>(result::delete_t(std::move(result.value())));
 }
 
-optional<bson::document::value> collection::find_one_and_replace(
+optional<bson::document::value> collection_t::find_one_and_replace(
     bson::document::view filter, bson::document::view replacement,
-    const options::find_one_and_replace& options) {
+    const options::find_one_and_replace_t& options) {
     scoped_bson_t bson_filter{filter};
     scoped_bson_t bson_replacement{replacement};
     scoped_bson_t bson_sort{options.sort()};
@@ -295,13 +291,13 @@ optional<bson::document::value> collection::find_one_and_replace(
 
     bson_error_t error;
 
-    options::return_document rd =
-        options.return_document().value_or(options::return_document::k_before);
+    options::return_document_t rd =
+        options.return_document().value_or(options::return_document_t::k_before);
 
     bool r = mongoc_collection_find_and_modify(
         _impl->collection_t, bson_filter.bson(), bson_sort.bson(), bson_replacement.bson(),
         bson_projection.bson(), false, options.upsert().value_or(false),
-        rd == options::return_document::k_after, reply.bson(), &error);
+        rd == options::return_document_t::k_after, reply.bson(), &error);
 
     if (!r) {
         throw std::runtime_error("baddd");
@@ -317,9 +313,9 @@ optional<bson::document::value> collection::find_one_and_replace(
     return b.extract();
 }
 
-optional<bson::document::value> collection::find_one_and_update(
+optional<bson::document::value> collection_t::find_one_and_update(
     bson::document::view filter, bson::document::view update,
-    const options::find_one_and_update& options) {
+    const options::find_one_and_update_t& options) {
     scoped_bson_t bson_filter{filter};
     scoped_bson_t bson_update{update};
     scoped_bson_t bson_sort{options.sort()};
@@ -330,13 +326,13 @@ optional<bson::document::value> collection::find_one_and_update(
 
     bson_error_t error;
 
-    options::return_document rd =
-        options.return_document().value_or(options::return_document::k_before);
+    options::return_document_t rd =
+        options.return_document().value_or(options::return_document_t::k_before);
 
     bool r = libmongoc::collection_find_and_modify(
         _impl->collection_t, bson_filter.bson(), bson_sort.bson(), bson_update.bson(),
         bson_projection.bson(), false, options.upsert().value_or(false),
-        rd == options::return_document::k_after, reply.bson(), &error);
+        rd == options::return_document_t::k_after, reply.bson(), &error);
 
     if (!r) {
         throw std::runtime_error("baddd");
@@ -352,8 +348,8 @@ optional<bson::document::value> collection::find_one_and_update(
     return b.extract();
 }
 
-optional<bson::document::value> collection::find_one_and_delete(
-    bson::document::view filter, const options::find_one_and_delete& options) {
+optional<bson::document::value> collection_t::find_one_and_delete(
+    bson::document::view filter, const options::find_one_and_delete_t& options) {
     scoped_bson_t bson_filter{filter};
     scoped_bson_t bson_sort{options.sort()};
     scoped_bson_t bson_projection{options.projection()};
@@ -381,7 +377,7 @@ optional<bson::document::value> collection::find_one_and_delete(
     return b.extract();
 }
 
-std::int64_t collection::count(bson::document::view filter, const options::count& options) {
+std::int64_t collection_t::count(bson::document::view filter, const options::count_t& options) {
     scoped_bson_t bson_filter{filter};
     bson_error_t error;
 
@@ -402,7 +398,7 @@ std::int64_t collection::count(bson::document::view filter, const options::count
     return result;
 }
 
-void collection::drop() {
+void collection_t::drop() {
     bson_error_t error;
 
     if (libmongoc::collection_drop(_impl->collection_t, &error)) {
@@ -410,22 +406,22 @@ void collection::drop() {
     }
 }
 
-void collection::read_preference(class read_preference rp) {
+void collection_t::read_preference(read_preference_t rp) {
     libmongoc::collection_set_read_prefs(_impl->collection_t, rp._impl->read_preference_t);
 }
 
-class read_preference collection::read_preference() const {
-    class read_preference rp(stdx::make_unique<read_preference::impl>(
+read_preference_t collection_t::read_preference() const {
+    read_preference_t rp(stdx::make_unique<read_preference_t::impl>(
         libmongoc::read_prefs_copy(libmongoc::collection_get_read_prefs(_impl->collection_t))));
     return rp;
 }
 
-void collection::write_concern(class write_concern wc) {
+void collection_t::write_concern(write_concern_t wc) {
     libmongoc::collection_set_write_concern(_impl->collection_t, wc._impl->write_concern_t);
 }
 
-class write_concern collection::write_concern() const {
-    class write_concern wc(stdx::make_unique<write_concern::impl>(
+write_concern_t collection_t::write_concern() const {
+    write_concern_t wc(stdx::make_unique<write_concern_t::impl>(
         libmongoc::write_concern_copy(libmongoc::collection_get_write_concern(_impl->collection_t)))
     );
     return wc;

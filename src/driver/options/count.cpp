@@ -19,25 +19,25 @@ namespace mongo {
 namespace driver {
 namespace options {
 
-void count::hint(bson::document::view hint) { _hint = std::move(hint); }
+void count_t::hint(bson::document::view hint) { _hint = std::move(hint); }
 
-void count::limit(std::int64_t limit) { _limit = limit; }
+void count_t::limit(std::int64_t limit) { _limit = limit; }
 
-void count::max_time_ms(std::int64_t max_time_ms) { _max_time_ms = max_time_ms; }
+void count_t::max_time_ms(std::int64_t max_time_ms) { _max_time_ms = max_time_ms; }
 
-void count::skip(std::int64_t skip) { _skip = skip; }
+void count_t::skip(std::int64_t skip) { _skip = skip; }
 
-void count::read_preference(class read_preference rp) { _read_preference = std::move(rp); }
+void count_t::read_preference(read_preference_t rp) { _read_preference = std::move(rp); }
 
-const optional<bson::document::view>& count::hint() const { return _hint; }
+const optional<bson::document::view>& count_t::hint() const { return _hint; }
 
-const optional<std::int64_t>& count::limit() const { return _limit; }
+const optional<std::int64_t>& count_t::limit() const { return _limit; }
 
-const optional<std::int64_t>& count::max_time_ms() const { return _max_time_ms; }
+const optional<std::int64_t>& count_t::max_time_ms() const { return _max_time_ms; }
 
-const optional<std::int64_t>& count::skip() const { return _skip; }
+const optional<std::int64_t>& count_t::skip() const { return _skip; }
 
-const optional<class read_preference>& count::read_preference() const { return _read_preference; }
+const optional<read_preference_t>& count_t::read_preference() const { return _read_preference; }
 
 }  // namespace options
 }  // namespace driver

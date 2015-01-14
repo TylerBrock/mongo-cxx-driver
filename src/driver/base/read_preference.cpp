@@ -24,47 +24,47 @@
 namespace mongo {
 namespace driver {
 
-read_preference::read_preference(read_preference&&) noexcept = default;
-read_preference& read_preference::operator=(read_preference&&) noexcept = default;
+read_preference_t::read_preference_t(read_preference_t&&) noexcept = default;
+read_preference_t& read_preference_t::operator=(read_preference_t&&) noexcept = default;
 
-read_preference::read_preference(const read_preference& other)
+read_preference_t::read_preference_t(const read_preference_t& other)
     : _impl(stdx::make_unique<impl>(libmongoc::read_prefs_copy(other._impl->read_preference_t))) {}
 
-read_preference& read_preference::operator=(const read_preference& other) {
+read_preference_t& read_preference_t::operator=(const read_preference_t& other) {
     _impl.reset(
         stdx::make_unique<impl>(libmongoc::read_prefs_copy(other._impl->read_preference_t)).release());
     return *this;
 }
 
-read_preference::read_preference(std::unique_ptr<impl>&& implementation) {
+read_preference_t::read_preference_t(std::unique_ptr<impl>&& implementation) {
     _impl.reset(implementation.release());
 }
 
-read_preference::read_preference(read_mode mode)
+read_preference_t::read_preference_t(read_mode_t mode)
     : _impl(stdx::make_unique<impl>(libmongoc::read_prefs_new(static_cast<mongoc_read_mode_t>(mode)))) {
 }
 
-read_preference::read_preference(read_mode mode, bson::document::view tags)
-    : read_preference(mode) {
-    read_preference::tags(tags);
+read_preference_t::read_preference_t(read_mode_t mode, bson::document::view tags)
+    : read_preference_t(mode) {
+    read_preference_t::tags(tags);
 }
 
-read_preference::~read_preference() = default;
+read_preference_t::~read_preference_t() = default;
 
-void read_preference::mode(read_mode mode) {
+void read_preference_t::mode(read_mode_t mode) {
     libmongoc::read_prefs_set_mode(_impl->read_preference_t, static_cast<mongoc_read_mode_t>(mode));
 }
 
-void read_preference::tags(bson::document::view tags) {
+void read_preference_t::tags(bson::document::view tags) {
     bson::libbson::scoped_bson_t scoped_bson_tags(tags);
     libmongoc::read_prefs_set_tags(_impl->read_preference_t, scoped_bson_tags.bson());
 }
 
-read_mode read_preference::mode() const {
-    return static_cast<read_mode>(libmongoc::read_prefs_get_mode(_impl->read_preference_t));
+read_mode_t read_preference_t::mode() const {
+    return static_cast<read_mode_t>(libmongoc::read_prefs_get_mode(_impl->read_preference_t));
 }
 
-optional<bson::document::view> read_preference::tags() const {
+optional<bson::document::view> read_preference_t::tags() const {
     const bson_t* bson_tags = libmongoc::read_prefs_get_tags(_impl->read_preference_t);
 
     if (bson_count_keys(bson_tags))

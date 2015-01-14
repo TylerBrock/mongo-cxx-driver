@@ -18,19 +18,19 @@ namespace mongo {
 namespace driver {
 namespace model {
 
-update_one::update_one(bson::document::view filter, bson::document::view update)
+update_one_t::update_one_t(bson::document::view filter, bson::document::view update)
     : _filter(std::move(filter)), _update(std::move(update)) {}
 
-update_one& update_one::upsert(bool upsert) {
+update_one_t& update_one_t::upsert(bool upsert) {
     _upsert = upsert;
     return *this;
 }
 
-const optional<bool>& update_one::upsert() const { return _upsert; }
+const optional<bool>& update_one_t::upsert() const { return _upsert; }
 
-const bson::document::view& update_one::filter() const { return _filter; }
+const bson::document::view& update_one_t::filter() const { return _filter; }
 
-const bson::document::view& update_one::update() const { return _update; }
+const bson::document::view& update_one_t::update() const { return _update; }
 
 }  // namespace model
 }  // namespace driver

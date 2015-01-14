@@ -24,9 +24,9 @@ TEST_CASE("update", "[update][result]") {
     bson::builder::document build;
     build << "_id" << bson::oid{bson::oid::init_tag} << "nMatched" << bson::types::b_int64{2} << "nModified" << bson::types::b_int64{1};
 
-    result::bulk_write b(bson::document::value(build.view()));
+    result::bulk_write_t b(bson::document::value(build.view()));
 
-    result::update update(std::move(b));
+    result::update_t update(std::move(b));
 
     SECTION("returns correct matched and modified count") {
         REQUIRE(update.matched_count() == 2);

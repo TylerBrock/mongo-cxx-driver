@@ -18,22 +18,22 @@ namespace mongo {
 namespace driver {
 namespace result {
 
-update::update(result::bulk_write result)
+update_t::update_t(result::bulk_write_t result)
         : _result(std::move(result))
 {}
 
-const result::bulk_write& update::result() const {
+const result::bulk_write_t& update_t::result() const {
     return _result;
 }
-std::int64_t update::matched_count() const {
+std::int64_t update_t::matched_count() const {
     return _result.matched_count();
 }
 
-std::int64_t update::modified_count() const {
+std::int64_t update_t::modified_count() const {
     return _result.modified_count();
 }
 
-optional <bson::document::element> update::upserted_id() const {
+optional <bson::document::element> update_t::upserted_id() const {
     return _result.upserted_ids();
 }
 

@@ -22,75 +22,75 @@
 namespace mongo {
 namespace driver {
 
-write_concern::write_concern()
+write_concern_t::write_concern_t()
     : _impl{stdx::make_unique<impl>(mongoc_write_concern_new())}
 {}
 
-write_concern::write_concern(std::unique_ptr<impl>&& implementation) {
+write_concern_t::write_concern_t(std::unique_ptr<impl>&& implementation) {
     _impl.reset(implementation.release());
 }
 
-write_concern::write_concern(write_concern&&) noexcept = default;
-write_concern& write_concern::operator=(write_concern&&) noexcept = default;
+write_concern_t::write_concern_t(write_concern_t&&) noexcept = default;
+write_concern_t& write_concern_t::operator=(write_concern_t&&) noexcept = default;
 
-write_concern::write_concern(const write_concern& other)
+write_concern_t::write_concern_t(const write_concern_t& other)
     : _impl(stdx::make_unique<impl>(libmongoc::write_concern_copy(other._impl->write_concern_t))) {}
 
-write_concern& write_concern::operator=(const write_concern& other) {
+write_concern_t& write_concern_t::operator=(const write_concern_t& other) {
     _impl.reset(
         stdx::make_unique<impl>(libmongoc::write_concern_copy(other._impl->write_concern_t)).release());
     return *this;
 }
 
-write_concern::~write_concern() = default;
+write_concern_t::~write_concern_t() = default;
 
-void write_concern::fsync(bool fsync) {
+void write_concern_t::fsync(bool fsync) {
     libmongoc::write_concern_set_fsync(_impl->write_concern_t, fsync);
 }
 
-void write_concern::journal(bool journal) {
+void write_concern_t::journal(bool journal) {
     libmongoc::write_concern_set_journal(_impl->write_concern_t, journal);
 }
 
-void write_concern::nodes(std::int32_t confirm_from) {
+void write_concern_t::nodes(std::int32_t confirm_from) {
     libmongoc::write_concern_set_w(_impl->write_concern_t, confirm_from);
 }
 
-void write_concern::tag(const std::string& confirm_from) {
+void write_concern_t::tag(const std::string& confirm_from) {
     libmongoc::write_concern_set_wtag(_impl->write_concern_t, confirm_from.c_str());
 }
 
-void write_concern::majority(std::chrono::milliseconds timeout) {
+void write_concern_t::majority(std::chrono::milliseconds timeout) {
     libmongoc::write_concern_set_wmajority(_impl->write_concern_t, timeout.count());
 }
 
-void write_concern::timeout(std::chrono::milliseconds timeout) {
+void write_concern_t::timeout(std::chrono::milliseconds timeout) {
     libmongoc::write_concern_set_wtimeout(_impl->write_concern_t, timeout.count());
 }
 
-bool write_concern::fsync() const {
+bool write_concern_t::fsync() const {
     return libmongoc::write_concern_get_fsync(_impl->write_concern_t);
 }
 
-bool write_concern::journal() const {
+bool write_concern_t::journal() const {
     return libmongoc::write_concern_get_journal(_impl->write_concern_t);
 }
 
-std::int32_t write_concern::nodes() const {
+std::int32_t write_concern_t::nodes() const {
     return libmongoc::write_concern_get_w(_impl->write_concern_t);
 }
 
 // TODO: should this be an optional... probably
-std::string write_concern::tag() const {
+std::string write_concern_t::tag() const {
     const char* tag_str = libmongoc::write_concern_get_wtag(_impl->write_concern_t);
     return tag_str ? tag_str : std::string();
 }
 
-bool write_concern::majority() const {
+bool write_concern_t::majority() const {
     return libmongoc::write_concern_get_wmajority(_impl->write_concern_t);
 }
 
-std::chrono::milliseconds write_concern::timeout() const {
+std::chrono::milliseconds write_concern_t::timeout() const {
     return std::chrono::milliseconds(
         libmongoc::write_concern_get_wtimeout(_impl->write_concern_t)
     );

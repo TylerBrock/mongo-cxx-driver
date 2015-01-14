@@ -18,16 +18,16 @@ namespace mongo {
 namespace driver {
 namespace result {
 
-insert_one::insert_one(result::bulk_write result, bson::document::element generated_id)
+insert_one_t::insert_one_t(result::bulk_write_t result, bson::document::element generated_id)
     : _result(std::move(result)),
       _generated_id(std::move(generated_id))
 {}
 
-const result::bulk_write& insert_one::result() const {
+const result::bulk_write_t& insert_one_t::result() const {
     return _result;
 }
 
-bson::document::element insert_one::inserted_id() const {
+bson::document::element insert_one_t::inserted_id() const {
     return _generated_id;
 }
 

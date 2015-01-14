@@ -9,9 +9,9 @@
 using namespace mongo::driver;
 
 TEST_CASE("CRUD functionality", "[driver::collection]") {
-    client mongodb_client;
-    database db = mongodb_client["test"];
-    collection coll = db["mongo_cxx_driver"];
+    client_t mongodb_client;
+    database_t db = mongodb_client["test"];
+    collection_t coll = db["mongo_cxx_driver"];
     coll.drop();
 
     SECTION("insert and read single document", "[collection]") {
@@ -107,7 +107,7 @@ TEST_CASE("CRUD functionality", "[driver::collection]") {
         bson::builder::document update_doc;
         update_doc << "$set" << open_doc << "changed" << true << close_doc;
 
-        options::update options;
+        options::update_t options;
         options.upsert(true);
 
         coll.update_one(b1, update_doc, options);
@@ -129,7 +129,7 @@ TEST_CASE("CRUD functionality", "[driver::collection]") {
         bson::builder::document update_doc;
         update_doc << "$set" << open_doc << "changed" << true << close_doc;
 
-        options::update options;
+        options::update_t options;
         options.upsert(true);
 
         coll.update_one(b1, update_doc, options);
@@ -284,8 +284,8 @@ TEST_CASE("CRUD functionality", "[driver::collection]") {
         }
 
         SECTION("with return replacement returns new") {
-            options::find_one_and_replace options;
-            options.return_document(options::return_document::k_after);
+            options::find_one_and_replace_t options;
+            options.return_document(options::return_document_t::k_after);
             auto doc = coll.find_one_and_replace(criteria, replacement, options);
 
             REQUIRE(doc->view()["x"].get_int32() == 2);
@@ -327,8 +327,8 @@ TEST_CASE("CRUD functionality", "[driver::collection]") {
         }
 
         SECTION("with return update returns new") {
-            options::find_one_and_update options;
-            options.return_document(options::return_document::k_after);
+            options::find_one_and_update_t options;
+            options.return_document(options::return_document_t::k_after);
             auto doc = coll.find_one_and_update(criteria, update, options);
 
             REQUIRE(doc);
@@ -381,7 +381,7 @@ TEST_CASE("CRUD functionality", "[driver::collection]") {
         coll.insert_one(b2);
         coll.insert_one(b2);
 
-        pipeline p;
+        pipeline_t p;
         p.match(b1);
 
         auto results = coll.aggregate(p);

@@ -25,9 +25,9 @@ TEST_CASE("delete", "[delete][result]") {
     bson::builder::document build;
     build << "_id" << bson::oid{bson::oid::init_tag} << "nRemoved" << bson::types::b_int64{1};
 
-    result::bulk_write b(bson::document::value(build.view()));
+    result::bulk_write_t b(bson::document::value(build.view()));
 
-    result::delete_result delete_result(std::move(b));
+    result::delete_t delete_result(std::move(b));
 
     SECTION("returns correct removed count") {
         std::cout << build.view();

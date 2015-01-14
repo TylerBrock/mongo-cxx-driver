@@ -26,7 +26,7 @@ TEST_CASE("A database", "[database][base]") {
     const std::string database_name("database");
     MOCK_CLIENT
     MOCK_DATABASE
-    client mongo_client;
+    client_t mongo_client;
 
     SECTION("is created by a client") {
         bool called = false;
@@ -36,7 +36,7 @@ TEST_CASE("A database", "[database][base]") {
             return nullptr;
         });
 
-        database obtained_database = mongo_client[database_name];
+        database_t obtained_database = mongo_client[database_name];
         REQUIRE(called);
         REQUIRE(obtained_database.name() == database_name);
     }
@@ -46,7 +46,7 @@ TEST_CASE("A database", "[database][base]") {
         database_destroy->interpose([&](mongoc_database_t* client) { destroy_called = true; });
 
         {
-            database database = mongo_client["database"];
+            database_t database = mongo_client["database"];
             REQUIRE(!destroy_called);
         }
 
@@ -58,13 +58,13 @@ TEST_CASE("A database", "[database][base]") {
         database_destroy->interpose([&](mongoc_database_t* client) { destroy_called = true; });
 
         {
-            client mongo_client;
-            database a = mongo_client[database_name];
+            client_t mongo_client;
+            database_t a = mongo_client[database_name];
 
-            database b{std::move(a)};
+            database_t b{std::move(a)};
             REQUIRE(!destroy_called);
 
-            database c = std::move(b);
+            database_t c = std::move(b);
             REQUIRE(!destroy_called);
         }
         REQUIRE(destroy_called);
@@ -74,8 +74,8 @@ TEST_CASE("A database", "[database][base]") {
         bool destroy_called = false;
         database_destroy->interpose([&](mongoc_database_t* client) { destroy_called = true; });
 
-        database mongo_database(mongo_client["database"]);
-        read_preference preference{read_mode::k_secondary_preferred};
+        database_t mongo_database(mongo_client["database"]);
+        read_preference_t preference{read_mode_t::k_secondary_preferred};
 
         auto deleter = [](mongoc_read_prefs_t* var) { mongoc_read_prefs_destroy(var); };
         std::unique_ptr<mongoc_read_prefs_t, decltype(deleter)> saved_preference(nullptr, deleter);
@@ -86,7 +86,7 @@ TEST_CASE("A database", "[database][base]") {
                 called = true;
                 saved_preference.reset(mongoc_read_prefs_copy(read_prefs));
                 REQUIRE(mongoc_read_prefs_get_mode(read_prefs) ==
-                        static_cast<mongoc_read_mode_t>(read_mode::k_secondary_preferred));
+                        static_cast<mongoc_read_mode_t>(read_mode_t::k_secondary_preferred));
             });
 
         database_get_preference->interpose([&](const mongoc_database_t* client) {
@@ -96,15 +96,15 @@ TEST_CASE("A database", "[database][base]") {
         mongo_database.read_preference(std::move(preference));
         REQUIRE(called);
 
-        REQUIRE(read_mode::k_secondary_preferred == mongo_database.read_preference().mode());
+        REQUIRE(read_mode_t::k_secondary_preferred == mongo_database.read_preference().mode());
     }
 
     SECTION("has a write concern which may be set and obtained") {
         bool destroy_called = false;
         database_destroy->interpose([&](mongoc_database_t* client) { destroy_called = true; });
 
-        database mongo_database(mongo_client[database_name]);
-        write_concern concern;
+        database_t mongo_database(mongo_client[database_name]);
+        write_concern_t concern;
         concern.majority(std::chrono::milliseconds(100));
 
         mongoc_write_concern_t* underlying_wc;
@@ -143,8 +143,8 @@ TEST_CASE("A database", "[database][base]") {
     SECTION("may create a collection") {
         MOCK_COLLECTION
         const std::string collection_name("collection");
-        database database = mongo_client[database_name];
-        collection obtained_collection = database[collection_name];
+        database_t database = mongo_client[database_name];
+        collection_t obtained_collection = database[collection_name];
         REQUIRE(obtained_collection.name() == collection_name);
     }
 }

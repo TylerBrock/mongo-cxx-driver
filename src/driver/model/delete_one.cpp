@@ -18,9 +18,9 @@ namespace mongo {
 namespace driver {
 namespace model {
 
-delete_one::delete_one(bson::document::view filter) : _filter(std::move(filter)) {}
+delete_one_t::delete_one_t(bson::document::view filter) : _filter(std::move(filter)) {}
 
-const bson::document::view& delete_one::filter() const { return _filter; }
+const bson::document::view& delete_one_t::filter() const { return _filter; }
 
 }  // namespace model
 }  // namespace driver

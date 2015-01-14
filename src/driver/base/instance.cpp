@@ -25,7 +25,7 @@ void log_handler(mongoc_log_level_t, const char *, const char *, void *) {}
 namespace mongo {
 namespace driver {
 
-class instance::impl {
+class instance_t::impl {
    public:
     impl() {
         mongoc_init();
@@ -35,11 +35,11 @@ class instance::impl {
     ~impl() { mongoc_cleanup(); }
 };
 
-instance::instance() : _impl(stdx::make_unique<impl>()) {}
+instance_t::instance_t() : _impl(stdx::make_unique<impl>()) {}
 
-instance::instance(instance &&) noexcept = default;
-instance &instance::operator=(instance &&) noexcept = default;
-instance::~instance() = default;
+instance_t::instance_t(instance_t &&) noexcept = default;
+instance_t &instance_t::operator=(instance_t &&) noexcept = default;
+instance_t::~instance_t() = default;
 
 }  // namespace driver
 }  // namespace mongo

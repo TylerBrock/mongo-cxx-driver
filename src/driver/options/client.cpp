@@ -18,9 +18,9 @@ namespace mongo {
 namespace driver {
 namespace options {
 
-void client::ssl_opts(ssl ssl_opts) { _ssl_opts = ssl_opts; }
+void client_t::ssl_opts(ssl_t ssl_opts) { _ssl_opts = ssl_opts; }
 
-const optional<ssl>& client::ssl_opts() const { return _ssl_opts; }
+const optional<ssl_t>& client_t::ssl_opts() const { return _ssl_opts; }
 
 }  // namespace options
 }  // namespace driver

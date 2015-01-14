@@ -26,9 +26,9 @@ TEST_CASE("insert_one", "[insert_one][result]") {
 
     bson::document::element g_oid{};
 
-    result::bulk_write b(bson::document::value(build.view()));
+    result::bulk_write_t b(bson::document::value(build.view()));
 
-    result::insert_one insert_one(std::move(b), g_oid);
+    result::insert_one_t insert_one(std::move(b), g_oid);
 
     SECTION("returns correct response") {
         REQUIRE(insert_one.inserted_id() == g_oid);

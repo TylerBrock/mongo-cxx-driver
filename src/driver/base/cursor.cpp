@@ -26,31 +26,31 @@
 namespace mongo {
 namespace driver {
 
-cursor::cursor(void* cursor_ptr)
-    : _impl(stdx::make_unique<impl>(static_cast<mongoc_cursor_t*>(cursor_ptr)))
+cursor_t::cursor_t(void* cursor_t_ptr)
+    : _impl(stdx::make_unique<impl>(static_cast<mongoc_cursor_t*>(cursor_t_ptr)))
 {}
 
-cursor::cursor(cursor&&) noexcept = default;
-cursor& cursor::operator=(cursor&&) noexcept = default;
+cursor_t::cursor_t(cursor_t&&) noexcept = default;
+cursor_t& cursor_t::operator=(cursor_t&&) noexcept = default;
 
-cursor::~cursor() = default;
+cursor_t::~cursor_t() = default;
 
-void cursor::iterator::operator++(int) {
+void cursor_t::iterator::operator++(int) {
     operator++();
 }
 
-cursor::iterator& cursor::iterator::operator++() {
+cursor_t::iterator& cursor_t::iterator::operator++() {
     const bson_t* out;
-    if (libmongoc::cursor_next(_cursor->_impl->cursor_t, &out)) {
+    if (libmongoc::cursor_next(_cursor_t->_impl->cursor_t, &out)) {
         _doc = bson::document::view(bson_get_data(out), out->len);
     } else {
-        _cursor = nullptr;
+        _cursor_t = nullptr;
     }
 
     return *this;
 }
 
-cursor::iterator cursor::begin() {
+cursor_t::iterator cursor_t::begin() {
     // Maybe this should be an exception somewhere?
     if (!_impl->cursor_t) {
         return end();
@@ -58,29 +58,29 @@ cursor::iterator cursor::begin() {
     return iterator(this);
 }
 
-cursor::iterator cursor::end() {
+cursor_t::iterator cursor_t::end() {
     return iterator(nullptr);
 }
 
-cursor::iterator::iterator(cursor* cursor) : _cursor(cursor)
+cursor_t::iterator::iterator(cursor_t* cursor_t) : _cursor_t(cursor_t)
 {
-    if (cursor) operator++();
+    if (cursor_t) operator++();
 }
 
-const bson::document::view& cursor::iterator::operator*() const {
+const bson::document::view& cursor_t::iterator::operator*() const {
     return _doc;
 }
 
-const bson::document::view* cursor::iterator::operator->() const {
+const bson::document::view* cursor_t::iterator::operator->() const {
     return &_doc;
 }
 
-bool operator==(const cursor::iterator& lhs, const cursor::iterator& rhs) {
-    if (lhs._cursor == rhs._cursor) return true;
+bool operator==(const cursor_t::iterator& lhs, const cursor_t::iterator& rhs) {
+    if (lhs._cursor_t == rhs._cursor_t) return true;
     return &lhs == &rhs;
 }
 
-bool operator!=(const cursor::iterator& lhs, const cursor::iterator& rhs) {
+bool operator!=(const cursor_t::iterator& lhs, const cursor_t::iterator& rhs) {
     return !(lhs == rhs);
 }
 
