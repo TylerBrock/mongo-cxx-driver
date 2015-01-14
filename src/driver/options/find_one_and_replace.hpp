@@ -26,7 +26,7 @@ namespace mongo {
 namespace driver {
 namespace options {
 
-class LIBMONGOCXX_EXPORT find_one_and_replace {
+class LIBMONGOCXX_EXPORT find_one_and_replace_t {
 
    public:
     void max_time_ms(std::int64_t max_time_ms);
@@ -35,8 +35,8 @@ class LIBMONGOCXX_EXPORT find_one_and_replace {
     void projection(bson::document::view projection);
     const optional<bson::document::view>& projection() const;
 
-    void return_document(return_document return_document);
-    const optional<enum return_document>& return_document() const;
+    void return_document(return_document_t return_document);
+    const optional<enum return_document_t>& return_document() const;
 
     void sort(bson::document::view ordering);
     const optional<bson::document::view>& sort() const;
@@ -47,11 +47,11 @@ class LIBMONGOCXX_EXPORT find_one_and_replace {
    private:
     optional<std::int64_t> _max_time_ms;
     optional<bson::document::view> _projection;
-    optional<enum return_document> _return_document;
+    optional<return_document_t> _return_document;
     optional<bson::document::view> _ordering;
     optional<bool> _upsert;
 
-}; // class find_one_and_replace
+}; // class find_one_and_replace_t
 
 }  // namespace options
 }  // namespace driver

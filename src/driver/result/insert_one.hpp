@@ -23,20 +23,20 @@ namespace mongo {
 namespace driver {
 namespace result {
 
-class LIBMONGOCXX_EXPORT insert_one {
+class LIBMONGOCXX_EXPORT insert_one_t {
 
    public:
-    insert_one(result::bulk_write result, bson::document::element generated_id);
+    insert_one_t(result::bulk_write_t result, bson::document::element generated_id);
 
-    const result::bulk_write& result() const;
+    const result::bulk_write_t& result() const;
 
     bson::document::element inserted_id() const;
 
    private:
-    result::bulk_write _result;
+    result::bulk_write_t _result;
     bson::document::element _generated_id;
 
-}; // class insert_one
+}; // class insert_one_t
 
 }  // namespace result
 }  // namespace driver

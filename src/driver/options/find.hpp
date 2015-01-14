@@ -26,7 +26,7 @@ namespace mongo {
 namespace driver {
 namespace options {
 
-class LIBMONGOCXX_EXPORT find {
+class LIBMONGOCXX_EXPORT find_t {
 
    public:
     enum class cursor_type: std::uint8_t;
@@ -61,8 +61,8 @@ class LIBMONGOCXX_EXPORT find {
     void projection(bson::document::view projection);
     const optional<bson::document::view>& projection() const;
 
-    void read_preference(class read_preference rp);
-    const optional<class read_preference>& read_preference() const;
+    void read_preference(read_preference_t rp);
+    const optional<read_preference_t>& read_preference() const;
 
     void skip(std::int32_t skip);
     const optional<std::int32_t>& skip() const;
@@ -81,11 +81,11 @@ class LIBMONGOCXX_EXPORT find {
     optional<bool> _no_cursor_timeout;
     optional<bool> _oplog_replay;
     optional<bson::document::view> _projection;
-    optional<class read_preference> _read_preference;
+    optional<read_preference_t> _read_preference;
     optional<std::int32_t> _skip;
     optional<bson::document::view> _ordering;
 
-}; // class find
+}; // class find_t
 
 }  // namespace options
 }  // namespace driver

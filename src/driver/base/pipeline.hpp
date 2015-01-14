@@ -25,35 +25,35 @@
 namespace mongo {
 namespace driver {
 
-class collection;
+class collection_t;
 
-class LIBMONGOCXX_EXPORT pipeline {
+class LIBMONGOCXX_EXPORT pipeline_t {
 
    public:
-    pipeline();
+    pipeline_t();
 
-    pipeline(pipeline&& other) noexcept;
-    pipeline& operator=(pipeline&& rhs) noexcept;
+    pipeline_t(pipeline_t&& other) noexcept;
+    pipeline_t& operator=(pipeline_t&& rhs) noexcept;
 
-    ~pipeline();
+    ~pipeline_t();
 
-    pipeline& group(bson::document::view group);
-    pipeline& limit(std::int32_t limit);
-    pipeline& match(bson::document::view criteria);
-    pipeline& out(std::string collection_name);
-    pipeline& project(bson::document::view projection);
-    pipeline& redact(bson::document::view restrictions);
-    pipeline& skip(std::int32_t skip);
-    pipeline& sort(bson::document::view sort);
-    pipeline& unwind(std::string field_name);
+    pipeline_t& group(bson::document::view group);
+    pipeline_t& limit(std::int32_t limit);
+    pipeline_t& match(bson::document::view criteria);
+    pipeline_t& out(std::string collection_name);
+    pipeline_t& project(bson::document::view projection);
+    pipeline_t& redact(bson::document::view restrictions);
+    pipeline_t& skip(std::int32_t skip);
+    pipeline_t& sort(bson::document::view sort);
+    pipeline_t& unwind(std::string field_name);
 
    private:
-    friend class collection;
+    friend collection_t;
 
     class impl;
     std::unique_ptr<impl> _impl;
 
-}; // class pipeline
+}; // class pipeline_t
 
 }  // namespace driver
 }  // namespace mongo

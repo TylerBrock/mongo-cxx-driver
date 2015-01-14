@@ -25,10 +25,10 @@ namespace mongo {
 namespace driver {
 namespace result {
 
-class LIBMONGOCXX_EXPORT bulk_write {
+class LIBMONGOCXX_EXPORT bulk_write_t {
 
    public:
-    explicit bulk_write(bson::document::value raw_response);
+    explicit bulk_write_t(bson::document::value raw_response);
 
     bson::document::view view() const;
 
@@ -44,7 +44,7 @@ class LIBMONGOCXX_EXPORT bulk_write {
    private:
     bson::document::value _response;
 
-}; // class bulk_write
+}; // class bulk_write_t
 
 }  // namespace result
 }  // namespace driver

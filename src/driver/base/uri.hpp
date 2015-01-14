@@ -27,9 +27,9 @@
 namespace mongo {
 namespace driver {
 
-class uri {
+class uri_t {
 
-   struct host {
+   struct host_t {
         std::string host;
         std::uint16_t port;
         std::int32_t family;
@@ -41,18 +41,18 @@ class uri {
 
     // TODO: document the default is localhost:27017...
     // TODO: this should really take a stringview (polyfilled)?
-    uri(const std::string& uri_string = kDefaultURI);
+    uri_t(const std::string& uri_string = kDefaultURI);
 
-    uri(uri&& other) noexcept;
-    uri& operator=(uri&& rhs) noexcept;
+    uri_t(uri_t&& other) noexcept;
+    uri_t& operator=(uri_t&& rhs) noexcept;
 
-    ~uri();
+    ~uri_t();
 
     // TODO: return const char* instead or stringview
     // TODO: harmonize with C library (options, credentials, etc...)
     std::string auth_mechanism() const;
     std::string auth_source() const;
-    std::vector<host> hosts() const;
+    std::vector<host_t> hosts() const;
     std::string database() const;
     bson::document::view options() const;
     std::string password() const;
@@ -64,12 +64,12 @@ class uri {
     class write_concern write_concern() const;
 
    private:
-    friend class client;
+    friend client_t;
 
     class impl;
     std::unique_ptr<impl> _impl;
 
-}; // class uri
+}; // class uri_t
 
 }  // namespace driver
 }  // namespace mongo

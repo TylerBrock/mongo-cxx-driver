@@ -23,15 +23,15 @@ namespace mongo {
 namespace driver {
 namespace model {
 
-class LIBMONGOCXX_EXPORT update_many {
+class LIBMONGOCXX_EXPORT update_many_t {
 
    public:
-    update_many(bson::document::view filter, bson::document::view update);
+    update_many_t(bson::document::view filter, bson::document::view update);
 
     const bson::document::view& filter() const;
     const bson::document::view& update() const;
 
-    update_many& upsert(bool upsert);
+    update_many_t& upsert(bool upsert);
     const optional<bool>& upsert() const;
 
    private:
@@ -40,7 +40,7 @@ class LIBMONGOCXX_EXPORT update_many {
 
     optional<bool> _upsert;
 
-};
+}; // class update_many_t
 
 }  // namespace model
 }  // namespace driver

@@ -30,7 +30,7 @@ namespace options {
 // TODO: take hint as a std::string parameter in addition to bson::document::view
 // TODO: figure out hint (make a new type or use bson::element?)
 
-class LIBMONGOCXX_EXPORT count {
+class LIBMONGOCXX_EXPORT count_t {
 
    public:
     void hint(bson::document::view hint);
@@ -45,17 +45,17 @@ class LIBMONGOCXX_EXPORT count {
     void skip(std::int64_t skip);
     const optional<std::int64_t>& skip() const;
 
-    void read_preference(class read_preference rp);
-    const optional<class read_preference>& read_preference() const;
+    void read_preference(read_preference_t rp);
+    const optional<read_preference_t>& read_preference() const;
 
    private:
     optional<bson::document::view> _hint;
     optional<std::int64_t> _limit;
     optional<std::int64_t> _max_time_ms;
     optional<std::int64_t> _skip;
-    optional<class read_preference> _read_preference;
+    optional<read_preference_t> _read_preference;
 
-}; // class count
+}; // class count_t
 
 }  // namespace options
 }  // namespace driver

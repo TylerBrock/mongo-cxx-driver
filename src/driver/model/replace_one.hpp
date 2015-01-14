@@ -23,12 +23,12 @@ namespace mongo {
 namespace driver {
 namespace model {
 
-class LIBMONGOCXX_EXPORT replace_one {
+class LIBMONGOCXX_EXPORT replace_one_t {
 
    public:
-    replace_one(bson::document::view filter, bson::document::view replacement);
+    replace_one_t(bson::document::view filter, bson::document::view replacement);
 
-    replace_one& upsert(bool upsert);
+    replace_one_t& upsert(bool upsert);
 
     const bson::document::view& filter() const;
     const bson::document::view& replacement() const;
@@ -41,7 +41,7 @@ class LIBMONGOCXX_EXPORT replace_one {
 
     optional<bool> _upsert;
 
-};
+}; // class replace_one_t
 
 }  // namespace model
 }  // namespace driver

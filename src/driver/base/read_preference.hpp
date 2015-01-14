@@ -26,12 +26,12 @@
 namespace mongo {
 namespace driver {
 
-class client;
-class collection;
-class database;
+class client_t;
+class collection_t;
+class database_t;
 
 // TODO: move to own file?
-enum class read_mode {
+enum class read_mode_t {
     k_primary,
     k_secondary,
     k_primary_preferred,
@@ -39,38 +39,38 @@ enum class read_mode {
     k_nearest,
 };
 
-class LIBMONGOCXX_EXPORT read_preference {
+class LIBMONGOCXX_EXPORT read_preference_t {
 
    public:
-    explicit read_preference(read_mode rm = read_mode::k_primary);
-    read_preference(read_mode, bson::document::view tags);
+    explicit read_preference_t(read_mode_t rm = read_mode_t::k_primary);
+    read_preference_t(read_mode_t, bson::document::view tags);
 
-    read_preference(const read_preference&);
-    read_preference& operator=(const read_preference&);
+    read_preference_t(const read_preference_t&);
+    read_preference_t& operator=(const read_preference_t&);
 
-    read_preference(read_preference&& other) noexcept;
-    read_preference& operator=(read_preference&& rhs) noexcept;
+    read_preference_t(read_preference_t&& other) noexcept;
+    read_preference_t& operator=(read_preference_t&& rhs) noexcept;
 
-    ~read_preference();
+    ~read_preference_t();
 
-    void mode(read_mode mode);
-    read_mode mode() const;
+    void mode(read_mode_t mode);
+    read_mode_t mode() const;
 
     void tags(bson::document::view tags);
     optional<bson::document::view> tags() const;
 
    private:
-    friend client;
-    friend collection;
-    friend database;
+    friend client_t;
+    friend collection_t;
+    friend database_t;
 
     class impl;
 
-    read_preference(std::unique_ptr<impl>&& implementation);
+    read_preference_t(std::unique_ptr<impl>&& implementation);
 
     std::unique_ptr<impl> _impl;
 
-}; // class read_preference
+}; // class read_preference_t
 
 }  // namespace driver
 }  // namespace mongo

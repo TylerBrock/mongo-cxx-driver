@@ -25,17 +25,17 @@ namespace mongo {
 namespace driver {
 namespace options {
 
-// NOTE: client options interface still evolving
-class LIBMONGOCXX_EXPORT client {
+// NOTE: client_t options interface still evolving
+class LIBMONGOCXX_EXPORT client_t {
 
    public:
-    void ssl_opts(ssl ssl_opts);
-    const optional<ssl>& ssl_opts() const;
+    void ssl_opts(ssl_t ssl_opts);
+    const optional<ssl_t>& ssl_opts() const;
 
    private:
-    optional<ssl> _ssl_opts;
+    optional<ssl_t> _ssl_opts;
 
-}; // class client
+}; // class client_t
 
 }  // namespace options
 }  // namespace driver

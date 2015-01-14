@@ -27,24 +27,24 @@
 namespace mongo {
 namespace driver {
 
-class client;
-class collection;
-class database;
-class bulk_write;
+class client_t;
+class collection_t;
+class database_t;
+class bulk_write_t;
 
-class LIBMONGOCXX_EXPORT write_concern {
+class LIBMONGOCXX_EXPORT write_concern_t {
 
    // TODO: this interface still needs work
    public:
-    write_concern();
+    write_concern_t();
 
-    write_concern(const write_concern&);
-    write_concern& operator=(const write_concern&);
+    write_concern_t(const write_concern_t&);
+    write_concern_t& operator=(const write_concern_t&);
 
-    write_concern(write_concern&& other) noexcept;
-    write_concern& operator=(write_concern&& rhs) noexcept;
+    write_concern_t(write_concern_t&& other) noexcept;
+    write_concern_t& operator=(write_concern_t&& rhs) noexcept;
 
-    ~write_concern();
+    ~write_concern_t();
 
     void fsync(bool fsync);
     void journal(bool journal);
@@ -61,18 +61,18 @@ class LIBMONGOCXX_EXPORT write_concern {
     std::chrono::milliseconds timeout() const;
 
    private:
-    friend client;
-    friend collection;
-    friend database;
-    friend bulk_write;
+    friend client_t;
+    friend collection_t;
+    friend database_t;
+    friend bulk_write_t;
 
     class impl;
 
-    write_concern(std::unique_ptr<impl>&& implementation);
+    write_concern_t(std::unique_ptr<impl>&& implementation);
 
     std::unique_ptr<impl> _impl;
 
-}; // class write_concern
+}; // class write_concern_t
 
 }  // namespace driver
 }  // namespace mongo

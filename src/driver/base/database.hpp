@@ -28,36 +28,36 @@ namespace driver {
 
 class client;
 
-/// The database class serves as a representation of a MongoDB database. It acts as a gateway
-/// for accessing collections that are contained within the particular database that an instance
+/// The database_t class serves as a representation of a MongoDB database_t. It acts as a gateway
+/// for accessing collections that are contained within the particular database_t that an instance
 /// of the class represents. It inherits all of its default settings from the client that calls
 /// it's constructor.
-class LIBMONGOCXX_EXPORT database {
+class LIBMONGOCXX_EXPORT database_t {
 
-    // TODO: iterable for collections in the database
+    // TODO: iterable for collections in the database_t
     // TODO: make copyable when c-driver supports this
     // TODO: add auth functions (add_user, remove_all_users, remove_user)
    public:
-    database(database&& other) noexcept;
-    database& operator=(database&& rhs) noexcept;
+    database_t(database_t&& other) noexcept;
+    database_t& operator=(database_t&& rhs) noexcept;
 
-    ~database();
+    ~database_t();
 
     bson::document::value command(bson::document::view command);
 
-    class collection create_collection(const std::string& name, bson::document::view options);
+    collection_t create_collection(const std::string& name, bson::document::view options);
 
     void drop();
 
     bool has_collection(const std::string& name);
 
-    cursor list_collections();
+    cursor_t list_collections();
 
     const std::string& name() const;
 
     // TODO: move this next to write concern
-    void read_preference(class read_preference rp);
-    class read_preference read_preference() const;
+    void read_preference(read_preference_t rp);
+    read_preference_t read_preference() const;
 
     // TODO: should this be called move?
     void rename(
@@ -67,24 +67,24 @@ class LIBMONGOCXX_EXPORT database {
 
     bson::document::value stats();
 
-    void write_concern(class write_concern wc);
-    class write_concern write_concern() const;
+    void write_concern(write_concern_t wc);
+    write_concern_t write_concern() const;
 
-    class collection collection(const std::string& name) const;
-    inline class collection operator[](const std::string& name) const;
+    collection_t collection(const std::string& name) const;
+    inline collection_t operator[](const std::string& name) const;
 
    private:
-    friend class client;
-    friend class collection;
+    friend client_t;
+    friend collection_t;
 
-    database(const class client& client, const std::string& name);
+    database_t(const client_t& client, const std::string& name);
 
     class impl;
     std::unique_ptr<impl> _impl;
 
-}; // class database
+}; // class database_t
 
-inline collection database::operator[](const std::string& name) const {
+inline collection_t database_t::operator[](const std::string& name) const {
     return collection(name);
 }
 

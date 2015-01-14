@@ -25,16 +25,16 @@ namespace mongo {
 namespace driver {
 namespace options {
 
-class LIBMONGOCXX_EXPORT delete_options {
+class LIBMONGOCXX_EXPORT delete_t {
 
    public:
-    void write_concern(class write_concern wc);
-    const optional<class write_concern>& write_concern() const;
+    void write_concern(write_concern_t wc);
+    const optional<write_concern_t>& write_concern() const;
 
    private:
-    optional<class write_concern> _write_concern;
+    optional<write_concern_t> _write_concern;
 
-}; // class delete_options
+}; // class delete_t
 
 }  // namespace options
 }  // namespace driver

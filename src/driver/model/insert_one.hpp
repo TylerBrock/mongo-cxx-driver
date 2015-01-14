@@ -22,10 +22,10 @@ namespace mongo {
 namespace driver {
 namespace model {
 
-class LIBMONGOCXX_EXPORT insert_one {
+class LIBMONGOCXX_EXPORT insert_one_t {
 
    public:
-    insert_one(bson::document::view document);
+    insert_one_t(bson::document::view document);
 
     const bson::document::view& document() const;
 
@@ -33,7 +33,7 @@ class LIBMONGOCXX_EXPORT insert_one {
     // TODO: should this be a value?
     bson::document::view _document;
 
-};
+}; // class insert_one_t
 
 }  // namespace model
 }  // namespace driver

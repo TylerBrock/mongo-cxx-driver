@@ -26,7 +26,7 @@ namespace mongo {
 namespace driver {
 namespace options {
 
-class LIBMONGOCXX_EXPORT aggregate {
+class LIBMONGOCXX_EXPORT aggregate_t {
 
    public:
     void allow_disk_use(bool allow_disk_use);
@@ -41,8 +41,8 @@ class LIBMONGOCXX_EXPORT aggregate {
     void use_cursor(bool use_cursor);
     const optional<bool>& use_cursor() const;
 
-    void read_preference(class read_preference read_preference);
-    const optional<class read_preference>& read_preference() const;
+    void read_preference(read_preference_t read_preference);
+    const optional<read_preference_t>& read_preference() const;
 
    private:
     optional<bool> _allow_disk_use;
@@ -50,9 +50,9 @@ class LIBMONGOCXX_EXPORT aggregate {
     optional<std::int64_t> _max_time_ms;
     // NOTE: It's important to be have this bool be optional as the default changed.
     optional<bool> _use_cursor;
-    optional<class read_preference> _read_preference;
+    optional<read_preference_t> _read_preference;
 
-}; // class aggregate
+}; // class aggregate_t
 
 }  // namespace options
 }  // namespace driver

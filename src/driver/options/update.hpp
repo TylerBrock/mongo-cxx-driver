@@ -25,20 +25,20 @@ namespace mongo {
 namespace driver {
 namespace options {
 
-class LIBMONGOCXX_EXPORT update {
+class LIBMONGOCXX_EXPORT update_t {
 
    public:
     void upsert(bool upsert);
     const optional<bool>& upsert() const;
 
-    void write_concern(class write_concern wc);
-    const optional<class write_concern>& write_concern() const;
+    void write_concern(write_concern_t wc);
+    const optional<write_concern_t>& write_concern() const;
 
    private:
     optional<bool> _upsert;
-    optional<class write_concern> _write_concern;
+    optional<write_concern_t> _write_concern;
 
-}; // class update
+}; // class update_t
 
 }  // namespace options
 }  // namespace driver

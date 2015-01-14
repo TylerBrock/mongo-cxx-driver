@@ -26,7 +26,7 @@ namespace mongo {
 namespace driver {
 namespace options {
 
-class LIBMONGOCXX_EXPORT find_one_and_delete {
+class LIBMONGOCXX_EXPORT find_one_and_delete_t {
 
    public:
     void max_time_ms(std::int64_t max_time_ms);
@@ -43,7 +43,7 @@ class LIBMONGOCXX_EXPORT find_one_and_delete {
     optional<bson::document::view> _projection;
     optional<bson::document::view> _ordering;
 
-}; // class find_one_and_delete
+}; // class find_one_and_delete_t
 
 }  // namespace options
 }  // namespace driver

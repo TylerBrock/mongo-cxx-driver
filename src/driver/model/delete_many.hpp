@@ -22,17 +22,17 @@ namespace mongo {
 namespace driver {
 namespace model {
 
-class LIBMONGOCXX_EXPORT delete_many {
+class LIBMONGOCXX_EXPORT delete_many_t {
 
    public:
-    explicit delete_many(bson::document::view filter);
+    explicit delete_many_t(bson::document::view filter);
 
     const bson::document::view& filter() const;
 
    private:
     bson::document::view _filter;
 
-};
+}; // class delete_many_t
 
 }  // namespace model
 }  // namespace driver

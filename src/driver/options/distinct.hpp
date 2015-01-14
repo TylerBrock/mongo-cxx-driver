@@ -27,20 +27,20 @@ namespace mongo {
 namespace driver {
 namespace options {
 
-class LIBMONGOCXX_EXPORT distinct {
+class LIBMONGOCXX_EXPORT distinct_t {
 
    public:
     void max_time_ms(std::int64_t max_time_ms);
     const optional<std::int64_t>& max_time_ms() const;
 
-    void read_preference(class read_preference rp);
-    const optional<class read_preference>& read_preference() const;
+    void read_preference(read_preference_t rp);
+    const optional<read_preference_t>& read_preference() const;
 
    private:
     optional<std::int64_t> _max_time_ms;
-    optional<class read_preference> _read_preference;
+    optional<read_preference_t> _read_preference;
 
-}; // class distinct
+}; // class distinct_t
 
 }  // namespace options
 }  // namespace driver

@@ -19,7 +19,7 @@
 namespace mongo {
 namespace driver {
 
-enum class write_type {
+enum class write_type_t {
 
     k_insert_one,
     k_delete_one,
@@ -29,7 +29,7 @@ enum class write_type {
     k_replace_one,
     k_uninitialized,
 
-}; // enum class write_type
+}; // enum class write_type_t
 
 }  // namespace driver
 }  // namespace mongo

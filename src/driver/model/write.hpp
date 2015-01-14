@@ -31,47 +31,48 @@ namespace mongo {
 namespace driver {
 namespace model {
 
-class LIBMONGOCXX_EXPORT write {
+class LIBMONGOCXX_EXPORT write_t {
 
    public:
-    write(insert_one value);
-    write(update_one value);
-    write(update_many value);
-    write(delete_one value);
-    write(delete_many value);
-    write(replace_one value);
+    write_t(insert_one_t value);
+    write_t(update_one_t value);
+    write_t(update_many_t value);
+    write_t(delete_one_t value);
+    write_t(delete_many_t value);
+    write_t(replace_one_t value);
 
-    write(write&& rhs);
-    write& operator=(write&& rhs);
+    write_t(write_t&& rhs);
+    write_t& operator=(write_t&& rhs);
 
-    write(const write& rhs) = delete;
-    write& operator=(const write& rhs) = delete;
+    write_t(const write_t& rhs) = delete;
+    write_t& operator=(const write_t& rhs) = delete;
 
-    ~write();
+    ~write_t();
 
-    write_type type() const;
+    write_type_t type() const;
 
-    const insert_one& get_insert_one() const;
-    const update_one& get_update_one() const;
-    const update_many& get_update_many() const;
-    const delete_one& get_delete_one() const;
-    const delete_many& get_delete_many() const;
-    const replace_one& get_replace_one() const;
+    const insert_one_t& get_insert_one() const;
+    const update_one_t& get_update_one() const;
+    const update_many_t& get_update_many() const;
+    const delete_one_t& get_delete_one() const;
+    const delete_many_t& get_delete_many() const;
+    const replace_one_t& get_replace_one() const;
 
    private:
     void destroy_member();
 
-    write_type _type;
+    write_type_t _type;
 
     union {
-        insert_one _insert_one;
-        update_one _update_one;
-        update_many _update_many;
-        delete_one _delete_one;
-        delete_many _delete_many;
-        replace_one _replace_one;
+        insert_one_t _insert_one;
+        update_one_t _update_one;
+        update_many_t _update_many;
+        delete_one_t _delete_one;
+        delete_many_t _delete_many;
+        replace_one_t _replace_one;
     };
-};
+
+}; // class write_t
 
 }  // namespace model
 }  // namespace driver

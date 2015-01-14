@@ -21,10 +21,10 @@ namespace driver {
 namespace options {
 
 // TODO: where is my home?
-enum class return_document {
+enum class return_document_t {
     k_before,
     k_after,
-};
+}; // class return_document_t
 
 }  // namespace options
 }  // namespace driver

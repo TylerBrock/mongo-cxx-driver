@@ -26,12 +26,12 @@ namespace mongo {
 namespace driver {
 namespace result {
 
-class LIBMONGOCXX_EXPORT update {
+class LIBMONGOCXX_EXPORT update_t {
 
    public:
-    explicit update(result::bulk_write result);
+    explicit update_t(result::bulk_write_t result);
 
-    const result::bulk_write& result() const;
+    const result::bulk_write_t& result() const;
 
     std::int64_t matched_count() const;
     std::int64_t modified_count() const;
@@ -39,9 +39,9 @@ class LIBMONGOCXX_EXPORT update {
     optional <bson::document::element> upserted_id() const;
 
    private:
-    result::bulk_write _result;
+    result::bulk_write_t _result;
 
-}; // class update
+}; // class update_t
 
 }  // namespace result
 }  // namespace driver

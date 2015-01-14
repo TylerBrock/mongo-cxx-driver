@@ -25,18 +25,18 @@ namespace mongo {
 namespace driver {
 namespace result {
 
-class LIBMONGOCXX_EXPORT delete_result {
+class LIBMONGOCXX_EXPORT delete_t {
 
    public:
     // TODO: indicate that making the constructor public is for testing only in documentation
-    explicit delete_result(result::bulk_write result);
+    explicit delete_t(result::bulk_write_t result);
 
-    const result::bulk_write& result() const;
+    const result::bulk_write_t& result() const;
 
     std::int64_t removed_count() const;
 
    private:
-    result::bulk_write _result;
+    result::bulk_write_t _result;
 
 }; // class delete_result
 

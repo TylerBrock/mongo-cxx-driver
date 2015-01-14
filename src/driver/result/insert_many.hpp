@@ -26,12 +26,12 @@ namespace mongo {
 namespace driver {
 namespace result {
 
-class LIBMONGOCXX_EXPORT insert_many {
+class LIBMONGOCXX_EXPORT insert_many_t {
 
    public:
     // TODO: public alias the map
-    insert_many(
-        result::bulk_write result,
+    insert_many_t(
+        result::bulk_write_t result,
         std::map<std::size_t, bson::document::element> inserted_ids
     );
 
@@ -40,7 +40,7 @@ class LIBMONGOCXX_EXPORT insert_many {
     std::int64_t inserted_count() const;
 
    private:
-    result::bulk_write _result;
+    result::bulk_write_t _result;
     std::map<std::size_t, bson::document::element> _generated_ids;
 
 }; // class insert_many

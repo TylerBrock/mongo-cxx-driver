@@ -26,21 +26,21 @@ namespace mongo {
 namespace driver {
 namespace result {
 
-class LIBMONGOCXX_EXPORT replace_one {
+class LIBMONGOCXX_EXPORT replace_one_t {
 
    public:
-    explicit replace_one(result::bulk_write result);
+    explicit replace_one_t(result::bulk_write_t result);
 
-    const result::bulk_write& result() const;
+    const result::bulk_write_t& result() const;
     std::int64_t matched_count() const;
     std::int64_t modified_count() const;
 
     optional<bson::document::element> upserted_id() const;
 
    private:
-    result::bulk_write _result;
+    result::bulk_write_t _result;
 
-}; // class replace_one
+}; // class replace_one_t
 
 }  // namespace result
 }  // namespace driver

@@ -21,21 +21,21 @@
 namespace mongo {
 namespace driver {
 
-class instance {
+class instance_t {
 
    public:
-    instance();
+    instance_t();
 
-    instance(instance&& other) noexcept;
-    instance& operator=(instance&& rhs) noexcept;
+    instance_t(instance_t&& other) noexcept;
+    instance_t& operator=(instance_t&& rhs) noexcept;
 
-    ~instance();
+    ~instance_t();
 
    private:
     class impl;
     std::unique_ptr<impl> _impl;
 
-}; // class instance
+}; // class instance_t
 
 }  // namespace driver
 }  // namespace mongo

@@ -16,26 +16,27 @@
 
 #include "driver/config/prelude.hpp"
 
+#include "driver/base/write_concern.hpp"
 #include "stdx/optional.hpp"
 
 namespace mongo {
 namespace driver {
 namespace options {
 
-class LIBMONGOCXX_EXPORT bulk_write {
+class LIBMONGOCXX_EXPORT bulk_write_t {
 
    public:
     void ordered(bool ordered);
     const optional<bool>& ordered() const;
 
-    void write_concern(class write_concern wc);
-    const optional<class write_concern>& write_concern() const;
+    void write_concern(write_concern_t wc);
+    const optional<write_concern_t>& write_concern() const;
 
    private:
     optional<bool> _ordered;
-    optional<class write_concern> _write_concern;
+    optional<write_concern_t> _write_concern;
 
-}; // class bulk_write
+}; // class bulk_write_t
 
 }  // namespace options
 }  // namespace driver

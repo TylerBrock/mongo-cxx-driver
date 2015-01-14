@@ -24,7 +24,7 @@ namespace mongo {
 namespace driver {
 namespace options {
 
-class LIBMONGOCXX_EXPORT ssl {
+class LIBMONGOCXX_EXPORT ssl_t {
 
    public:
     void pem_file(std::string pem_file);
@@ -49,7 +49,7 @@ class LIBMONGOCXX_EXPORT ssl {
     optional<std::string> _ca_dir;
     optional<bool> _weak_cert_validation;
 
-}; // class ssl
+}; // class ssl_t
 
 }  // namespace options
 }  // namespace driver

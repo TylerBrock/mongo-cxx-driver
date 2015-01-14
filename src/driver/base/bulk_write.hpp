@@ -25,31 +25,31 @@ namespace driver {
 
 class collection;
 
-class LIBMONGOCXX_EXPORT bulk_write {
+class LIBMONGOCXX_EXPORT bulk_write_t {
 
    public:
-    explicit bulk_write(bool ordered);
+    explicit bulk_write_t(bool ordered);
 
-    bulk_write(bulk_write&& other) noexcept;
-    bulk_write& operator=(bulk_write&& rhs) noexcept;
+    bulk_write_t(bulk_write_t&& other) noexcept;
+    bulk_write_t& operator=(bulk_write_t&& rhs) noexcept;
 
-    ~bulk_write();
+    ~bulk_write_t();
 
-    void append(const model::write& operation);
+    void append(const model::write_t& operation);
 
-    void write_concern(class write_concern wc);
+    void write_concern(write_concern_t wc);
     /*
      * Uncomment and implement when c-driver provides this functionality
      * class write_concern write_concern() const;
      */
 
    private:
-    friend class collection;
+    friend collection_t;
 
     class impl;
     std::unique_ptr<impl> _impl;
 
-}; // class bulk_write
+}; // class bulk_write_t
 
 }  // namespace driver
 }  // namespace mongo

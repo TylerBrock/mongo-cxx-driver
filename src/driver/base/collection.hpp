@@ -48,45 +48,45 @@
 namespace mongo {
 namespace driver {
 
-class client;
-class database;
-class pipeline;
+class client_t;
+class database_t;
+class pipeline_t;
 
 // TODO: make copyable when c-driver supports this
 
-class LIBMONGOCXX_EXPORT collection {
+class LIBMONGOCXX_EXPORT collection_t {
 
    public:
-    collection(collection&& other) noexcept;
-    collection& operator=(collection&& rhs) noexcept;
+    collection_t(collection_t&& other) noexcept;
+    collection_t& operator=(collection_t&& rhs) noexcept;
 
-    ~collection();
+    ~collection_t();
 
-    cursor aggregate(
-        const pipeline& pipeline,
-        const options::aggregate& options = options::aggregate()
+    cursor_t aggregate(
+        const pipeline_t& pipeline,
+        const options::aggregate_t& options = options::aggregate_t()
     );
 
     template<class Container>
-    inline optional<result::bulk_write> bulk_write(
+    inline optional<result::bulk_write_t> bulk_write(
         const Container& requests,
-        const options::bulk_write& options = options::bulk_write()
+        const options::bulk_write_t& options = options::bulk_write_t()
     );
 
     template<class WriteModelIterator>
-    inline optional<result::bulk_write> bulk_write(
+    inline optional<result::bulk_write_t> bulk_write(
         WriteModelIterator begin,
         WriteModelIterator end,
-        const options::bulk_write& options = options::bulk_write()
+        const options::bulk_write_t& options = options::bulk_write_t()
     );
 
-    optional<result::bulk_write> bulk_write(
-        const class bulk_write& bulk_write
+    optional<result::bulk_write_t> bulk_write(
+        const bulk_write_t& bulk_write
     );
 
     std::int64_t count(
         bson::document::view filter,
-        const options::count& options = options::count()
+        const options::count_t& options = options::count_t()
     );
 
     bson::document::value create_index(
@@ -94,125 +94,125 @@ class LIBMONGOCXX_EXPORT collection {
         bson::document::view options
     );
 
-    optional<result::delete_result> delete_one(
+    optional<result::delete_t> delete_one(
         bson::document::view filter,
-        const options::delete_options& options = options::delete_options()
+        const options::delete_t& options = options::delete_t()
     );
 
-    optional<result::delete_result> delete_many(
+    optional<result::delete_t> delete_many(
         bson::document::view filter,
-        const options::delete_options& options = options::delete_options()
+        const options::delete_t& options = options::delete_t()
     );
 
-    cursor distinct(
+    cursor_t distinct(
         const std::string& field_name,
         bson::document::view filter,
-        const options::distinct& options = options::distinct()
+        const options::distinct_t& options = options::distinct_t()
     );
 
     void drop();
 
-    cursor find(
+    cursor_t find(
         bson::document::view filter,
-        const options::find& options = options::find()
+        const options::find_t& options = options::find_t()
     );
 
     optional<bson::document::value> find_one(
         bson::document::view filter,
-        const options::find& options = options::find()
+        const options::find_t& options = options::find_t()
     );
 
     optional<bson::document::value> find_one_and_delete(
         bson::document::view filter,
-        const options::find_one_and_delete& options = options::find_one_and_delete()
+        const options::find_one_and_delete_t& options = options::find_one_and_delete_t()
     );
 
     optional<bson::document::value> find_one_and_update(
         bson::document::view filter,
         bson::document::view update,
-        const options::find_one_and_update& options = options::find_one_and_update()
+        const options::find_one_and_update_t& options = options::find_one_and_update_t()
     );
 
     optional<bson::document::value> find_one_and_replace(
         bson::document::view filter,
         bson::document::view replacement,
-        const options::find_one_and_replace& options = options::find_one_and_replace()
+        const options::find_one_and_replace_t& options = options::find_one_and_replace_t()
     );
 
-    optional<result::insert_one> insert_one(
+    optional<result::insert_one_t> insert_one(
         bson::document::view document,
-        const options::insert& options = options::insert()
+        const options::insert_t& options = options::insert_t()
     );
 
     template<class Container>
-    inline optional<result::insert_many> insert_many(
+    inline optional<result::insert_many_t> insert_many(
         const Container& container,
-        const options::insert& options = options::insert()
+        const options::insert_t& options = options::insert_t()
     );
 
     // TODO: document DocumentViewIterator concept or static assert
     template<class DocumentViewIterator>
-    inline optional<result::insert_many> insert_many(
+    inline optional<result::insert_many_t> insert_many(
         DocumentViewIterator begin,
         DocumentViewIterator end,
-        const options::insert& options = options::insert()
+        const options::insert_t& options = options::insert_t()
     );
 
-    cursor list_indexes() const;
+    cursor_t list_indexes() const;
 
     const std::string& name() const;
 
-    void read_preference(class read_preference rp);
-    class read_preference read_preference() const;
+    void read_preference(read_preference_t rp);
+    read_preference_t read_preference() const;
 
-    optional<result::replace_one> replace_one(
+    optional<result::replace_one_t> replace_one(
         bson::document::view filter,
         bson::document::view replacement,
-        const options::update& options = options::update()
+        const options::update_t& options = options::update_t()
     );
 
-    optional<result::update> update_one(
+    optional<result::update_t> update_one(
         bson::document::view filter,
         bson::document::view update,
-        const options::update& options = options::update()
+        const options::update_t& options = options::update_t()
     );
 
-    optional<result::update> update_many(
+    optional<result::update_t> update_many(
         bson::document::view filter,
         bson::document::view update,
-        const options::update& options = options::update()
+        const options::update_t& options = options::update_t()
     );
 
-    void write_concern(class write_concern wc);
-    class write_concern write_concern() const;
+    void write_concern(write_concern_t wc);
+    write_concern_t write_concern() const;
 
    private:
-    friend class database;
+    friend database_t;
 
-    collection(const database& database, const std::string& collection_name);
+    collection_t(const database_t& database, const std::string& collection_name);
 
     class impl;
     std::unique_ptr<impl> _impl;
 
-}; // class collection
+}; // class collection_t
 
 template<class Container>
-inline optional<result::bulk_write> collection::bulk_write(
+inline optional<result::bulk_write_t> collection_t::bulk_write(
     const Container& requests,
-    const options::bulk_write& options
+    const options::bulk_write_t& options
 ) {
     return bulk_write(requests.begin(), requests.end(), options);
 }
 
 template<class WriteModelIterator>
-inline optional<result::bulk_write> collection::bulk_write(
+inline optional<result::bulk_write_t> collection_t::bulk_write(
     WriteModelIterator begin,
     WriteModelIterator end,
-    const options::bulk_write& options
+    const options::bulk_write_t& options
 ) {
-    class bulk_write writes(options.ordered().value_or(true));
+    class bulk_write_t writes(options.ordered().value_or(true));
 
-    std::for_each(begin, end, [&](const model::write& current){
+    std::for_each(begin, end, [&](const model::write_t& current){
         writes.append(current);
     });
 
@@ -220,20 +220,20 @@ inline optional<result::bulk_write> collection::bulk_write(
 }
 
 template<class Container>
-inline optional<result::insert_many> collection::insert_many(
+inline optional<result::insert_many_t> collection_t::insert_many(
     const Container& container,
-    const options::insert& options
+    const options::insert_t& options
 ) {
     return insert_many(container.begin(), container.end(), options);
 }
 
 template<class DocumentViewIterator>
-inline optional<result::insert_many> collection::insert_many(
+inline optional<result::insert_many_t> collection_t::insert_many(
     DocumentViewIterator begin,
     DocumentViewIterator end,
-    const options::insert& options
+    const options::insert_t& options
 ) {
-    class bulk_write writes(false);
+    class bulk_write_t writes(false);
 
     std::map<std::size_t, bson::document::element> inserted_ids{};
     size_t index = 0;
@@ -244,11 +244,11 @@ inline optional<result::insert_many> collection::insert_many(
             new_document << "_id" << bson::oid(bson::oid::init_tag);
             new_document << bson::builder::helpers::concat{current};
 
-            writes.append(model::insert_one(new_document.view()));
+            writes.append(model::insert_one_t(new_document.view()));
 
             inserted_ids.emplace(index++, new_document.view()["_id"]);
         } else {
-            writes.append(model::insert_one(current));
+            writes.append(model::insert_one_t(current));
 
             inserted_ids.emplace(index++, current["_id"]);
         }
@@ -257,8 +257,8 @@ inline optional<result::insert_many> collection::insert_many(
 
     if (options.write_concern())
         writes.write_concern(*options.write_concern());
-    result::bulk_write res(std::move(bulk_write(writes).value()));
-    optional<result::insert_many> result(result::insert_many(std::move(res), std::move(inserted_ids)));
+    result::bulk_write_t res(std::move(bulk_write(writes).value()));
+    optional<result::insert_many_t> result(result::insert_many_t(std::move(res), std::move(inserted_ids)));
     return result;
 }
 

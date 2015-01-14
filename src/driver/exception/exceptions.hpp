@@ -35,27 +35,27 @@ namespace driver {
 
 class LIBMONGOCXX_EXPORT exception : public std::exception {};
 
-class LIBMONGOCXX_EXPORT operation_exception : public exception {};
+class LIBMONGOCXX_EXPORT operation_exception_t : public exception {};
 
-class LIBMONGOCXX_EXPORT query_exception : public operation_exception {};
+class LIBMONGOCXX_EXPORT query_exception_t : public operation_exception_t {};
 
-class LIBMONGOCXX_EXPORT write_exception : public operation_exception {};
+class LIBMONGOCXX_EXPORT write_exception_t : public operation_exception_t {};
 
-class LIBMONGOCXX_EXPORT duplicate_key_exception : public write_exception {};
+class LIBMONGOCXX_EXPORT bulk_write_exception_t : public write_exception_t {};
 
-class write_concern_error {
+class write_concern_error_t {
   private:
     std::int32_t code;
     bson::document::view details;
     std::string message;
 };
 
-class write_error {
+class write_error_t {
     std::int32_t code;
     std::string message;
 }
 
-class LIBMONGOCXX_EXPORT authentication_exception : public operation_exception {};
+class LIBMONGOCXX_EXPORT authentication_exception : public operation_exception_t {};
 
 }  // namespace driver
 }  // namespace mongo
