@@ -23,7 +23,7 @@
 namespace mongo {
 namespace driver {
 
-class write_concern::impl {
+class write_concern_t::impl {
 
    public:
     impl(mongoc_write_concern_t* write_concern)

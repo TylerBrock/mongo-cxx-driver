@@ -22,7 +22,7 @@
 namespace mongo {
 namespace driver {
 
-class cursor::impl {
+class cursor_t::impl {
 
    public:
     impl(mongoc_cursor_t* cursor)

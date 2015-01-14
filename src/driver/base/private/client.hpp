@@ -25,7 +25,7 @@
 namespace mongo {
 namespace driver {
 
-class client::impl {
+class client_t::impl {
 
    public:
     impl(mongoc_client_t* client) : client_t(client) {}

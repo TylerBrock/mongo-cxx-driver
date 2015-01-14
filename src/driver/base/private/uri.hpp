@@ -21,7 +21,7 @@
 namespace mongo {
 namespace driver {
 
-class uri::impl {
+class uri_t::impl {
    public:
     impl(mongoc_uri_t* uri) : uri_t(uri) {}
     ~impl() { mongoc_uri_destroy(uri_t); }

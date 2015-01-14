@@ -27,10 +27,10 @@
 namespace mongo {
 namespace driver {
 
-class collection::impl {
+class collection_t::impl {
 
    public:
-    impl(mongoc_collection_t* collection, const class database::impl* database, const class client::impl* client, std::string name) :
+    impl(mongoc_collection_t* collection, const database_t::impl* database, const class client_t::impl* client, std::string name) :
         collection_t(collection),
         database_impl(database),
         client_impl(client),
@@ -40,8 +40,8 @@ class collection::impl {
     ~impl() { libmongoc::collection_destroy(collection_t); }
 
     mongoc_collection_t* collection_t;
-    const class database::impl* database_impl;
-    const class client::impl* client_impl;
+    const class database_t::impl* database_impl;
+    const class client_t::impl* client_impl;
     std::string name;
 
 }; // class impl

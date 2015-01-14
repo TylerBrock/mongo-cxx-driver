@@ -23,7 +23,7 @@
 namespace mongo {
 namespace driver {
 
-class read_preference::impl {
+class read_preference_t::impl {
 
    public:
     impl(mongoc_read_prefs_t* read_pref)

@@ -22,7 +22,7 @@
 namespace mongo {
 namespace driver {
 
-class pipeline::impl {
+class pipeline_t::impl {
 
    public:
     bson::builder::single_ctx sink() {
