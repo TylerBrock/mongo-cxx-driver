@@ -14,7 +14,7 @@
 
 #pragma once
 
-#include <mongo/driver/config/prelude.hpp>
+#include <mongo/bson/config/prelude.hpp>
 
 #include <mongo/bson/document/view.hpp>
 #include <mongo/bson/document/value.hpp>

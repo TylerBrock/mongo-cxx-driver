@@ -54,6 +54,18 @@ install (DIRECTORY
         PATTERN "*private*" EXCLUDE
 )
 
+configure_file (
+    ${PROJECT_SOURCE_DIR}/version.hpp.in
+    ${PROJECT_BINARY_DIR}/version.hpp
+)
+
+generate_export_header(bsoncxx
+    BASE_NAME LIBBSONCXX
+    EXPORT_MACRO_NAME LIBBSONCXX_API
+    EXPORT_FILE_NAME export.hpp
+    STATIC_DEFINE LIBBSONCXX_STATIC
+)
+
 add_subdirectory(builder)
 add_subdirectory(document)
 add_subdirectory(stdx)

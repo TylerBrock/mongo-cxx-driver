@@ -12,7 +12,8 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-#include <mongo/bson.h>
+#include <bson.h>
+
 #include <mongo/bson/builder.hpp>
 #include <mongo/bson/util/itoa.hpp>
 #include <mongo/bson/util/stack.hpp>

@@ -63,7 +63,7 @@ configure_file (
 # TODO: MONGOCXX_SHARED_NO_EXPORT -> LIBMONGOCXX_PRIVATE
 # TODO: LIBMONGOCXX_EXPORTS -> LIBMONGOCXX_BUILDING
 # TODO: Need deprecated defines? or do the same?
-generate_export_header (mongocxx
+generate_export_header(mongocxx
     BASE_NAME LIBMONGOCXX
     EXPORT_MACRO_NAME LIBMONGOCXX_API
     EXPORT_FILE_NAME export.hpp
