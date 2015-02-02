@@ -22,7 +22,7 @@
 namespace bson {
 namespace document {
 
-class LIBMONGOCXX_API view_or_value {
+class LIBBSONCXX_API view_or_value {
 
    public:
     view_or_value(bson::document::view view);

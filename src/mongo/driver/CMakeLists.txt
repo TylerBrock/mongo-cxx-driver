@@ -17,8 +17,8 @@ link_directories(${LIBMONGOC_LIBRARY_DIRS})
 
 include_directories(
     ${LIBMONGOC_INCLUDE_DIRS}
-    ${PROJECT_SOURCE_DIR}
-    ${PROJECT_BINARY_DIR}
+    ${CMAKE_SOURCE_DIR}/src
+    ${CMAKE_BINARY_DIR}/src
 )
 
 file (WRITE ${CMAKE_BINARY_DIR}/mongocxx.cpp "")

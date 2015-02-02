@@ -33,7 +33,7 @@ extern close_doc_t close_doc;
 struct close_array_t {};
 extern close_array_t close_array;
 
-struct LIBMONGOCXX_API concat {
+struct LIBBSONCXX_API concat {
     document::view view;
 
     operator document::view() const { return view; }

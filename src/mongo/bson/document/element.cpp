@@ -15,7 +15,7 @@
 #include <cstdlib>
 #include <cstring>
 
-#include <mongo/bson.h>
+#include <bson.h>
 #include <mongo/bson/document/element.hpp>
 #include <mongo/bson/types.hpp>
 #include <mongo/bson/json.hpp>

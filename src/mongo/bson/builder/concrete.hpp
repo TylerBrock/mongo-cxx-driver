@@ -26,7 +26,7 @@
 namespace bson {
 namespace builder {
 
-class LIBMONGOCXX_API concrete {
+class LIBBSONCXX_API concrete {
 
    public:
     class impl;

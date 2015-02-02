@@ -24,7 +24,7 @@
 namespace bson {
 namespace document {
 
-class LIBMONGOCXX_API value {
+class LIBBSONCXX_API value {
 
    public:
     value(const std::uint8_t* b, std::size_t l, void(*)(void*) = std::free);
