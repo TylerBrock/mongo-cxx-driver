@@ -1,4 +1,4 @@
-file (GLOB mongocxx-stdx_headers *.hpp)
-file (GLOB mongocxx-stdx_sources *.cpp)
+file (GLOB BSONCXX-STDX_HEADERS *.hpp)
+file (GLOB BSONCXX-STDX_SOURCES *.cpp)
 
-add_library(mongocxx-stdx STATIC ${mongocxx-stdx_sources})
+add_library(BSONCXX-STDX OBJECT ${BSONCXX-STDX_SOURCES})
