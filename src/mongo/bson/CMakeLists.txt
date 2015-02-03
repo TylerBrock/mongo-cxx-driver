@@ -32,7 +32,7 @@ add_library(bsoncxx SHARED
     $<TARGET_OBJECTS:bsoncxx-util>
 )
 
-set_target_properties (mongocxx PROPERTIES
+set_target_properties (bsoncxx PROPERTIES
     OUTPUT_NAME bsoncxx
     CXX_STANDARD 11
     VERSION ${BSONCXX_VERSION}
