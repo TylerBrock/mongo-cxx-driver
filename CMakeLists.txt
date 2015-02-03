@@ -6,16 +6,15 @@ cmake_minimum_required(VERSION 3.1.0)
 # Enforce the C++ standard
 set (CXX_STANDARD_REQUIRED true)
 
+# Include the required modules
 include(GenerateExportHeader)
 include(InstallRequiredSystemLibraries)
 
+# Ensure we have Package Config
+find_package(PkgConfig)
+
 # Ensure that RPATH is used on OSX
 set(CMAKE_MACOSX_RPATH 1)
-
-
-find_package(PkgConfig)
-pkg_check_modules(LIBMONGOC libmongoc-${LIBMONGOC_REQUIRED_ABI_VERSION})
-
 
 option(BUILD_UNIT_TESTS "Build unit tests")
 
@@ -29,4 +28,3 @@ set(CMAKE_CXX_FLAGS_RELEASE "-O3")
 set(CMAKE_CXX_FLAGS_DEBUG "-ggdb3 -O0")
 
 add_subdirectory(src)
-
