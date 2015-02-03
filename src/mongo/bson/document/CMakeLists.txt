@@ -1,4 +1,4 @@
-file (GLOB BSONCXX-DOCUMENT_HEADERS *.hpp)
-file (GLOB BSONCXX-DOCUMENT_SOURCES *.cpp)
+file (GLOB bsoncxx-document_headers *.hpp)
+file (GLOB bsoncxx-document_sources *.cpp)
 
-add_library(BSONCXX-DOCUMENT OBJECT ${BSONCXX-DOCUMENT_SOURCES})
+add_library(bsoncxx-document OBJECT ${bsoncxx-document_sources})

@@ -1,4 +1,4 @@
-file (GLOB BSONCXX-UTIL_HEADERS *.hpp)
-file (GLOB BSONCXX-UTIL_SOURCES *.cpp)
+file (GLOB bsoncxx-util_headers *.hpp)
+file (GLOB bsoncxx-util_sources *.cpp)
 
-add_library(BSONCXX-UTIL OBJECT ${BSONCXX-UTIL_SOURCES})
+add_library(bsoncxx-util OBJECT ${bsoncxx-util_sources})

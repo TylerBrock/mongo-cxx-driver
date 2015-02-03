@@ -26,10 +26,10 @@ file(GLOB BSONCXX_SOURCES *.cpp)
 
 add_library(bsoncxx SHARED
     ${BSONCXX_SOURCES}
-    $<TARGET_OBJECTS:BSONCXX-BUILDER>
-    $<TARGET_OBJECTS:BSONCXX-DOCUMENT>
-    $<TARGET_OBJECTS:BSONCXX-STDX>
-    $<TARGET_OBJECTS:BSONCXX-UTIL>
+    $<TARGET_OBJECTS:bsoncxx-builder>
+    $<TARGET_OBJECTS:bsoncxx-document>
+    $<TARGET_OBJECTS:bsoncxx-stdx>
+    $<TARGET_OBJECTS:bsoncxx-util>
 )
 
 set_target_properties (mongocxx PROPERTIES
