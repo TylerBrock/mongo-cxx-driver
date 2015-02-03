@@ -23,6 +23,7 @@
 #include <mongo/bson/types.hpp>
 #include <mongo/bson/string_or_literal.hpp>
 
+namespace mongo {
 namespace bson {
 namespace builder {
 
@@ -94,5 +95,6 @@ class LIBBSONCXX_API concrete {
 
 }  // namespace builder
 }  // namespace bson
+}  // namespace mongo
 
 #include <mongo/driver/config/postlude.hpp>

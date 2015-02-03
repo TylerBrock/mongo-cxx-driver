@@ -17,6 +17,7 @@
 #include <mongo/bson/config/prelude.hpp>
 #include <mongo/bson/document.hpp>
 
+namespace mongo {
 namespace bson {
 namespace builder {
 namespace helpers {
@@ -42,5 +43,6 @@ struct LIBBSONCXX_API concat {
 }  // namespace helpers
 }  // namespace builder
 }  // namespace bson
+}  // namespace mongo
 
 #include <mongo/driver/config/postlude.hpp>

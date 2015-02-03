@@ -21,6 +21,7 @@
 
 #include <cstring>
 
+namespace mongo {
 namespace bson {
 namespace builder {
 
@@ -397,5 +398,6 @@ void concrete::clear() {
 
 }  // namespace builder
 }  // namespace bson
+}  // namespace mongo
 
 #include <mongo/driver/config/postlude.hpp>

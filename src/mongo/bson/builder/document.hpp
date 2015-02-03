@@ -20,6 +20,7 @@
 #include <mongo/bson/document.hpp>
 #include <mongo/bson/builder/key_ctx.hpp>
 
+namespace mongo {
 namespace bson {
 namespace builder {
 
@@ -49,5 +50,6 @@ namespace builder {
 
 }  // namespace builder
 }  // namespace bson
+}  // namespace mongo
 
 #include <mongo/driver/config/postlude.hpp>

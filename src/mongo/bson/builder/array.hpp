@@ -19,6 +19,7 @@
 #include <mongo/bson/builder/concrete.hpp>
 #include <mongo/bson/builder/array_ctx.hpp>
 
+namespace mongo {
 namespace bson {
 namespace builder {
 
@@ -48,5 +49,6 @@ namespace builder {
 
 }  // namespace builder
 }  // namespace bson
+}  // namespace mongo
 
 #include <mongo/driver/config/postlude.hpp>

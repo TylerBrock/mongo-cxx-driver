@@ -16,6 +16,7 @@
 
 #include <mongo/bson/config/prelude.hpp>
 
+namespace mongo {
 namespace bson {
 namespace builder {
 
@@ -25,7 +26,8 @@ namespace builder {
         closed_ctx(concrete*) {}
     };
 
-}
+}  // namespace builder
 }  // namespace bson
+}  // namespace mongo
 
 #include <mongo/driver/config/postlude.hpp>
