@@ -21,11 +21,11 @@ include_directories(
     ${CMAKE_BINARY_DIR}/src
 )
 
-file (WRITE ${CMAKE_BINARY_DIR}/mongocxx.cpp "")
-set (MONGO_CXX ${CMAKE_BINARY_DIR}/mongocxx.cpp)
+file(WRITE ${PROJECT_BINARY_DIR}/mongocxx.cpp "")
+set(MONGOCXX_SOURCES ${PROJECT_BINARY_DIR}/mongocxx.cpp)
 
 add_library(mongocxx SHARED
-    ${MONGO_CXX}
+    ${MONGOCXX_SOURCES}
     $<TARGET_OBJECTS:mongocxx-driver-base>
     $<TARGET_OBJECTS:mongocxx-driver-model>
     $<TARGET_OBJECTS:mongocxx-driver-options>

@@ -1,8 +1,8 @@
-#include "mongocxx/driver/client.hpp"
-#include "mongocxx/driver/collection.hpp"
-#include "mongocxx/driver/bulk_write.hpp"
-#include "mongocxx/driver/model/insert_one.hpp"
-#include <mongo/bsoncxx/document/builder.hpp>
+#include "mongo/bson/document/builder.hpp"
+#include "mongo/driver/client.hpp"
+#include "mongo/driver/collection.hpp"
+#include "mongo/driver/bulk_write.hpp"
+#include "mongo/driver/model/insert_one.hpp"
 
 using namespace bson;
 using namespace mongo;
